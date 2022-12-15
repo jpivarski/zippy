@@ -52,11 +52,11 @@ int main(int argc, char** argv) {
   printf("\n");
 
   ZP_RAW result;
-  result = ZP_RegionAllocator_next_free(&region_allocator, region_allocator.first_free);
-  assert(result, 0xffffffff);
-
   result = ZP_RegionAllocator_this_free_size(&region_allocator, region_allocator.first_free);
   assert(result, 0x40);
+
+  result = ZP_RegionAllocator_next_free(&region_allocator, region_allocator.first_free);
+  assert(result, 0xffffffff);
 
   ZP_RAW request_size;
   ZP_RAW round_size;

@@ -1,3 +1,5 @@
+#include <stdio.h>  /* temporary */
+
 #include <zippy/data.h>
 
 ZP_ERROR ZP_RegionAllocator_new(
@@ -14,8 +16,8 @@ ZP_ERROR ZP_RegionAllocator_new(
   region_allocator->arena = arena;
   region_allocator->arena_size = arena_size;
   region_allocator->first_free = 0;
-  *(ZP_RAW*)region_allocator->arena = ZP_END_OF_FREE;
-  *(ZP_RAW*)(region_allocator->arena + sizeof(ZP_RAW)) = arena_size;
+  *(ZP_RAW*)region_allocator->arena = arena_size;
+  *(ZP_RAW*)(region_allocator->arena + sizeof(ZP_RAW)) = ZP_END_OF_FREE;
   return ZP_NOERROR;
 }
 
@@ -25,14 +27,14 @@ bool ZP_RegionAllocator_has_free(
   return region_allocator->first_free != ZP_END_OF_FREE;
 }
 
-ZP_RAW ZP_RegionAllocator_next_free(
+ZP_RAW ZP_RegionAllocator_this_free_size(
   ZP_RegionAllocator_t* region_allocator,
   ZP_RAW at
 ) {
   return *(ZP_RAW*)(region_allocator->arena + at);
 }
 
-ZP_RAW ZP_RegionAllocator_this_free_size(
+ZP_RAW ZP_RegionAllocator_next_free(
   ZP_RegionAllocator_t* region_allocator,
   ZP_RAW at
 ) {
@@ -101,13 +103,13 @@ void ZP_RegionAllocator_copy_data(
   ZP_RAW request_size,
   const char* data
 ) {
-  const ZP_RAW denom = 2 * sizeof(ZP_RAW);
+  const ZP_RAW denom = sizeof(ZP_RAW);
   ZP_RAW quot = request_size / denom;
   ZP_RAW rem = request_size % denom;
   ZP_RAW count = (quot + (rem != 0));
 
   ZP_RAW i;
   for (i = 0;  i < count;  i++) {
-    ((ZP_RAW*)(region_allocator->arena + pointer + i))[i] = ((ZP_RAW*)data)[i];
+    ((ZP_RAW*)(region_allocator->arena + pointer))[i] = ((ZP_RAW*)data)[i];
   }
 }
