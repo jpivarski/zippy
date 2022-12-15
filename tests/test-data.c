@@ -3,42 +3,79 @@
 
 #include <zippy/data.h>
 
-#define handle_error(error) \
-  if (error != ZP_noerr) {  \
-    printf(error);          \
-    return -1;              \
-  }                         \
+#define handle_error(error)   \
+  if (error != ZP_NOERROR) {  \
+    printf(error);            \
+    return -1;                \
+  }                           \
 
-#define assert(obtained, expected)                               \
-  if (obtained != expected) {                                    \
-    printf("expected %p but obtained %p\n", expected, obtained); \
-    return -1;                                                   \
-  }                                                              \
+#define assert(obtained, expected) \
+  if ((obtained) != (expected)) {  \
+    printf("expected %x but obtained %x\n", expected, obtained); \
+    return -1;                     \
+  }                                \
 
-int main(int argc, int** argv) {
-  size_t arena_size = 1024;
+void init(void* arena, size_t arena_size) {
+  ZP_RAW i;
+  for (i = 0;  i < arena_size;  i++) {
+    ((unsigned char*)arena)[i] = 0;
+  }
+}
+
+void view(void* arena, size_t arena_size) {
+  ZP_RAW i;
+  for (i = 0;  i < arena_size;  i++) {
+    unsigned char x = ((char*)arena)[i];
+    if (('A' <= x  &&  x <= 'Z')  ||  ('a' <= x  &&  x <= 'z')) {
+      printf("'%c ", x);
+    }
+    else {
+      printf("%02x ", x);
+    }
+  }
+  printf("\n");
+}
+
+int main(int argc, char** argv) {
+  size_t arena_size = 64;
   void* arena = malloc(arena_size);
+  init(arena, arena_size);
 
-  ZP_ERR error = ZP_noerr;
+  ZP_ERROR error = ZP_NOERROR;
 
-  printf("BEGIN tests\n");
+  printf("BEGIN tests\n\n");
 
   ZP_RegionAllocator_t region_allocator;
   error = ZP_RegionAllocator_new(&region_allocator, arena, arena_size);
   handle_error(error);
+  view(arena, arena_size);
+  printf("\n");
 
-  ZP_PTR result;
-  error = ZP_RegionAllocator_next_free(&region_allocator, &result);
-  handle_error(error);
-  printf("next_free %p\n", result);
+  ZP_RAW result;
+  result = ZP_RegionAllocator_next_free(&region_allocator, region_allocator.first_free);
   assert(result, 0xffffffff);
 
-  error = ZP_RegionAllocator_free_size(&region_allocator, &result);
-  handle_error(error);
-  printf("free_size %p\n", result);
-  assert(result, 0x400);
+  result = ZP_RegionAllocator_this_free_size(&region_allocator, region_allocator.first_free);
+  assert(result, 0x40);
 
-  printf("END tests\n");
+  ZP_RAW request_size;
+  ZP_RAW round_size;
+  for (request_size = 0;  request_size < 30;  request_size++) {
+    round_size = ZP_RegionAllocator_round_size(request_size);
+    assert(round_size >= request_size, true);
+  }
+
+  ZP_RAW pointer;
+  request_size = 11;
+  error = ZP_RegionAllocator_alloc(&region_allocator, request_size, &pointer);
+  handle_error(error);
+  view(arena, arena_size);
+  printf("\n");
+
+  ZP_RegionAllocator_copy_data(&region_allocator, pointer, request_size, "hello there");
+  view(arena, arena_size);
+
+  printf("\nEND tests\n");
 
   return 0;
 }
