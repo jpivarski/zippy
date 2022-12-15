@@ -69,11 +69,10 @@ int main(int argc, char** argv) {
   request_size = 11;
   error = ZP_RegionAllocator_alloc(&region_allocator, request_size, &pointer);
   handle_error(error);
-  view(arena, arena_size);
-  printf("\n");
 
   ZP_RegionAllocator_copy_data(&region_allocator, pointer, request_size, "hello there");
   view(arena, arena_size);
+  printf("\n");
 
   printf("\nEND tests\n");
 
