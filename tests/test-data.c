@@ -51,13 +51,6 @@ int main(int argc, char** argv) {
   view(arena, arena_size);
   printf("\n");
 
-  ZP_RAW result;
-  result = ZP_RegionAllocator_this_free_size(&region_allocator, region_allocator.first_free);
-  assert(result, 0x40);
-
-  result = ZP_RegionAllocator_next_free(&region_allocator, region_allocator.first_free);
-  assert(result, 0xffffffff);
-
   ZP_RAW request_size;
   ZP_RAW round_size;
   for (request_size = 0;  request_size < 30;  request_size++) {
@@ -65,14 +58,45 @@ int main(int argc, char** argv) {
     assert(round_size >= request_size, true);
   }
 
-  ZP_RAW pointer;
-  request_size = 11;
-  error = ZP_RegionAllocator_alloc(&region_allocator, request_size, &pointer);
+  ZP_RAW pointer_one;
+  ZP_RAW request_size_one = 11;
+  error = ZP_RegionAllocator_alloc(&region_allocator, request_size_one, &pointer_one);
   handle_error(error);
-
-  ZP_RegionAllocator_copy_data(&region_allocator, pointer, request_size, "hello there");
+  ZP_RegionAllocator_copy_data(&region_allocator, pointer_one, request_size_one, "hello there");
   view(arena, arena_size);
   printf("\n");
+
+  ZP_RAW pointer_two;
+  ZP_RAW request_size_two = 8;
+  error = ZP_RegionAllocator_alloc(&region_allocator, request_size_two, &pointer_two);
+  handle_error(error);
+  ZP_RegionAllocator_copy_data(&region_allocator, pointer_two, request_size_two, "you guys");
+  view(arena, arena_size);
+  printf("\n");
+
+  ZP_RAW pointer_three;
+  ZP_RAW request_size_three = 23;
+  error = ZP_RegionAllocator_alloc(&region_allocator, request_size_three, &pointer_three);
+  handle_error(error);
+  ZP_RegionAllocator_copy_data(&region_allocator, pointer_three, request_size_three, "WHAT SHOULD HAPPEN NOW?");
+  view(arena, arena_size);
+  printf("\n");
+
+  error = ZP_RegionAllocator_free(&region_allocator, pointer_two, request_size_two);
+  handle_error(error);
+  view(arena, arena_size);
+  printf("\n");
+
+  ZP_RAW pointer_four;
+  ZP_RAW request_size_four = 15;
+  error = ZP_RegionAllocator_alloc(&region_allocator, request_size_four, &pointer_four);
+  handle_error(error);
+  ZP_RegionAllocator_copy_data(&region_allocator, pointer_four, request_size_four, "Something else.");
+  view(arena, arena_size);
+  printf("\n");
+
+
+
 
   printf("\nEND tests\n");
 

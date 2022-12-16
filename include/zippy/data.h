@@ -21,28 +21,8 @@ ZP_ERROR ZP_RegionAllocator_new(
   size_t arena_size
 );
 
-bool ZP_RegionAllocator_has_free(
-  ZP_RegionAllocator_t* region_allocator
-);
-
-ZP_RAW ZP_RegionAllocator_next_free(
-  ZP_RegionAllocator_t* region_allocator,
-  ZP_RAW at
-);
-
-ZP_RAW ZP_RegionAllocator_this_free_size(
-  ZP_RegionAllocator_t* region_allocator,
-  ZP_RAW at
-);
-
 ZP_RAW ZP_RegionAllocator_round_size(
   ZP_RAW request_size
-);
-
-ZP_ERROR ZP_RegionAllocator_alloc(
-  ZP_RegionAllocator_t* region_allocator,
-  ZP_RAW request_size,
-  ZP_RAW* pointer
 );
 
 void ZP_RegionAllocator_copy_data(
@@ -52,6 +32,16 @@ void ZP_RegionAllocator_copy_data(
   const char* data
 );
 
+ZP_ERROR ZP_RegionAllocator_alloc(
+  ZP_RegionAllocator_t* region_allocator,
+  ZP_RAW request_size,
+  ZP_RAW* pointer
+);
 
+ZP_ERROR ZP_RegionAllocator_free(
+  ZP_RegionAllocator_t* region_allocator,
+  ZP_RAW pointer,
+  ZP_RAW request_size
+);
 
 #endif /* _ZIPPY_DATA_H */
