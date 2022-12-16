@@ -10,6 +10,9 @@ ZP_ERROR ZP_RegionAllocator_new(
   if (arena_size < 2 * sizeof(ZP_RAW)) {
     return "ZP_RegionAllocator arena size must be at least 2*sizeof(ZP_RAW)";
   }
+  if (arena_size > (1 << (8 * sizeof(ZP_RAW) - 8))) {
+    return "ZP_RegionAllocator arena size must be at most 256**(sizeof(ZP_RAW) - 1)";
+  }
   if (arena_size % (2 * sizeof(ZP_RAW)) != 0) {
     return "ZP_RegionAllocator arena size must be a multiple of 2*sizeof(ZP_RAW)";
   }
