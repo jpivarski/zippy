@@ -36,14 +36,14 @@ void view(void* arena, size_t arena_size) {
   printf("\n");
 }
 
-int main(int argc, char** argv) {
+int test_RegionAllocator() {
+  printf("BEGIN test_RegionAllocator\n\n");
+
   size_t arena_size = 64;
   void* arena = malloc(arena_size);
   init(arena, arena_size);
 
   ZP_ERROR error = ZP_NOERROR;
-
-  printf("BEGIN tests\n\n");
 
   ZP_RegionAllocator_t region_allocator;
   error = ZP_RegionAllocator_new(&region_allocator, arena, arena_size);
@@ -95,10 +95,35 @@ int main(int argc, char** argv) {
   view(arena, arena_size);
   printf("\n");
 
+  error = ZP_RegionAllocator_free(&region_allocator, pointer_three, request_size_three);
+  handle_error(error);
+  view(arena, arena_size);
+  printf("\n");
 
+  error = ZP_RegionAllocator_alloc(&region_allocator, request_size_three, &pointer_three);
+  handle_error(error);
+  ZP_RegionAllocator_copy_data(&region_allocator, pointer_three, request_size_three, "WHAT SHOULD HAPPEN NOW?");
+  view(arena, arena_size);
+  printf("\n");
 
+  error = ZP_RegionAllocator_alloc(&region_allocator, request_size_two, &pointer_two);
+  handle_error(error);
+  ZP_RegionAllocator_copy_data(&region_allocator, pointer_two, request_size_two, "you guys");
+  view(arena, arena_size);
+  printf("\n");
 
-  printf("\nEND tests\n");
+  printf("END test_RegionAllocator\n");
+
+  return 0;
+}
+
+int main(int argc, char** argv) {
+  int result;
+
+  result = test_RegionAllocator();
+  if (result != 0) {
+    return result;
+  }
 
   return 0;
 }

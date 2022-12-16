@@ -1,4 +1,4 @@
-#include <stdio.h>  /* temporary */
+#include <stdio.h>  /* temporary! */
 
 #include <zippy/data.h>
 
@@ -58,7 +58,7 @@ ZP_ERROR ZP_RegionAllocator_alloc(
 
   while (true) {
     if (at == ZP_END_OF_FREE) {
-      return "out of memory in RegionAllocator";
+      return "not enough memory in RegionAllocator to allocate region";
     }
 
     ZP_RAW next_free = *(ZP_RAW*)(region_allocator->arena + at + sizeof(ZP_RAW));
@@ -82,7 +82,9 @@ ZP_ERROR ZP_RegionAllocator_alloc(
     }
 
     else {
-      return "not implemented 3";
+      /* try the next free region */
+      prev = at;
+      at = next_free;
     }
   }
 
@@ -125,14 +127,14 @@ ZP_ERROR ZP_RegionAllocator_free(
     region_allocator->first_free = pointer;
   }
   else {
-    ZP_RAW prev_size = *(ZP_RAW*)(region_allocator->arena + pointer);
+    ZP_RAW prev_size = *(ZP_RAW*)(region_allocator->arena + prev);
     if (prev + prev_size == pointer) {
       /* previous region is contiguous with this one, so enlarge it to include this */
-      *(ZP_RAW*)(region_allocator->arena + pointer) += round_size;
+      *(ZP_RAW*)(region_allocator->arena + prev) += round_size;
     }
     else {
       /* there's non-free data between the regions; make a link in the linked list */
-      *(ZP_RAW*)(region_allocator->arena + pointer + sizeof(ZP_RAW)) = pointer;
+      *(ZP_RAW*)(region_allocator->arena + prev + sizeof(ZP_RAW)) = pointer;
     }
   }
 
