@@ -26,7 +26,7 @@ void view(void* arena, size_t arena_size) {
   ZP_RAW i;
   for (i = 0;  i < arena_size;  i++) {
     unsigned char x = ((char*)arena)[i];
-    if (('A' <= x  &&  x <= 'Z')  ||  ('a' <= x  &&  x <= 'z')) {
+    if (('A' <= x  &&  x <= 'Z')  ||  ('a' <= x  &&  x <= 'z')  ||  ('0' <= x  &&  x <= '9')) {
       printf("'%c ", x);
     }
     else {
@@ -50,13 +50,6 @@ int test_RegionAllocator() {
   handle_error(error);
   view(arena, arena_size);
   printf("\n");
-
-  ZP_RAW request_size;
-  ZP_RAW round_size;
-  for (request_size = 0;  request_size < 30;  request_size++) {
-    round_size = ZP_RegionAllocator_round_size(request_size);
-    assert(round_size >= request_size, true);
-  }
 
   ZP_RAW pointer_one;
   ZP_RAW request_size_one = 11;
@@ -117,10 +110,71 @@ int test_RegionAllocator() {
   return 0;
 }
 
+int test_symbols() {
+  size_t arena_size = 64;
+  void* arena = malloc(arena_size);
+  init(arena, arena_size);
+
+  ZP_ERROR error = ZP_NOERROR;
+
+  ZP_RegionAllocator_t region_allocator;
+  error = ZP_RegionAllocator_new(&region_allocator, arena, arena_size);
+  handle_error(error);
+  view(arena, arena_size);
+  printf("\n");
+
+  ZP_SymbolSet_t symbol_set;
+  error = ZP_SymbolSet_new(&symbol_set);
+  handle_error(error);
+
+  ZP_Symbol_t symbol_one;
+  error = ZP_Symbol_new(
+    &symbol_set,
+    &region_allocator,
+    "symbol22",
+    8,
+    &symbol_one
+  );
+  handle_error(error);
+  view(arena, arena_size);
+  printf("\n");
+
+  ZP_Symbol_t symbol_two;
+  error = ZP_Symbol_new(
+    &symbol_set,
+    &region_allocator,
+    "symbol33",
+    8,
+    &symbol_two
+  );
+  handle_error(error);
+  view(arena, arena_size);
+  printf("\n");
+
+  ZP_Symbol_t symbol_three;
+  error = ZP_Symbol_new(
+    &symbol_set,
+    &region_allocator,
+    "symbol11",
+    8,
+    &symbol_three
+  );
+  handle_error(error);
+  view(arena, arena_size);
+  printf("\n");
+
+  return 0;
+}
+
 int main(int argc, char** argv) {
   int result;
 
-  result = test_RegionAllocator();
+  /* result = test_RegionAllocator(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
+
+  result = test_symbols();
   if (result != 0) {
     return result;
   }
