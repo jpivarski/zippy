@@ -65,15 +65,15 @@ struct ZP_Labeled {
 };
 typedef struct ZP_Labeled ZP_Labeled_t;
 
-ZP_Label_t ZP_label_of(ZP_Labeled_t* labeled);
+ZP_Label_t ZP_Labeled_label_of(ZP_Labeled_t* labeled);
+ZP_Index_t ZP_Labeled_to_raw(ZP_Labeled_t* labeled);
+void ZP_Labeled_copy(ZP_Labeled_t* output, ZP_Labeled_t* input);
 
-ZP_Index_t ZP_to_raw(ZP_Labeled_t* labeled);
+ZP_Int_t ZP_Labeled_to_int(ZP_Labeled_t* labeled);
+ZP_Error_t ZP_Labeled_from_int(ZP_Labeled_t* labeled, ZP_Int_t* data);
 
-ZP_Int_t ZP_to_int(ZP_Labeled_t* labeled);
-ZP_Error_t ZP_from_int(ZP_Labeled_t* labeled, ZP_Int_t* data);
-
-ZP_Float_t ZP_to_float(ZP_Labeled_t* labeled);
-void ZP_from_float(ZP_Labeled_t* labeled, ZP_Float_t* data);
+ZP_Float_t ZP_Labeled_to_float(ZP_Labeled_t* labeled);
+void ZP_Labeled_from_float(ZP_Labeled_t* labeled, ZP_Float_t* data);
 
 /***** RegionAllocator *******************************************************/
 
