@@ -70,10 +70,10 @@ ZP_Label_t ZP_label_of(ZP_Labeled_t* labeled);
 ZP_Index_t ZP_to_raw(ZP_Labeled_t* labeled);
 
 ZP_Int_t ZP_to_integer(ZP_Labeled_t* labeled);
-ZP_Error_t ZP_from_integer(ZP_Int_t* data, ZP_Labeled_t* labeled);
+ZP_Error_t ZP_from_integer(ZP_Labeled_t* labeled, ZP_Int_t* data);
 
 ZP_Float_t ZP_to_float(ZP_Labeled_t* labeled);
-void ZP_from_float(ZP_Float_t* data, ZP_Labeled_t* labeled);
+void ZP_from_float(ZP_Labeled_t* labeled, ZP_Float_t* data);
 
 /***** RegionAllocator *******************************************************/
 

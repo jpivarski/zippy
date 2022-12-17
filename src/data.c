@@ -55,7 +55,7 @@ ZP_Int_t ZP_to_integer(ZP_Labeled_t* labeled) {
   return *(ZP_Int_t*)(&hold);
 }
 
-ZP_Error_t ZP_from_integer(ZP_Int_t* data, ZP_Labeled_t* labeled) {
+ZP_Error_t ZP_from_integer(ZP_Labeled_t* labeled, ZP_Int_t* data) {
   ZP_Int_t test = *data & ZP_INT_OVERFLOW_TEST;
   if (test != 0  &&  test != ZP_INT_OVERFLOW_TEST) {
     return "integer overflow";
@@ -76,7 +76,7 @@ ZP_Float_t ZP_to_float(ZP_Labeled_t* labeled) {
   return *out;
 }
 
-void ZP_from_float(ZP_Float_t* data, ZP_Labeled_t* labeled) {
+void ZP_from_float(ZP_Labeled_t* labeled, ZP_Float_t* data) {
   /* copy the floating point data into labeled->data */
   labeled->data = *((ZP_Index_t*)data);
 

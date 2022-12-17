@@ -280,7 +280,7 @@ int test_integer_labeling() {
   ZP_Index_t labeled_data_copy;
 
   integer_copy = myint_m2;
-  error = ZP_from_integer(&myint_m2, &labeled);
+  error = ZP_from_integer(&labeled, &myint_m2);
   handle_error(error);
   assert(integer_copy, myint_m2);  /* didn't change the original */
   labeled_data_copy = labeled.data;
@@ -288,7 +288,7 @@ int test_integer_labeling() {
   assert(labeled.data, labeled_data_copy);  /* didn't change the original */
 
   integer_copy = myint_m1;
-  error = ZP_from_integer(&myint_m1, &labeled);
+  error = ZP_from_integer(&labeled, &myint_m1);
   handle_error(error);
   assert(integer_copy, myint_m1);  /* didn't change the original */
   labeled_data_copy = labeled.data;
@@ -296,7 +296,7 @@ int test_integer_labeling() {
   assert(labeled.data, labeled_data_copy);  /* didn't change the original */
 
   integer_copy = myint_ze;
-  error = ZP_from_integer(&myint_ze, &labeled);
+  error = ZP_from_integer(&labeled, &myint_ze);
   handle_error(error);
   assert(integer_copy, myint_ze);  /* didn't change the original */
   labeled_data_copy = labeled.data;
@@ -304,7 +304,7 @@ int test_integer_labeling() {
   assert(labeled.data, labeled_data_copy);  /* didn't change the original */
 
   integer_copy = myint_p1;
-  error = ZP_from_integer(&myint_p1, &labeled);
+  error = ZP_from_integer(&labeled, &myint_p1);
   handle_error(error);
   assert(integer_copy, myint_p1);  /* didn't change the original */
   labeled_data_copy = labeled.data;
@@ -312,7 +312,7 @@ int test_integer_labeling() {
   assert(labeled.data, labeled_data_copy);  /* didn't change the original */
 
   integer_copy = myint_p2;
-  error = ZP_from_integer(&myint_p2, &labeled);
+  error = ZP_from_integer(&labeled, &myint_p2);
   handle_error(error);
   assert(integer_copy, myint_p2);  /* didn't change the original */
   labeled_data_copy = labeled.data;
@@ -320,7 +320,7 @@ int test_integer_labeling() {
   assert(labeled.data, labeled_data_copy);  /* didn't change the original */
 
   integer_copy = myint_high_1;
-  error = ZP_from_integer(&myint_high_1, &labeled);
+  error = ZP_from_integer(&labeled, &myint_high_1);
   handle_error(error);
   assert(integer_copy, myint_high_1);  /* didn't change the original */
   labeled_data_copy = labeled.data;
@@ -328,7 +328,7 @@ int test_integer_labeling() {
   assert(labeled.data, labeled_data_copy);  /* didn't change the original */
 
   integer_copy = myint_high_2;
-  error = ZP_from_integer(&myint_high_2, &labeled);
+  error = ZP_from_integer(&labeled, &myint_high_2);
   handle_error(error);
   assert(integer_copy, myint_high_2);  /* didn't change the original */
   labeled_data_copy = labeled.data;
@@ -336,7 +336,7 @@ int test_integer_labeling() {
   assert(labeled.data, labeled_data_copy);  /* didn't change the original */
 
   integer_copy = myint_high_3;
-  error = ZP_from_integer(&myint_high_3, &labeled);
+  error = ZP_from_integer(&labeled, &myint_high_3);
   handle_error(error);
   assert(integer_copy, myint_high_3);  /* didn't change the original */
   labeled_data_copy = labeled.data;
@@ -344,12 +344,12 @@ int test_integer_labeling() {
   assert(labeled.data, labeled_data_copy);  /* didn't change the original */
 
   integer_copy = myint_high_err;
-  error = ZP_from_integer(&myint_high_err, &labeled);
+  error = ZP_from_integer(&labeled, &myint_high_err);
   handle_not_error(error);
   assert(integer_copy, myint_high_err);  /* didn't change the original */
 
   integer_copy = myint_low_1;
-  error = ZP_from_integer(&myint_low_1, &labeled);
+  error = ZP_from_integer(&labeled, &myint_low_1);
   handle_error(error);
   assert(integer_copy, myint_low_1);  /* didn't change the original */
   labeled_data_copy = labeled.data;
@@ -357,7 +357,7 @@ int test_integer_labeling() {
   assert(labeled.data, labeled_data_copy);  /* didn't change the original */
 
   integer_copy = myint_low_2;
-  error = ZP_from_integer(&myint_low_2, &labeled);
+  error = ZP_from_integer(&labeled, &myint_low_2);
   handle_error(error);
   assert(integer_copy, myint_low_2);  /* didn't change the original */
   labeled_data_copy = labeled.data;
@@ -365,7 +365,7 @@ int test_integer_labeling() {
   assert(labeled.data, labeled_data_copy);  /* didn't change the original */
 
   integer_copy = myint_low_3;
-  error = ZP_from_integer(&myint_low_3, &labeled);
+  error = ZP_from_integer(&labeled, &myint_low_3);
   handle_error(error);
   assert(integer_copy, myint_low_3);  /* didn't change the original */
   labeled_data_copy = labeled.data;
@@ -373,7 +373,7 @@ int test_integer_labeling() {
   assert(labeled.data, labeled_data_copy);  /* didn't change the original */
 
   integer_copy = myint_low_err;
-  error = ZP_from_integer(&myint_low_err, &labeled);
+  error = ZP_from_integer(&labeled, &myint_low_err);
   handle_not_error(error);
   assert(integer_copy, myint_low_err);  /* didn't change the original */
 
@@ -412,7 +412,7 @@ int test_float_labeling() {
 
   float_copy = myfloat1;
   assert(myfloat1 == float_copy, true);
-  ZP_from_float(&myfloat1, &labeled);
+  ZP_from_float(&labeled, &myfloat1);
   assert(myfloat1 == float_copy, true);  /* didn't change the original */
 
   labeled_data_copy = labeled.data;
@@ -421,7 +421,7 @@ int test_float_labeling() {
 
   float_copy = myfloat2;
   assert(myfloat2 == float_copy, true);
-  ZP_from_float(&myfloat2, &labeled);
+  ZP_from_float(&labeled, &myfloat2);
   assert(myfloat2 == float_copy, true);  /* didn't change the original */
 
   labeled_data_copy = labeled.data;
@@ -430,7 +430,7 @@ int test_float_labeling() {
 
   float_copy = myfloat3;
   assert(myfloat3 == float_copy, true);
-  ZP_from_float(&myfloat3, &labeled);
+  ZP_from_float(&labeled, &myfloat3);
   assert(myfloat3 == float_copy, true);  /* didn't change the original */
 
   labeled_data_copy = labeled.data;
@@ -439,7 +439,7 @@ int test_float_labeling() {
 
   float_copy = myfloat4;
   assert(myfloat4 == float_copy, true);
-  ZP_from_float(&myfloat4, &labeled);
+  ZP_from_float(&labeled, &myfloat4);
   assert(myfloat4 == float_copy, true);  /* didn't change the original */
 
   labeled_data_copy = labeled.data;
@@ -447,6 +447,16 @@ int test_float_labeling() {
   assert(labeled_data_copy, labeled.data);  /* didn't change the original */
 
   printf("END test_float_labeling\n");
+
+  return 0;
+}
+
+int test_list() {
+  printf("BEGIN test_list\n");
+
+
+
+  printf("END test_list\n");
 
   return 0;
 }
@@ -519,10 +529,10 @@ int main(int argc, char** argv) {
   /*   return result; */
   /* } */
 
-  result = test_FixedAllocator();
-  if (result != 0) {
-    return result;
-  }
+  /* result = test_FixedAllocator(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
 
   /* result = test_integer_labeling(); */
   /* if (result != 0) { */
@@ -533,6 +543,11 @@ int main(int argc, char** argv) {
   /* if (result != 0) { */
   /*   return result; */
   /* } */
+
+  result = test_list();
+  if (result != 0) {
+    return result;
+  }
 
   return 0;
 }
