@@ -6,6 +6,7 @@ typedef const char* ZP_Error_t;
 typedef uint32_t ZP_Index_t;
 typedef int8_t ZP_Cmp_t;
 typedef uint8_t ZP_Label_t;
+typedef uint8_t ZP_RCnt_t;
 
 typedef int32_t ZP_Int_t;
 typedef float ZP_Float_t;
@@ -106,7 +107,7 @@ ZP_Error_t ZP_RegionAllocator_alloc(
   ZP_Index_t* pointer
 );
 
-ZP_Error_t ZP_RegionAllocator_free(
+void ZP_RegionAllocator_free(
   ZP_RegionAllocator_t* region_allocator,
   ZP_Index_t pointer,
   ZP_Index_t request_size
@@ -119,18 +120,53 @@ void ZP_RegionAllocator_copy_data(
   const char* data
 );
 
-/***** ConsAllocator *********************************************************/
+/***** PairAllocator *********************************************************/
 
-/* typedef uint8_t ZP_REFCOUNT; */
+struct ZP_PairAllocator {
+  ZP_Index_t* arena;
+  ZP_RCnt_t* refcount;
+  ZP_Index_t num_pairs;
+  ZP_Index_t first_pointer;
+  ZP_Index_t bump_pointer;
+};
+typedef struct ZP_PairAllocator ZP_PairAllocator_t;
 
-/* struct ZP_ConsAllocator { */
-/*   ZP_Index_t* arena; */
-/*   ZP_Index_t arena_size; */
-/* }; */
+struct ZP_Pair {
+  ZP_Index_t first;
+};
+typedef struct ZP_Pair ZP_Pair_t;
 
+ZP_Error_t ZP_PairAllocator_new(
+  ZP_PairAllocator_t* pair_allocator,
+  void* arena,
+  void* refcount,
+  size_t arena_size,
+  size_t refcount_size
+);
 
+ZP_Error_t ZP_PairAllocator_alloc(
+  ZP_PairAllocator_t* pair_allocator,
+  ZP_Pair_t* pair
+);
 
+void ZP_PairAllocator_free(
+  ZP_PairAllocator_t* pair_allocator,
+  ZP_Pair_t* pair
+);
 
+void ZP_PairAllocator_get(
+  ZP_PairAllocator_t* pair_allocator,
+  ZP_Pair_t* pair,
+  ZP_Index_t* one,
+  ZP_Index_t* two
+);
+
+void ZP_PairAllocator_set(
+  ZP_PairAllocator_t* pair_allocator,
+  ZP_Pair_t* pair,
+  ZP_Index_t one,
+  ZP_Index_t two
+);
 
 
 

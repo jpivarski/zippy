@@ -2,6 +2,9 @@
 
 #include <zippy/data.h>
 
+const ZP_Index_t ZP_END_OF_FREE = -1;  /* used by both RegionAllocator and PairAllocator */
+const ZP_Index_t ZP_END_OF_SYMBOLS = -2;
+
 /***** Labeled ***************************************************************/
 
 const ZP_Index_t ZP_LABEL_SHIFT = 8 * (sizeof(ZP_Index_t) - 1);
@@ -45,6 +48,7 @@ ZP_Index_t ZP_to_raw(ZP_Labeled_t* labeled) {
 ZP_Int_t ZP_to_integer(ZP_Labeled_t* labeled) {
   /* remove the two label bits in a copy of the labeled->data */
   ZP_Index_t hold = labeled->data & ZP_INT_MASK_DATA;
+
   /* truncating the last two bits removes the sign */
   /* so interpret the third bit as the sign and pad the rest of the integer */
   hold |= (hold & ZP_INT_SIGN_TEST) ? ZP_INT_MASK_SIGN : 0;
@@ -63,16 +67,19 @@ ZP_Error_t ZP_from_integer(ZP_Int_t* data, ZP_Labeled_t* labeled) {
 ZP_Float_t ZP_to_float(ZP_Labeled_t* labeled) {
   /* remove the (one) label bit in a copy of the labeled->data */
   ZP_Index_t hold = (labeled->data & ZP_FLOAT_MASK_DATA);
+
   /* the label bit overlaps IEEE floating point sign data */
   /* so restore the missing sign from the least significant bit */
   hold |= (hold & 1) ? ZP_FLOAT_SIGN_0 : 0;
   ZP_Float_t* out = (ZP_Float_t*)(&hold);
+
   return *out;
 }
 
 void ZP_from_float(ZP_Float_t* data, ZP_Labeled_t* labeled) {
   /* copy the floating point data into labeled->data */
   labeled->data = *((ZP_Index_t*)data);
+
   /* the label bit will overlap IEEE floating point sign data */
   /* so store the sign in the least significant bit */
   labeled->data &= ZP_FLOAT_MASK_SIGNIFICANT;
@@ -81,21 +88,19 @@ void ZP_from_float(ZP_Float_t* data, ZP_Labeled_t* labeled) {
 
 /***** RegionAllocator *******************************************************/
 
-const ZP_Index_t ZP_END_OF_FREE = -1;
-
 ZP_Error_t ZP_RegionAllocator_new(
   ZP_RegionAllocator_t* region_allocator,
   void* arena,
   size_t arena_size
 ) {
   if (arena_size < 2 * sizeof(ZP_Index_t)) {
-    return "ZP_RegionAllocator arena size must be at least 2*sizeof(ZP_Index_t)";
+    return "ZP_RegionAllocator arena_size must be at least 2*sizeof(ZP_Index_t)";
   }
   if (arena_size > (1 << (8 * sizeof(ZP_Index_t) - 8))) {
-    return "ZP_RegionAllocator arena size must be at most 256**(sizeof(ZP_Index_t) - 1)";
+    return "ZP_RegionAllocator arena_size must be at most 256**(sizeof(ZP_Index_t) - 1)";
   }
   if (arena_size % (2 * sizeof(ZP_Index_t)) != 0) {
-    return "ZP_RegionAllocator arena size must be a multiple of 2*sizeof(ZP_Index_t)";
+    return "ZP_RegionAllocator arena_size must be a multiple of 2*sizeof(ZP_Index_t)";
   }
   region_allocator->arena = arena;
   region_allocator->arena_size = arena_size;
@@ -180,7 +185,7 @@ ZP_Error_t ZP_RegionAllocator_alloc(
   return ZP_NOERROR;
 }
 
-ZP_Error_t ZP_RegionAllocator_free(
+void ZP_RegionAllocator_free(
   ZP_RegionAllocator_t* region_allocator,
   ZP_Index_t pointer,
   ZP_Index_t request_size
@@ -217,8 +222,6 @@ ZP_Error_t ZP_RegionAllocator_free(
       *(ZP_Index_t*)(region_allocator->arena + prev + sizeof(ZP_Index_t)) = pointer;
     }
   }
-
-  return ZP_NOERROR;
 }
 
 void ZP_RegionAllocator_copy_data(
@@ -238,17 +241,89 @@ void ZP_RegionAllocator_copy_data(
   }
 }
 
-/***** ConsAllocator *********************************************************/
+/***** PairAllocator *********************************************************/
 
+ZP_Error_t ZP_PairAllocator_new(
+  ZP_PairAllocator_t* pair_allocator,
+  void* arena,
+  void* refcount,
+  size_t arena_size,
+  size_t refcount_size
+) {
+  if (arena_size < 2 * sizeof(ZP_Index_t)) {
+    return "ZP_PairAllocator arena_size must be at least 2*sizeof(ZP_Index_t)";
+  }
+  if (arena_size > (1 << (8 * sizeof(ZP_Index_t) - 8))) {
+    return "ZP_PairAllocator arena_size must be at most 256**(sizeof(ZP_Index_t) - 1)";
+  }
+  if (arena_size % (2 * sizeof(ZP_Index_t)) != 0) {
+    return "ZP_PairAllocator arena_size must be a multiple of 2*sizeof(ZP_Index_t)";
+  }
+  if (arena_size != 2 * sizeof(ZP_Index_t) * refcount_size) { /* assumes sizeof(ZP_RCnt_t) == 1 */
+    return "ZP_PairAllocator arena_size must be equal to 2*sizeof(ZP_Index_t)*refcount_size";
+  }
 
+  pair_allocator->arena = (ZP_Index_t*)arena;
+  pair_allocator->refcount = (ZP_RCnt_t*)refcount;
+  pair_allocator->num_pairs = refcount_size;
+  pair_allocator->first_pointer = ZP_END_OF_FREE;
+  pair_allocator->bump_pointer = 0;
 
+  return ZP_NOERROR;
+}
 
+ZP_Error_t ZP_PairAllocator_alloc(
+  ZP_PairAllocator_t* pair_allocator,
+  ZP_Pair_t* pair
+) {
+  if (pair_allocator->first_pointer == ZP_END_OF_FREE) {
+    if (pair_allocator->bump_pointer == 2 * pair_allocator->num_pairs) {
+      return "not enough memory in PairAllocator to allocate pair";
+    }
+    else {
+      pair->first = pair_allocator->bump_pointer;
+      pair_allocator->bump_pointer += 2;
+    }
+  }
+  else {
+    pair->first = pair_allocator->first_pointer;
+    pair_allocator->first_pointer = pair_allocator->arena[pair_allocator->first_pointer];
+  }
+
+  return ZP_NOERROR;
+}
+
+void ZP_PairAllocator_free(
+  ZP_PairAllocator_t* pair_allocator,
+  ZP_Pair_t* pair
+) {
+  pair_allocator->arena[pair->first] = pair_allocator->first_pointer;
+  pair_allocator->first_pointer = pair->first;
+}
+
+void ZP_PairAllocator_get(
+  ZP_PairAllocator_t* pair_allocator,
+  ZP_Pair_t* pair,
+  ZP_Index_t* one,
+  ZP_Index_t* two
+) {
+  *one = pair_allocator->arena[pair->first];
+  *two = pair_allocator->arena[pair->first + 1];
+}
+
+void ZP_PairAllocator_set(
+  ZP_PairAllocator_t* pair_allocator,
+  ZP_Pair_t* pair,
+  ZP_Index_t one,
+  ZP_Index_t two
+) {
+  pair_allocator->arena[pair->first] = one;
+  pair_allocator->arena[pair->first + 1] = two;
+}
 
 
 
 /***** Symbols ***************************************************************/
-
-const ZP_Index_t ZP_END_OF_SYMBOLS = -2;
 
 struct ZP_SymbolHeader {
   ZP_Index_t symbol_data_size;

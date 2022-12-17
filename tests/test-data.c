@@ -32,13 +32,21 @@ void init(void* arena, size_t arena_size) {
 void view(void* arena, size_t arena_size) {
   ZP_Index_t i;
   for (i = 0;  i < arena_size;  i++) {
-    unsigned char x = ((char*)arena)[i];
+    unsigned char x = ((unsigned char*)arena)[i];
     if (('A' <= x  &&  x <= 'Z')  ||  ('a' <= x  &&  x <= 'z')  ||  ('0' <= x  &&  x <= '9')) {
       printf("'%c ", x);
     }
     else {
       printf("%02x ", x);
     }
+  }
+  printf("\n");
+}
+
+void viewhex(void* arena, size_t arena_size) {
+  ZP_Index_t i;
+  for (i = 0;  i < arena_size;  i++) {
+    printf("%02x ", ((unsigned char*)arena)[i]);
   }
   printf("\n");
 }
@@ -82,8 +90,7 @@ int test_RegionAllocator() {
   view(arena, arena_size);
   printf("\n");
 
-  error = ZP_RegionAllocator_free(&region_allocator, pointer_two, request_size_two);
-  handle_error(error);
+  ZP_RegionAllocator_free(&region_allocator, pointer_two, request_size_two);
   view(arena, arena_size);
   printf("\n");
 
@@ -95,8 +102,7 @@ int test_RegionAllocator() {
   view(arena, arena_size);
   printf("\n");
 
-  error = ZP_RegionAllocator_free(&region_allocator, pointer_three, request_size_three);
-  handle_error(error);
+  ZP_RegionAllocator_free(&region_allocator, pointer_three, request_size_three);
   view(arena, arena_size);
   printf("\n");
 
@@ -113,6 +119,134 @@ int test_RegionAllocator() {
   printf("\n");
 
   printf("END test_RegionAllocator\n");
+
+  return 0;
+}
+
+int test_PairAllocator() {
+  printf("BEGIN test_PairAllocator\n\n");
+
+  size_t arena_size = 64;
+  void* arena = malloc(arena_size);
+  init(arena, arena_size);
+
+  size_t refcount_size = 8;
+  void* refcount = malloc(refcount_size);
+  init(refcount, refcount_size);
+
+  ZP_Error_t error = ZP_NOERROR;
+
+  ZP_PairAllocator_t pair_allocator;
+  error = ZP_PairAllocator_new(
+    &pair_allocator,
+    arena,
+    refcount,
+    arena_size,
+    refcount_size
+  );
+  handle_error(error);
+  viewhex(arena, arena_size);
+  printf("\n");
+
+  ZP_Pair_t pair1;
+  error = ZP_PairAllocator_alloc(&pair_allocator, &pair1);
+  handle_error(error);
+  ZP_PairAllocator_set(&pair_allocator, &pair1, 5, 6);
+  viewhex(arena, arena_size);
+  printf("\n");
+
+  ZP_Index_t one;
+  ZP_Index_t two;
+  ZP_PairAllocator_get(&pair_allocator, &pair1, &one, &two);
+  assert(one, 5);
+  assert(two, 6);
+
+  ZP_Pair_t pair2;
+  error = ZP_PairAllocator_alloc(&pair_allocator, &pair2);
+  handle_error(error);
+  ZP_PairAllocator_set(&pair_allocator, &pair2, 0xeeeeee01, 0xeeeeee02);
+  viewhex(arena, arena_size);
+  printf("\n");
+
+  ZP_Pair_t pair3;
+  error = ZP_PairAllocator_alloc(&pair_allocator, &pair3);
+  handle_error(error);
+  ZP_PairAllocator_set(&pair_allocator, &pair3, 0xdddddd01, 0xdddddd02);
+  viewhex(arena, arena_size);
+  printf("\n");
+
+  ZP_Pair_t pair4;
+  error = ZP_PairAllocator_alloc(&pair_allocator, &pair4);
+  handle_error(error);
+  ZP_PairAllocator_set(&pair_allocator, &pair4, 0xaaaaaa01, 0xaaaaaa02);
+  viewhex(arena, arena_size);
+  printf("\n");
+
+  ZP_PairAllocator_get(&pair_allocator, &pair3, &one, &two);
+  assert(one, 0xdddddd01);
+  assert(two, 0xdddddd02);
+
+  ZP_PairAllocator_free(&pair_allocator, &pair3);
+  viewhex(arena, arena_size);
+  printf("first_pointer %d\n", pair_allocator.first_pointer);
+  printf("\n");
+
+  ZP_Pair_t pair5;
+  error = ZP_PairAllocator_alloc(&pair_allocator, &pair5);
+  handle_error(error);
+  ZP_PairAllocator_set(&pair_allocator, &pair5, 0xbbbbbb01, 0xbbbbbb02);
+  viewhex(arena, arena_size);
+  printf("first_pointer %d\n", pair_allocator.first_pointer);
+  printf("\n");
+
+  ZP_PairAllocator_free(&pair_allocator, &pair5);
+  viewhex(arena, arena_size);
+  printf("first_pointer %d\n", pair_allocator.first_pointer);
+  printf("\n");
+
+  ZP_PairAllocator_free(&pair_allocator, &pair2);
+  viewhex(arena, arena_size);
+  printf("first_pointer %d\n", pair_allocator.first_pointer);
+  printf("\n");
+
+  ZP_PairAllocator_free(&pair_allocator, &pair4);
+  viewhex(arena, arena_size);
+  printf("first_pointer %d\n", pair_allocator.first_pointer);
+  printf("\n");
+
+  ZP_Pair_t pair6;
+  error = ZP_PairAllocator_alloc(&pair_allocator, &pair6);
+  handle_error(error);
+  ZP_PairAllocator_set(&pair_allocator, &pair6, 0xcccccc08, 0xcccccc09);
+  viewhex(arena, arena_size);
+  printf("first_pointer %d\n", pair_allocator.first_pointer);
+  printf("\n");
+
+  ZP_Pair_t pair7;
+  error = ZP_PairAllocator_alloc(&pair_allocator, &pair7);
+  handle_error(error);
+  ZP_PairAllocator_set(&pair_allocator, &pair7, 0xcccccc06, 0xcccccc07);
+  viewhex(arena, arena_size);
+  printf("first_pointer %d\n", pair_allocator.first_pointer);
+  printf("\n");
+
+  ZP_Pair_t pair8;
+  error = ZP_PairAllocator_alloc(&pair_allocator, &pair8);
+  handle_error(error);
+  ZP_PairAllocator_set(&pair_allocator, &pair8, 0xcccccc04, 0xcccccc05);
+  viewhex(arena, arena_size);
+  printf("first_pointer %d\n", pair_allocator.first_pointer);
+  printf("\n");
+
+  ZP_Pair_t pair9;
+  error = ZP_PairAllocator_alloc(&pair_allocator, &pair9);
+  handle_error(error);
+  ZP_PairAllocator_set(&pair_allocator, &pair9, 0xcccccc02, 0xcccccc03);
+  viewhex(arena, arena_size);
+  printf("first_pointer %d\n", pair_allocator.first_pointer);
+  printf("\n");
+
+  printf("END test_PairAllocator\n");
 
   return 0;
 }
@@ -380,25 +514,30 @@ int test_symbols() {
 int main(int argc, char** argv) {
   int result;
 
-  result = test_RegionAllocator();
+  /* result = test_RegionAllocator(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
+
+  result = test_PairAllocator();
   if (result != 0) {
     return result;
   }
 
-  result = test_integer_labeling();
-  if (result != 0) {
-    return result;
-  }
+  /* result = test_integer_labeling(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
 
-  result = test_float_labeling();
-  if (result != 0) {
-    return result;
-  }
+  /* result = test_float_labeling(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
 
-  result = test_symbols();
-  if (result != 0) {
-    return result;
-  }
+  /* result = test_symbols(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
 
   return 0;
 }
