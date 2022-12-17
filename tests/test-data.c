@@ -23,14 +23,14 @@
   }                                \
 
 void init(void* arena, size_t arena_size) {
-  ZP_RAW i;
+  ZP_Index_t i;
   for (i = 0;  i < arena_size;  i++) {
     ((unsigned char*)arena)[i] = 0;
   }
 }
 
 void view(void* arena, size_t arena_size) {
-  ZP_RAW i;
+  ZP_Index_t i;
   for (i = 0;  i < arena_size;  i++) {
     unsigned char x = ((char*)arena)[i];
     if (('A' <= x  &&  x <= 'Z')  ||  ('a' <= x  &&  x <= 'z')  ||  ('0' <= x  &&  x <= '9')) {
@@ -50,7 +50,7 @@ int test_RegionAllocator() {
   void* arena = malloc(arena_size);
   init(arena, arena_size);
 
-  ZP_ERROR error = ZP_NOERROR;
+  ZP_Error_t error = ZP_NOERROR;
 
   ZP_RegionAllocator_t region_allocator;
   error = ZP_RegionAllocator_new(&region_allocator, arena, arena_size);
@@ -58,24 +58,24 @@ int test_RegionAllocator() {
   view(arena, arena_size);
   printf("\n");
 
-  ZP_RAW pointer_one;
-  ZP_RAW request_size_one = 11;
+  ZP_Index_t pointer_one;
+  ZP_Index_t request_size_one = 11;
   error = ZP_RegionAllocator_alloc(&region_allocator, request_size_one, &pointer_one);
   handle_error(error);
   ZP_RegionAllocator_copy_data(&region_allocator, pointer_one, request_size_one, "hello there");
   view(arena, arena_size);
   printf("\n");
 
-  ZP_RAW pointer_two;
-  ZP_RAW request_size_two = 8;
+  ZP_Index_t pointer_two;
+  ZP_Index_t request_size_two = 8;
   error = ZP_RegionAllocator_alloc(&region_allocator, request_size_two, &pointer_two);
   handle_error(error);
   ZP_RegionAllocator_copy_data(&region_allocator, pointer_two, request_size_two, "you guys");
   view(arena, arena_size);
   printf("\n");
 
-  ZP_RAW pointer_three;
-  ZP_RAW request_size_three = 23;
+  ZP_Index_t pointer_three;
+  ZP_Index_t request_size_three = 23;
   error = ZP_RegionAllocator_alloc(&region_allocator, request_size_three, &pointer_three);
   handle_error(error);
   ZP_RegionAllocator_copy_data(&region_allocator, pointer_three, request_size_three, "WHAT SHOULD HAPPEN NOW?");
@@ -87,8 +87,8 @@ int test_RegionAllocator() {
   view(arena, arena_size);
   printf("\n");
 
-  ZP_RAW pointer_four;
-  ZP_RAW request_size_four = 15;
+  ZP_Index_t pointer_four;
+  ZP_Index_t request_size_four = 15;
   error = ZP_RegionAllocator_alloc(&region_allocator, request_size_four, &pointer_four);
   handle_error(error);
   ZP_RegionAllocator_copy_data(&region_allocator, pointer_four, request_size_four, "Something else.");
@@ -120,30 +120,30 @@ int test_RegionAllocator() {
 int test_integer_labeling() {
   printf("BEGIN test_integer_labeling\n");
 
-  const ZP_RAW SHIFT = (8 * sizeof(ZP_RAW)) - 3;
-  const ZP_RAW MAXINT = (1 << SHIFT) - 1;
-  const ZP_RAW MININT = -MAXINT - 1;
+  const ZP_Index_t SHIFT = (8 * sizeof(ZP_Index_t)) - 3;
+  const ZP_Index_t MAXINT = (1 << SHIFT) - 1;
+  const ZP_Index_t MININT = -MAXINT - 1;
 
-  ZP_INTEGER myint_m2 = -2;
-  ZP_INTEGER myint_m1 = -1;
-  ZP_INTEGER myint_ze = 0;
-  ZP_INTEGER myint_p1 = 1;
-  ZP_INTEGER myint_p2 = 2;
+  ZP_Int_t myint_m2 = -2;
+  ZP_Int_t myint_m1 = -1;
+  ZP_Int_t myint_ze = 0;
+  ZP_Int_t myint_p1 = 1;
+  ZP_Int_t myint_p2 = 2;
 
-  ZP_INTEGER myint_high_1 = MAXINT - 2;
-  ZP_INTEGER myint_high_2 = MAXINT - 1;
-  ZP_INTEGER myint_high_3 = MAXINT;
-  ZP_INTEGER myint_high_err = MAXINT + 1;
+  ZP_Int_t myint_high_1 = MAXINT - 2;
+  ZP_Int_t myint_high_2 = MAXINT - 1;
+  ZP_Int_t myint_high_3 = MAXINT;
+  ZP_Int_t myint_high_err = MAXINT + 1;
 
-  ZP_INTEGER myint_low_err = MININT - 1;
-  ZP_INTEGER myint_low_1 = MININT;
-  ZP_INTEGER myint_low_2 = MININT + 1;
-  ZP_INTEGER myint_low_3 = MININT + 2;
+  ZP_Int_t myint_low_err = MININT - 1;
+  ZP_Int_t myint_low_1 = MININT;
+  ZP_Int_t myint_low_2 = MININT + 1;
+  ZP_Int_t myint_low_3 = MININT + 2;
 
   ZP_Labeled_t labeled;
-  ZP_ERROR error;
-  ZP_INTEGER integer_copy;
-  ZP_RAW labeled_data_copy;
+  ZP_Error_t error;
+  ZP_Int_t integer_copy;
+  ZP_Index_t labeled_data_copy;
 
   integer_copy = myint_m2;
   error = ZP_from_integer(&myint_m2, &labeled);
@@ -251,13 +251,17 @@ int test_integer_labeling() {
 int test_float_labeling() {
   printf("BEGIN test_float_labeling\n");
 
-  ZP_FLOAT myfloat1 = 3.14f;
-  ZP_FLOAT myfloat2 = 3.14f;
-  ZP_FLOAT myfloat3 = -3.14f;
-  ZP_FLOAT myfloat4 = -3.14f;
+  ZP_Float_t myfloat1 = 3.14f;
+  ZP_Float_t myfloat2 = 3.14f;
+  ZP_Float_t myfloat3 = -3.14f;
+  ZP_Float_t myfloat4 = -3.14f;
 
-  *((ZP_RAW*)(&myfloat2)) &= ~(ZP_RAW)1;
-  *((ZP_RAW*)(&myfloat4)) &= ~(ZP_RAW)1;
+  ZP_Index_t* tmp;
+
+  tmp = (ZP_Index_t*)(&myfloat2);
+  *tmp &= ~(ZP_Index_t)1;
+  tmp = (ZP_Index_t*)(&myfloat4);
+  *tmp &= ~(ZP_Index_t)1;
 
   printf("%.30f\n", myfloat1);
   printf("%.30f\n", myfloat2);
@@ -269,8 +273,8 @@ int test_float_labeling() {
   assert(myfloat1 != myfloat4, true);
 
   ZP_Labeled_t labeled;
-  ZP_FLOAT float_copy;
-  ZP_RAW labeled_data_copy;
+  ZP_Float_t float_copy;
+  ZP_Index_t labeled_data_copy;
 
   float_copy = myfloat1;
   assert(myfloat1 == float_copy, true);
@@ -320,7 +324,7 @@ int test_symbols() {
   void* arena = malloc(arena_size);
   init(arena, arena_size);
 
-  ZP_ERROR error = ZP_NOERROR;
+  ZP_Error_t error = ZP_NOERROR;
 
   ZP_RegionAllocator_t region_allocator;
   error = ZP_RegionAllocator_new(&region_allocator, arena, arena_size);
@@ -376,25 +380,25 @@ int test_symbols() {
 int main(int argc, char** argv) {
   int result;
 
-  /* result = test_RegionAllocator(); */
-  /* if (result != 0) { */
-  /*   return result; */
-  /* } */
+  result = test_RegionAllocator();
+  if (result != 0) {
+    return result;
+  }
 
   result = test_integer_labeling();
   if (result != 0) {
     return result;
   }
 
-  /* result = test_float_labeling(); */
-  /* if (result != 0) { */
-  /*   return result; */
-  /* } */
+  result = test_float_labeling();
+  if (result != 0) {
+    return result;
+  }
 
-  /* result = test_symbols(); */
-  /* if (result != 0) { */
-  /*   return result; */
-  /* } */
+  result = test_symbols();
+  if (result != 0) {
+    return result;
+  }
 
   return 0;
 }

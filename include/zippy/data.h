@@ -2,16 +2,15 @@
 
 #include <zippy/util.h>
 
-typedef const char* ZP_ERROR;
-typedef uint32_t ZP_RAW;
-typedef int32_t ZP_INTEGER;
-typedef float ZP_FLOAT;
+typedef const char* ZP_Error_t;
+typedef uint32_t ZP_Index_t;
+typedef int8_t ZP_Cmp_t;
+typedef uint8_t ZP_Label_t;
+
+typedef int32_t ZP_Int_t;
+typedef float ZP_Float_t;
 
 /***** Labeled ***************************************************************/
-
-typedef int8_t ZP_COMPARE;
-
-typedef uint8_t ZP_LABEL;
 
 /* enumerated labels in the first 4 bits */
 #define ZP_LABEL_POINTER         0x00
@@ -35,7 +34,7 @@ typedef uint8_t ZP_LABEL;
 #define ZP_LABEL_ARRAY_SIMPLE    0x10   /* 0001xxxx */
 #define ZP_LABEL_ARRAY_FULL      0x20   /* 0010xxxx */
 #define ZP_LABEL_ARRAY_SCALAR    0x30   /* 0011xxxx */
-#define ZP_LABEL_INTEGER         0x40   /* 01...... */
+#define ZP_LABEL_INT             0x40   /* 01...... */
 #define ZP_LABEL_FLOAT           0x80   /* 1....... */
 
 /* dtypes for array classes in the first 4 bits */
@@ -61,19 +60,19 @@ typedef uint8_t ZP_LABEL;
 #define ZP_ENUM_NONE             2
 
 struct ZP_Labeled {
-  ZP_RAW data;
+  ZP_Index_t data;
 };
 typedef struct ZP_Labeled ZP_Labeled_t;
 
-ZP_LABEL ZP_label_of(ZP_Labeled_t* labeled);
+ZP_Label_t ZP_label_of(ZP_Labeled_t* labeled);
 
-ZP_RAW ZP_to_raw(ZP_Labeled_t* labeled);
+ZP_Index_t ZP_to_raw(ZP_Labeled_t* labeled);
 
-ZP_INTEGER ZP_to_integer(ZP_Labeled_t* labeled);
-ZP_ERROR ZP_from_integer(ZP_INTEGER* data, ZP_Labeled_t* labeled);
+ZP_Int_t ZP_to_integer(ZP_Labeled_t* labeled);
+ZP_Error_t ZP_from_integer(ZP_Int_t* data, ZP_Labeled_t* labeled);
 
-ZP_FLOAT ZP_to_float(ZP_Labeled_t* labeled);
-void ZP_from_float(ZP_FLOAT* data, ZP_Labeled_t* labeled);
+ZP_Float_t ZP_to_float(ZP_Labeled_t* labeled);
+void ZP_from_float(ZP_Float_t* data, ZP_Labeled_t* labeled);
 
 /***** RegionAllocator *******************************************************/
 
@@ -82,11 +81,11 @@ void ZP_from_float(ZP_FLOAT* data, ZP_Labeled_t* labeled);
 struct ZP_RegionAllocator {
   void* arena;
   size_t arena_size;
-  ZP_RAW first_free;
+  ZP_Index_t first_free;
 };
 typedef struct ZP_RegionAllocator ZP_RegionAllocator_t;
 
-ZP_ERROR ZP_RegionAllocator_new(
+ZP_Error_t ZP_RegionAllocator_new(
   ZP_RegionAllocator_t* region_allocator,
   void* arena,
   size_t arena_size
@@ -98,31 +97,36 @@ bool ZP_RegionAllocator_full(
 
 void* ZP_RegionAllocator_at(
   ZP_RegionAllocator_t* region_allocator,
-  ZP_RAW pointer
+  ZP_Index_t pointer
 );
 
-ZP_ERROR ZP_RegionAllocator_alloc(
+ZP_Error_t ZP_RegionAllocator_alloc(
   ZP_RegionAllocator_t* region_allocator,
-  ZP_RAW request_size,
-  ZP_RAW* pointer
+  ZP_Index_t request_size,
+  ZP_Index_t* pointer
 );
 
-ZP_ERROR ZP_RegionAllocator_free(
+ZP_Error_t ZP_RegionAllocator_free(
   ZP_RegionAllocator_t* region_allocator,
-  ZP_RAW pointer,
-  ZP_RAW request_size
+  ZP_Index_t pointer,
+  ZP_Index_t request_size
 );
 
 void ZP_RegionAllocator_copy_data(
   ZP_RegionAllocator_t* region_allocator,
-  ZP_RAW pointer,
-  ZP_RAW request_size,
+  ZP_Index_t pointer,
+  ZP_Index_t request_size,
   const char* data
 );
 
 /***** ConsAllocator *********************************************************/
 
+/* typedef uint8_t ZP_REFCOUNT; */
 
+/* struct ZP_ConsAllocator { */
+/*   ZP_Index_t* arena; */
+/*   ZP_Index_t arena_size; */
+/* }; */
 
 
 
@@ -134,24 +138,24 @@ void ZP_RegionAllocator_copy_data(
 /***** Symbols ***************************************************************/
 
 struct ZP_SymbolSet {
-  ZP_RAW first_pointer;
+  ZP_Index_t first_pointer;
 };
 typedef struct ZP_SymbolSet ZP_SymbolSet_t;
 
 struct ZP_Symbol {
-  ZP_RAW pointer;
+  ZP_Index_t pointer;
 };
 typedef struct ZP_Symbol ZP_Symbol_t;
 
-ZP_ERROR ZP_SymbolSet_new(
+ZP_Error_t ZP_SymbolSet_new(
   ZP_SymbolSet_t* symbol_set
 );
 
-ZP_ERROR ZP_Symbol_new(
+ZP_Error_t ZP_Symbol_new(
   ZP_SymbolSet_t* symbol_set,
   ZP_RegionAllocator_t* region_allocator,
   const char* symbol_data,
-  ZP_RAW symbol_data_size,
+  ZP_Index_t symbol_data_size,
   ZP_Symbol_t* symbol
 );
 
