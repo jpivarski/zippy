@@ -2,6 +2,77 @@
 
 #include <zippy/data.h>
 
+/***** Labeled ***************************************************************/
+
+const ZP_RAW ZP_LABEL_SHIFT = 8 * (sizeof(ZP_RAW) - 1);
+const ZP_RAW ZP_LABEL_MASK_DATA = ~(0xff << ZP_LABEL_SHIFT);
+
+const ZP_RAW ZP_INTEGER_LABEL = ZP_LABEL_INTEGER << ZP_LABEL_SHIFT;
+const ZP_RAW ZP_INTEGER_MASK_SIGN = 0xc0 << ZP_LABEL_SHIFT;
+const ZP_RAW ZP_INTEGER_MASK_DATA = ~ZP_INTEGER_MASK_SIGN;
+const ZP_RAW ZP_INTEGER_SIGN_TEST = 0x20 << ZP_LABEL_SHIFT;
+
+const ZP_RAW ZP_FLOAT_SIGN_0 = ZP_LABEL_FLOAT << ZP_LABEL_SHIFT;
+const ZP_RAW ZP_FLOAT_SIGN_1 = ZP_FLOAT_SIGN_0 | 1;
+const ZP_RAW ZP_FLOAT_MASK_DATA = ~ZP_FLOAT_SIGN_0;
+const ZP_RAW ZP_FLOAT_MASK_SIGNIFICANT = ~(ZP_RAW)1;
+
+ZP_LABEL ZP_label_of(ZP_Labeled_t* labeled) {
+  ZP_LABEL out = labeled->data >> ZP_LABEL_SHIFT;
+  if (out & 0x80) {
+    /* FLOAT */
+    return 0x80;
+  }
+  else if (out & 0x40) {
+    /* INTEGER */
+    return 0x40;
+  }
+  else if (out & 0x30) {
+    /* ARRAY_SIMPLE or ARRAY_FULL, remove DTYPE */
+    return out & 0xf0;
+  }
+  else {
+    /* enumerated label */
+    return out;
+  }
+}
+
+ZP_RAW ZP_to_raw(ZP_Labeled_t* labeled) {
+  return labeled->data & ZP_LABEL_MASK_DATA;
+}
+
+ZP_INTEGER ZP_to_integer(ZP_Labeled_t* labeled) {
+  /* remove the two label bits in a copy of the labeled->data */
+  ZP_RAW hold = labeled->data & ZP_INTEGER_MASK_DATA;
+  /* truncating the last two bits removes the sign */
+  /* so interpret the third bit as the sign and pad the rest of the integer */
+  hold |= (hold & ZP_INTEGER_SIGN_TEST) ? ZP_INTEGER_MASK_SIGN : 0;
+  return *(ZP_INTEGER*)(&hold);
+}
+
+void ZP_from_integer(ZP_INTEGER* data, ZP_Labeled_t* labeled) {
+  labeled->data = (*((ZP_RAW*)data) & ZP_INTEGER_MASK_DATA) | ZP_INTEGER_LABEL;
+}
+
+ZP_FLOAT ZP_to_float(ZP_Labeled_t* labeled) {
+  /* remove the (one) label bit in a copy of the labeled->data */
+  ZP_RAW hold = (labeled->data & ZP_FLOAT_MASK_DATA);
+  /* the label bit overlaps IEEE floating point sign data */
+  /* so restore the missing sign from the least significant bit */
+  hold |= (hold & 1) ? ZP_FLOAT_SIGN_0 : 0;
+  ZP_FLOAT* out = (ZP_FLOAT*)(&hold);
+  return *out;
+}
+
+void ZP_from_float(ZP_FLOAT* data, ZP_Labeled_t* labeled) {
+  /* copy the floating point data into labeled->data */
+  labeled->data = *((ZP_RAW*)data);
+  /* the label bit will overlap IEEE floating point sign data */
+  /* so store the sign in the least significant bit */
+  labeled->data &= ZP_FLOAT_MASK_SIGNIFICANT;
+  labeled->data |= (labeled->data & ZP_FLOAT_SIGN_0) ? ZP_FLOAT_SIGN_1 : ZP_FLOAT_SIGN_0;
+}
+
 /***** RegionAllocator *******************************************************/
 
 const ZP_RAW ZP_END_OF_FREE = -1;
@@ -160,6 +231,14 @@ void ZP_RegionAllocator_copy_data(
     ((ZP_RAW*)(region_allocator->arena + pointer))[i] = ((ZP_RAW*)data)[i];
   }
 }
+
+/***** ConsAllocator *********************************************************/
+
+
+
+
+
+
 
 /***** Symbols ***************************************************************/
 
