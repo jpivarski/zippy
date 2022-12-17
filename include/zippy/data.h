@@ -15,27 +15,28 @@ typedef uint8_t ZP_LABEL;
 
 /* enumerated labels in the first 4 bits */
 #define ZP_LABEL_POINTER         0x00
-#define ZP_LABEL_NONE            0x01
-#define ZP_LABEL_BOOL            0x02
+#define ZP_LABEL_INTERNAL_NODE   0x01
+#define ZP_LABEL_BUILTIN_ENUM    0x02
 #define ZP_LABEL_STRING          0x03
 #define ZP_LABEL_LIST            0x04
 #define ZP_LABEL_RECORD_TYPE     0x05
 #define ZP_LABEL_RECORD_OBJECT   0x06
-#define ZP_LABEL_RECORD_NODE     0x07
-#define ZP_LABEL_RESERVED1       0x08
-#define ZP_LABEL_RESERVED2       0x09
-#define ZP_LABEL_RESERVED3       0x0a
-#define ZP_LABEL_RESERVED4       0x0b
-#define ZP_LABEL_RESERVED5       0x0c
-#define ZP_LABEL_RESERVED6       0x0d
-#define ZP_LABEL_RESERVED7       0x0e
-#define ZP_LABEL_RESERVED8       0x0f
+#define ZP_LABEL_RESERVED1       0x07
+#define ZP_LABEL_RESERVED2       0x08
+#define ZP_LABEL_RESERVED3       0x09
+#define ZP_LABEL_RESERVED4       0x0a
+#define ZP_LABEL_RESERVED5       0x0b
+#define ZP_LABEL_RESERVED6       0x0c
+#define ZP_LABEL_RESERVED7       0x0d
+#define ZP_LABEL_RESERVED8       0x0e
+#define ZP_LABEL_RESERVED9       0x0f
 
 /* special label classes in the next 4 bits */
-#define ZP_LABEL_ARRAY_SIMPLE    0x10
-#define ZP_LABEL_ARRAY_FULL      0x20
-#define ZP_LABEL_INTEGER         0x40
-#define ZP_LABEL_FLOAT           0x80
+#define ZP_LABEL_ARRAY_SIMPLE    0x10   /* 0001xxxx */
+#define ZP_LABEL_ARRAY_FULL      0x20   /* 0010xxxx */
+#define ZP_LABEL_ARRAY_SCALAR    0x30   /* 0011xxxx */
+#define ZP_LABEL_INTEGER         0x40   /* 01...... */
+#define ZP_LABEL_FLOAT           0x80   /* 1....... */
 
 /* dtypes for array classes in the first 4 bits */
 #define ZP_LABEL_DTYPE_OBJECT    0x01
@@ -54,10 +55,25 @@ typedef uint8_t ZP_LABEL;
 #define ZP_LABEL_DTYPE_RESERVED2 0x0e
 #define ZP_LABEL_DTYPE_RESERVED3 0x0f
 
+/* data that can be used by ZP_LABEL_BUILTIN_ENUM */
+#define ZP_ENUM_FALSE            0
+#define ZP_ENUM_TRUE             1
+#define ZP_ENUM_NONE             2
+
 struct ZP_Labeled {
   ZP_RAW data;
 };
 typedef struct ZP_Labeled ZP_Labeled_t;
+
+ZP_LABEL ZP_label_of(ZP_Labeled_t* labeled);
+
+ZP_RAW ZP_to_raw(ZP_Labeled_t* labeled);
+
+ZP_INTEGER ZP_to_integer(ZP_Labeled_t* labeled);
+ZP_ERROR ZP_from_integer(ZP_INTEGER* data, ZP_Labeled_t* labeled);
+
+ZP_FLOAT ZP_to_float(ZP_Labeled_t* labeled);
+void ZP_from_float(ZP_FLOAT* data, ZP_Labeled_t* labeled);
 
 /***** RegionAllocator *******************************************************/
 

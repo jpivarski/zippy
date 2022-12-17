@@ -1,17 +1,24 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include <zippy/data.h>
 
 #define handle_error(error)   \
   if (error != ZP_NOERROR) {  \
-    printf(error);            \
+    printf("%s\n", error);    \
     return -1;                \
   }                           \
 
+#define handle_not_error(error)  \
+  if (error == ZP_NOERROR) {     \
+    printf("didn't encounter expected error\n"); \
+    return -1;                   \
+  }                              \
+
 #define assert(obtained, expected) \
   if ((obtained) != (expected)) {  \
-    printf("expected %x but obtained %x\n", expected, obtained); \
+    printf("line %d: expected %x but obtained %x\n", __LINE__, expected, obtained); \
     return -1;                     \
   }                                \
 
@@ -110,7 +117,205 @@ int test_RegionAllocator() {
   return 0;
 }
 
+int test_integer_labeling() {
+  printf("BEGIN test_integer_labeling\n");
+
+  const ZP_RAW SHIFT = (8 * sizeof(ZP_RAW)) - 3;
+  const ZP_RAW MAXINT = (1 << SHIFT) - 1;
+  const ZP_RAW MININT = -MAXINT - 1;
+
+  ZP_INTEGER myint_m2 = -2;
+  ZP_INTEGER myint_m1 = -1;
+  ZP_INTEGER myint_ze = 0;
+  ZP_INTEGER myint_p1 = 1;
+  ZP_INTEGER myint_p2 = 2;
+
+  ZP_INTEGER myint_high_1 = MAXINT - 2;
+  ZP_INTEGER myint_high_2 = MAXINT - 1;
+  ZP_INTEGER myint_high_3 = MAXINT;
+  ZP_INTEGER myint_high_err = MAXINT + 1;
+
+  ZP_INTEGER myint_low_err = MININT - 1;
+  ZP_INTEGER myint_low_1 = MININT;
+  ZP_INTEGER myint_low_2 = MININT + 1;
+  ZP_INTEGER myint_low_3 = MININT + 2;
+
+  ZP_Labeled_t labeled;
+  ZP_ERROR error;
+  ZP_INTEGER integer_copy;
+  ZP_RAW labeled_data_copy;
+
+  integer_copy = myint_m2;
+  error = ZP_from_integer(&myint_m2, &labeled);
+  handle_error(error);
+  assert(integer_copy, myint_m2);  /* didn't change the original */
+  labeled_data_copy = labeled.data;
+  assert(ZP_to_integer(&labeled), myint_m2);
+  assert(labeled.data, labeled_data_copy);  /* didn't change the original */
+
+  integer_copy = myint_m1;
+  error = ZP_from_integer(&myint_m1, &labeled);
+  handle_error(error);
+  assert(integer_copy, myint_m1);  /* didn't change the original */
+  labeled_data_copy = labeled.data;
+  assert(ZP_to_integer(&labeled), myint_m1);
+  assert(labeled.data, labeled_data_copy);  /* didn't change the original */
+
+  integer_copy = myint_ze;
+  error = ZP_from_integer(&myint_ze, &labeled);
+  handle_error(error);
+  assert(integer_copy, myint_ze);  /* didn't change the original */
+  labeled_data_copy = labeled.data;
+  assert(ZP_to_integer(&labeled), myint_ze);
+  assert(labeled.data, labeled_data_copy);  /* didn't change the original */
+
+  integer_copy = myint_p1;
+  error = ZP_from_integer(&myint_p1, &labeled);
+  handle_error(error);
+  assert(integer_copy, myint_p1);  /* didn't change the original */
+  labeled_data_copy = labeled.data;
+  assert(ZP_to_integer(&labeled), myint_p1);
+  assert(labeled.data, labeled_data_copy);  /* didn't change the original */
+
+  integer_copy = myint_p2;
+  error = ZP_from_integer(&myint_p2, &labeled);
+  handle_error(error);
+  assert(integer_copy, myint_p2);  /* didn't change the original */
+  labeled_data_copy = labeled.data;
+  assert(ZP_to_integer(&labeled), myint_p2);
+  assert(labeled.data, labeled_data_copy);  /* didn't change the original */
+
+  integer_copy = myint_high_1;
+  error = ZP_from_integer(&myint_high_1, &labeled);
+  handle_error(error);
+  assert(integer_copy, myint_high_1);  /* didn't change the original */
+  labeled_data_copy = labeled.data;
+  assert(ZP_to_integer(&labeled), myint_high_1);
+  assert(labeled.data, labeled_data_copy);  /* didn't change the original */
+
+  integer_copy = myint_high_2;
+  error = ZP_from_integer(&myint_high_2, &labeled);
+  handle_error(error);
+  assert(integer_copy, myint_high_2);  /* didn't change the original */
+  labeled_data_copy = labeled.data;
+  assert(ZP_to_integer(&labeled), myint_high_2);
+  assert(labeled.data, labeled_data_copy);  /* didn't change the original */
+
+  integer_copy = myint_high_3;
+  error = ZP_from_integer(&myint_high_3, &labeled);
+  handle_error(error);
+  assert(integer_copy, myint_high_3);  /* didn't change the original */
+  labeled_data_copy = labeled.data;
+  assert(ZP_to_integer(&labeled), myint_high_3);
+  assert(labeled.data, labeled_data_copy);  /* didn't change the original */
+
+  integer_copy = myint_high_err;
+  error = ZP_from_integer(&myint_high_err, &labeled);
+  handle_not_error(error);
+  assert(integer_copy, myint_high_err);  /* didn't change the original */
+
+  integer_copy = myint_low_1;
+  error = ZP_from_integer(&myint_low_1, &labeled);
+  handle_error(error);
+  assert(integer_copy, myint_low_1);  /* didn't change the original */
+  labeled_data_copy = labeled.data;
+  assert(ZP_to_integer(&labeled), myint_low_1);
+  assert(labeled.data, labeled_data_copy);  /* didn't change the original */
+
+  integer_copy = myint_low_2;
+  error = ZP_from_integer(&myint_low_2, &labeled);
+  handle_error(error);
+  assert(integer_copy, myint_low_2);  /* didn't change the original */
+  labeled_data_copy = labeled.data;
+  assert(ZP_to_integer(&labeled), myint_low_2);
+  assert(labeled.data, labeled_data_copy);  /* didn't change the original */
+
+  integer_copy = myint_low_3;
+  error = ZP_from_integer(&myint_low_3, &labeled);
+  handle_error(error);
+  assert(integer_copy, myint_low_3);  /* didn't change the original */
+  labeled_data_copy = labeled.data;
+  assert(ZP_to_integer(&labeled), myint_low_3);
+  assert(labeled.data, labeled_data_copy);  /* didn't change the original */
+
+  integer_copy = myint_low_err;
+  error = ZP_from_integer(&myint_low_err, &labeled);
+  handle_not_error(error);
+  assert(integer_copy, myint_low_err);  /* didn't change the original */
+
+  printf("END test_integer_labeling\n");
+
+  return 0;
+}
+
+int test_float_labeling() {
+  printf("BEGIN test_float_labeling\n");
+
+  ZP_FLOAT myfloat1 = 3.14f;
+  ZP_FLOAT myfloat2 = 3.14f;
+  ZP_FLOAT myfloat3 = -3.14f;
+  ZP_FLOAT myfloat4 = -3.14f;
+
+  *((ZP_RAW*)(&myfloat2)) &= ~(ZP_RAW)1;
+  *((ZP_RAW*)(&myfloat4)) &= ~(ZP_RAW)1;
+
+  printf("%.30f\n", myfloat1);
+  printf("%.30f\n", myfloat2);
+  printf("%.30f\n", myfloat3);
+  printf("%.30f\n", myfloat4);
+
+  assert(myfloat1 != myfloat2, true);
+  assert(myfloat1 != myfloat3, true);
+  assert(myfloat1 != myfloat4, true);
+
+  ZP_Labeled_t labeled;
+  ZP_FLOAT float_copy;
+  ZP_RAW labeled_data_copy;
+
+  float_copy = myfloat1;
+  assert(myfloat1 == float_copy, true);
+  ZP_from_float(&myfloat1, &labeled);
+  assert(myfloat1 == float_copy, true);  /* didn't change the original */
+
+  labeled_data_copy = labeled.data;
+  assert(fabs(myfloat1 - ZP_to_float(&labeled)) < 1e8, true);
+  assert(labeled_data_copy, labeled.data);  /* didn't change the original */
+
+  float_copy = myfloat2;
+  assert(myfloat2 == float_copy, true);
+  ZP_from_float(&myfloat2, &labeled);
+  assert(myfloat2 == float_copy, true);  /* didn't change the original */
+
+  labeled_data_copy = labeled.data;
+  assert(fabs(myfloat2 - ZP_to_float(&labeled)) < 1e8, true);
+  assert(labeled_data_copy, labeled.data);  /* didn't change the original */
+
+  float_copy = myfloat3;
+  assert(myfloat3 == float_copy, true);
+  ZP_from_float(&myfloat3, &labeled);
+  assert(myfloat3 == float_copy, true);  /* didn't change the original */
+
+  labeled_data_copy = labeled.data;
+  assert(fabs(myfloat3 - ZP_to_float(&labeled)) < 1e8, true);
+  assert(labeled_data_copy, labeled.data);  /* didn't change the original */
+
+  float_copy = myfloat4;
+  assert(myfloat4 == float_copy, true);
+  ZP_from_float(&myfloat4, &labeled);
+  assert(myfloat4 == float_copy, true);  /* didn't change the original */
+
+  labeled_data_copy = labeled.data;
+  assert(fabs(myfloat4 - ZP_to_float(&labeled)) < 1e8, true);
+  assert(labeled_data_copy, labeled.data);  /* didn't change the original */
+
+  printf("END test_float_labeling\n");
+
+  return 0;
+}
+
 int test_symbols() {
+  printf("BEGIN test_symbols\n\n");
+
   size_t arena_size = 64;
   void* arena = malloc(arena_size);
   init(arena, arena_size);
@@ -163,6 +368,8 @@ int test_symbols() {
   view(arena, arena_size);
   printf("\n");
 
+  printf("END test_symbols\n");
+
   return 0;
 }
 
@@ -174,10 +381,20 @@ int main(int argc, char** argv) {
   /*   return result; */
   /* } */
 
-  result = test_symbols();
+  result = test_integer_labeling();
   if (result != 0) {
     return result;
   }
+
+  /* result = test_float_labeling(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
+
+  /* result = test_symbols(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
 
   return 0;
 }

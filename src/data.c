@@ -11,6 +11,7 @@ const ZP_RAW ZP_INTEGER_LABEL = ZP_LABEL_INTEGER << ZP_LABEL_SHIFT;
 const ZP_RAW ZP_INTEGER_MASK_SIGN = 0xc0 << ZP_LABEL_SHIFT;
 const ZP_RAW ZP_INTEGER_MASK_DATA = ~ZP_INTEGER_MASK_SIGN;
 const ZP_RAW ZP_INTEGER_SIGN_TEST = 0x20 << ZP_LABEL_SHIFT;
+const ZP_RAW ZP_INTEGER_OVERFLOW_TEST = 0xe0 << ZP_LABEL_SHIFT;
 
 const ZP_RAW ZP_FLOAT_SIGN_0 = ZP_LABEL_FLOAT << ZP_LABEL_SHIFT;
 const ZP_RAW ZP_FLOAT_SIGN_1 = ZP_FLOAT_SIGN_0 | 1;
@@ -50,8 +51,13 @@ ZP_INTEGER ZP_to_integer(ZP_Labeled_t* labeled) {
   return *(ZP_INTEGER*)(&hold);
 }
 
-void ZP_from_integer(ZP_INTEGER* data, ZP_Labeled_t* labeled) {
+ZP_ERROR ZP_from_integer(ZP_INTEGER* data, ZP_Labeled_t* labeled) {
+  ZP_INTEGER test = *data & ZP_INTEGER_OVERFLOW_TEST;
+  if (test != 0  &&  test != ZP_INTEGER_OVERFLOW_TEST) {
+    return "integer overflow";
+  }
   labeled->data = (*((ZP_RAW*)data) & ZP_INTEGER_MASK_DATA) | ZP_INTEGER_LABEL;
+  return ZP_NOERROR;
 }
 
 ZP_FLOAT ZP_to_float(ZP_Labeled_t* labeled) {

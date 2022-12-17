@@ -5,7 +5,7 @@ Small, fast, dynamically typed programming language without a garbage collector.
 Compilation:
 
 ```bash
-cd git rev-parse --show-toplevel`
+cd `git rev-parse --show-toplevel`
 gcc --std=c89 -O3 -Wall -I include src/*.c tests/test-data.c -o tmp-tests  &&  ./tmp-tests
 ```
 
