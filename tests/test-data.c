@@ -138,7 +138,6 @@ int test_FixedAllocator() {
 
   size_t refcount_size = 8;
   void* refcount = malloc(refcount_size);
-  init(refcount, refcount_size);
 
   ZP_Error_t error = ZP_NOERROR;
 
@@ -466,7 +465,6 @@ int test_list() {
 
   size_t refcount_size = 8;
   void* refcount = malloc(refcount_size);
-  init(refcount, refcount_size);
 
   ZP_Error_t error = ZP_NOERROR;
 
@@ -480,7 +478,7 @@ int test_list() {
   );
   handle_error(error);
   viewhex(arena, arena_size, sizeof(ZP_Index_t));
-  viewhex(refcount, refcount_size, sizeof(ZP_RCnt_t));
+  viewhex(refcount, refcount_size, sizeof(ZP_RefCnt_t));
   printf("\n");
 
   ZP_Labeled_t list1;
@@ -496,8 +494,9 @@ int test_list() {
   error = ZP_List_push(&fixed_allocator, &list2, &list1, &labeled_int1);
   handle_error(error);
   viewhex(arena, arena_size, sizeof(ZP_Index_t));
-  viewhex(refcount, refcount_size, sizeof(ZP_RCnt_t));
+  viewhex(refcount, refcount_size, sizeof(ZP_RefCnt_t));
   printf("\n");
+  assert(ZP_FixedAllocator_refcnt(&fixed_allocator, &list2), 1);
 
   ZP_Labeled_t labeled_int2;
   ZP_Int_t int2 = 6;
@@ -508,8 +507,10 @@ int test_list() {
   error = ZP_List_push(&fixed_allocator, &list3, &list2, &labeled_int2);
   handle_error(error);
   viewhex(arena, arena_size, sizeof(ZP_Index_t));
-  viewhex(refcount, refcount_size, sizeof(ZP_RCnt_t));
+  viewhex(refcount, refcount_size, sizeof(ZP_RefCnt_t));
   printf("\n");
+  assert(ZP_FixedAllocator_refcnt(&fixed_allocator, &list2), 2);
+  assert(ZP_FixedAllocator_refcnt(&fixed_allocator, &list3), 1);
 
   ZP_Labeled_t labeled_int3;
   ZP_Int_t int3 = 7;
@@ -520,8 +521,11 @@ int test_list() {
   error = ZP_List_push(&fixed_allocator, &list4, &list3, &labeled_int3);
   handle_error(error);
   viewhex(arena, arena_size, sizeof(ZP_Index_t));
-  viewhex(refcount, refcount_size, sizeof(ZP_RCnt_t));
+  viewhex(refcount, refcount_size, sizeof(ZP_RefCnt_t));
   printf("\n");
+  assert(ZP_FixedAllocator_refcnt(&fixed_allocator, &list2), 2);
+  assert(ZP_FixedAllocator_refcnt(&fixed_allocator, &list3), 2);
+  assert(ZP_FixedAllocator_refcnt(&fixed_allocator, &list4), 1);
 
   ZP_Labeled_t obj1;
   ZP_Labeled_t obj2;
@@ -530,8 +534,11 @@ int test_list() {
   assert(ZP_label_of(&obj1), ZP_LABEL_LIST);
   assert(ZP_label_of(&obj2), ZP_LABEL_INT);
   assert(ZP_to_int(&obj2), 7);
-  viewhex(refcount, refcount_size, sizeof(ZP_RCnt_t));
+  viewhex(refcount, refcount_size, sizeof(ZP_RefCnt_t));
   printf("\n");
+  assert(ZP_FixedAllocator_refcnt(&fixed_allocator, &list2), 2);
+  assert(ZP_FixedAllocator_refcnt(&fixed_allocator, &list3), 3);
+  assert(ZP_FixedAllocator_refcnt(&fixed_allocator, &list4), 1);
 
   ZP_Labeled_t obj3;
   ZP_Labeled_t obj4;
@@ -540,8 +547,11 @@ int test_list() {
   assert(ZP_label_of(&obj3), ZP_LABEL_LIST);
   assert(ZP_label_of(&obj4), ZP_LABEL_INT);
   assert(ZP_to_int(&obj4), 6);
-  viewhex(refcount, refcount_size, sizeof(ZP_RCnt_t));
+  viewhex(refcount, refcount_size, sizeof(ZP_RefCnt_t));
   printf("\n");
+  assert(ZP_FixedAllocator_refcnt(&fixed_allocator, &list2), 3);
+  assert(ZP_FixedAllocator_refcnt(&fixed_allocator, &list3), 3);
+  assert(ZP_FixedAllocator_refcnt(&fixed_allocator, &list4), 1);
 
   ZP_Labeled_t obj5;
   ZP_Labeled_t obj6;
@@ -551,8 +561,11 @@ int test_list() {
   assert(ZP_label_of(&obj6), ZP_LABEL_INT);
   assert(ZP_to_raw(&obj5), 0x00ffffff);  /* list terminator */
   assert(ZP_to_int(&obj6), 5);
-  viewhex(refcount, refcount_size, sizeof(ZP_RCnt_t));
+  viewhex(refcount, refcount_size, sizeof(ZP_RefCnt_t));
   printf("\n");
+  assert(ZP_FixedAllocator_refcnt(&fixed_allocator, &list2), 3);
+  assert(ZP_FixedAllocator_refcnt(&fixed_allocator, &list3), 3);
+  assert(ZP_FixedAllocator_refcnt(&fixed_allocator, &list4), 1);
 
 
 

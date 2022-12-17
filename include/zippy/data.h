@@ -6,7 +6,7 @@ typedef const char* ZP_Error_t;
 typedef uint32_t ZP_Index_t;
 typedef int8_t ZP_Cmp_t;
 typedef uint8_t ZP_Label_t;
-typedef uint8_t ZP_RCnt_t;
+typedef uint8_t ZP_RefCnt_t;
 
 typedef int32_t ZP_Int_t;
 typedef float ZP_Float_t;
@@ -124,7 +124,7 @@ void ZP_RegionAllocator_copy_data(
 
 struct ZP_FixedAllocator {
   ZP_Index_t* arena;
-  ZP_RCnt_t* refcount;
+  ZP_RefCnt_t* refcount;
   ZP_Index_t num_pairs;
   ZP_Index_t first_pointer;
   ZP_Index_t bump_pointer;
@@ -168,7 +168,37 @@ void ZP_FixedAllocator_set(
   ZP_Index_t two
 );
 
+ZP_Error_t ZP_FixedAllocator_incref(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_Labeled_t* labeled
+);
+
+void ZP_FixedAllocator_decref(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_Labeled_t* labeled
+);
+
+ZP_RefCnt_t ZP_FixedAllocator_refcnt(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_Labeled_t* labeled
+);
+
 /***** List ******************************************************************/
+
+ZP_Error_t ZP_List_incref(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_Labeled_t* labeled
+);
+
+void ZP_List_decref(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_Labeled_t* labeled
+);
+
+ZP_RefCnt_t ZP_List_refcnt(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_Labeled_t* labeled
+);
 
 void ZP_List_new_empty(
   ZP_Labeled_t* list
@@ -187,7 +217,6 @@ ZP_Error_t ZP_List_pop(
   ZP_Labeled_t* output_item,
   ZP_Labeled_t* input_list
 );
-
 
 
 
