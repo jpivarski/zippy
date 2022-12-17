@@ -123,8 +123,8 @@ int test_RegionAllocator() {
   return 0;
 }
 
-int test_PairAllocator() {
-  printf("BEGIN test_PairAllocator\n\n");
+int test_FixedAllocator() {
+  printf("BEGIN test_FixedAllocator\n\n");
 
   size_t arena_size = 64;
   void* arena = malloc(arena_size);
@@ -136,9 +136,9 @@ int test_PairAllocator() {
 
   ZP_Error_t error = ZP_NOERROR;
 
-  ZP_PairAllocator_t pair_allocator;
-  error = ZP_PairAllocator_new(
-    &pair_allocator,
+  ZP_FixedAllocator_t fixed_allocator;
+  error = ZP_FixedAllocator_new(
+    &fixed_allocator,
     arena,
     refcount,
     arena_size,
@@ -148,105 +148,105 @@ int test_PairAllocator() {
   viewhex(arena, arena_size);
   printf("\n");
 
-  ZP_Pair_t pair1;
-  error = ZP_PairAllocator_alloc(&pair_allocator, &pair1);
+  ZP_FixedLocation_t fixed1;
+  error = ZP_FixedAllocator_alloc(&fixed_allocator, &fixed1);
   handle_error(error);
-  ZP_PairAllocator_set(&pair_allocator, &pair1, 5, 6);
+  ZP_FixedAllocator_set(&fixed_allocator, &fixed1, 5, 6);
   viewhex(arena, arena_size);
   printf("\n");
 
   ZP_Index_t one;
   ZP_Index_t two;
-  ZP_PairAllocator_get(&pair_allocator, &pair1, &one, &two);
+  ZP_FixedAllocator_get(&fixed_allocator, &fixed1, &one, &two);
   assert(one, 5);
   assert(two, 6);
 
-  ZP_Pair_t pair2;
-  error = ZP_PairAllocator_alloc(&pair_allocator, &pair2);
+  ZP_FixedLocation_t fixed2;
+  error = ZP_FixedAllocator_alloc(&fixed_allocator, &fixed2);
   handle_error(error);
-  ZP_PairAllocator_set(&pair_allocator, &pair2, 0xeeeeee01, 0xeeeeee02);
+  ZP_FixedAllocator_set(&fixed_allocator, &fixed2, 0xeeeeee01, 0xeeeeee02);
   viewhex(arena, arena_size);
   printf("\n");
 
-  ZP_Pair_t pair3;
-  error = ZP_PairAllocator_alloc(&pair_allocator, &pair3);
+  ZP_FixedLocation_t fixed3;
+  error = ZP_FixedAllocator_alloc(&fixed_allocator, &fixed3);
   handle_error(error);
-  ZP_PairAllocator_set(&pair_allocator, &pair3, 0xdddddd01, 0xdddddd02);
+  ZP_FixedAllocator_set(&fixed_allocator, &fixed3, 0xdddddd01, 0xdddddd02);
   viewhex(arena, arena_size);
   printf("\n");
 
-  ZP_Pair_t pair4;
-  error = ZP_PairAllocator_alloc(&pair_allocator, &pair4);
+  ZP_FixedLocation_t fixed4;
+  error = ZP_FixedAllocator_alloc(&fixed_allocator, &fixed4);
   handle_error(error);
-  ZP_PairAllocator_set(&pair_allocator, &pair4, 0xaaaaaa01, 0xaaaaaa02);
+  ZP_FixedAllocator_set(&fixed_allocator, &fixed4, 0xaaaaaa01, 0xaaaaaa02);
   viewhex(arena, arena_size);
   printf("\n");
 
-  ZP_PairAllocator_get(&pair_allocator, &pair3, &one, &two);
+  ZP_FixedAllocator_get(&fixed_allocator, &fixed3, &one, &two);
   assert(one, 0xdddddd01);
   assert(two, 0xdddddd02);
 
-  ZP_PairAllocator_free(&pair_allocator, &pair3);
+  ZP_FixedAllocator_free(&fixed_allocator, &fixed3);
   viewhex(arena, arena_size);
-  printf("first_pointer %d\n", pair_allocator.first_pointer);
+  printf("first_pointer %d\n", fixed_allocator.first_pointer);
   printf("\n");
 
-  ZP_Pair_t pair5;
-  error = ZP_PairAllocator_alloc(&pair_allocator, &pair5);
+  ZP_FixedLocation_t fixed5;
+  error = ZP_FixedAllocator_alloc(&fixed_allocator, &fixed5);
   handle_error(error);
-  ZP_PairAllocator_set(&pair_allocator, &pair5, 0xbbbbbb01, 0xbbbbbb02);
+  ZP_FixedAllocator_set(&fixed_allocator, &fixed5, 0xbbbbbb01, 0xbbbbbb02);
   viewhex(arena, arena_size);
-  printf("first_pointer %d\n", pair_allocator.first_pointer);
+  printf("first_pointer %d\n", fixed_allocator.first_pointer);
   printf("\n");
 
-  ZP_PairAllocator_free(&pair_allocator, &pair5);
+  ZP_FixedAllocator_free(&fixed_allocator, &fixed5);
   viewhex(arena, arena_size);
-  printf("first_pointer %d\n", pair_allocator.first_pointer);
+  printf("first_pointer %d\n", fixed_allocator.first_pointer);
   printf("\n");
 
-  ZP_PairAllocator_free(&pair_allocator, &pair2);
+  ZP_FixedAllocator_free(&fixed_allocator, &fixed2);
   viewhex(arena, arena_size);
-  printf("first_pointer %d\n", pair_allocator.first_pointer);
+  printf("first_pointer %d\n", fixed_allocator.first_pointer);
   printf("\n");
 
-  ZP_PairAllocator_free(&pair_allocator, &pair4);
+  ZP_FixedAllocator_free(&fixed_allocator, &fixed4);
   viewhex(arena, arena_size);
-  printf("first_pointer %d\n", pair_allocator.first_pointer);
+  printf("first_pointer %d\n", fixed_allocator.first_pointer);
   printf("\n");
 
-  ZP_Pair_t pair6;
-  error = ZP_PairAllocator_alloc(&pair_allocator, &pair6);
+  ZP_FixedLocation_t fixed6;
+  error = ZP_FixedAllocator_alloc(&fixed_allocator, &fixed6);
   handle_error(error);
-  ZP_PairAllocator_set(&pair_allocator, &pair6, 0xcccccc08, 0xcccccc09);
+  ZP_FixedAllocator_set(&fixed_allocator, &fixed6, 0xcccccc08, 0xcccccc09);
   viewhex(arena, arena_size);
-  printf("first_pointer %d\n", pair_allocator.first_pointer);
+  printf("first_pointer %d\n", fixed_allocator.first_pointer);
   printf("\n");
 
-  ZP_Pair_t pair7;
-  error = ZP_PairAllocator_alloc(&pair_allocator, &pair7);
+  ZP_FixedLocation_t fixed7;
+  error = ZP_FixedAllocator_alloc(&fixed_allocator, &fixed7);
   handle_error(error);
-  ZP_PairAllocator_set(&pair_allocator, &pair7, 0xcccccc06, 0xcccccc07);
+  ZP_FixedAllocator_set(&fixed_allocator, &fixed7, 0xcccccc06, 0xcccccc07);
   viewhex(arena, arena_size);
-  printf("first_pointer %d\n", pair_allocator.first_pointer);
+  printf("first_pointer %d\n", fixed_allocator.first_pointer);
   printf("\n");
 
-  ZP_Pair_t pair8;
-  error = ZP_PairAllocator_alloc(&pair_allocator, &pair8);
+  ZP_FixedLocation_t fixed8;
+  error = ZP_FixedAllocator_alloc(&fixed_allocator, &fixed8);
   handle_error(error);
-  ZP_PairAllocator_set(&pair_allocator, &pair8, 0xcccccc04, 0xcccccc05);
+  ZP_FixedAllocator_set(&fixed_allocator, &fixed8, 0xcccccc04, 0xcccccc05);
   viewhex(arena, arena_size);
-  printf("first_pointer %d\n", pair_allocator.first_pointer);
+  printf("first_pointer %d\n", fixed_allocator.first_pointer);
   printf("\n");
 
-  ZP_Pair_t pair9;
-  error = ZP_PairAllocator_alloc(&pair_allocator, &pair9);
+  ZP_FixedLocation_t fixed9;
+  error = ZP_FixedAllocator_alloc(&fixed_allocator, &fixed9);
   handle_error(error);
-  ZP_PairAllocator_set(&pair_allocator, &pair9, 0xcccccc02, 0xcccccc03);
+  ZP_FixedAllocator_set(&fixed_allocator, &fixed9, 0xcccccc02, 0xcccccc03);
   viewhex(arena, arena_size);
-  printf("first_pointer %d\n", pair_allocator.first_pointer);
+  printf("first_pointer %d\n", fixed_allocator.first_pointer);
   printf("\n");
 
-  printf("END test_PairAllocator\n");
+  printf("END test_FixedAllocator\n");
 
   return 0;
 }
@@ -451,65 +451,65 @@ int test_float_labeling() {
   return 0;
 }
 
-int test_symbols() {
-  printf("BEGIN test_symbols\n\n");
+/* int test_symbols() { */
+/*   printf("BEGIN test_symbols\n\n"); */
 
-  size_t arena_size = 64;
-  void* arena = malloc(arena_size);
-  init(arena, arena_size);
+/*   size_t arena_size = 64; */
+/*   void* arena = malloc(arena_size); */
+/*   init(arena, arena_size); */
 
-  ZP_Error_t error = ZP_NOERROR;
+/*   ZP_Error_t error = ZP_NOERROR; */
 
-  ZP_RegionAllocator_t region_allocator;
-  error = ZP_RegionAllocator_new(&region_allocator, arena, arena_size);
-  handle_error(error);
-  view(arena, arena_size);
-  printf("\n");
+/*   ZP_RegionAllocator_t region_allocator; */
+/*   error = ZP_RegionAllocator_new(&region_allocator, arena, arena_size); */
+/*   handle_error(error); */
+/*   view(arena, arena_size); */
+/*   printf("\n"); */
 
-  ZP_SymbolSet_t symbol_set;
-  error = ZP_SymbolSet_new(&symbol_set);
-  handle_error(error);
+/*   ZP_SymbolSet_t symbol_set; */
+/*   error = ZP_SymbolSet_new(&symbol_set); */
+/*   handle_error(error); */
 
-  ZP_Symbol_t symbol_one;
-  error = ZP_Symbol_new(
-    &symbol_set,
-    &region_allocator,
-    "symbol22",
-    8,
-    &symbol_one
-  );
-  handle_error(error);
-  view(arena, arena_size);
-  printf("\n");
+/*   ZP_Symbol_t symbol_one; */
+/*   error = ZP_Symbol_new( */
+/*     &symbol_set, */
+/*     &region_allocator, */
+/*     "symbol22", */
+/*     8, */
+/*     &symbol_one */
+/*   ); */
+/*   handle_error(error); */
+/*   view(arena, arena_size); */
+/*   printf("\n"); */
 
-  ZP_Symbol_t symbol_two;
-  error = ZP_Symbol_new(
-    &symbol_set,
-    &region_allocator,
-    "symbol33",
-    8,
-    &symbol_two
-  );
-  handle_error(error);
-  view(arena, arena_size);
-  printf("\n");
+/*   ZP_Symbol_t symbol_two; */
+/*   error = ZP_Symbol_new( */
+/*     &symbol_set, */
+/*     &region_allocator, */
+/*     "symbol33", */
+/*     8, */
+/*     &symbol_two */
+/*   ); */
+/*   handle_error(error); */
+/*   view(arena, arena_size); */
+/*   printf("\n"); */
 
-  ZP_Symbol_t symbol_three;
-  error = ZP_Symbol_new(
-    &symbol_set,
-    &region_allocator,
-    "symbol11",
-    8,
-    &symbol_three
-  );
-  handle_error(error);
-  view(arena, arena_size);
-  printf("\n");
+/*   ZP_Symbol_t symbol_three; */
+/*   error = ZP_Symbol_new( */
+/*     &symbol_set, */
+/*     &region_allocator, */
+/*     "symbol11", */
+/*     8, */
+/*     &symbol_three */
+/*   ); */
+/*   handle_error(error); */
+/*   view(arena, arena_size); */
+/*   printf("\n"); */
 
-  printf("END test_symbols\n");
+/*   printf("END test_symbols\n"); */
 
-  return 0;
-}
+/*   return 0; */
+/* } */
 
 int main(int argc, char** argv) {
   int result;
@@ -519,7 +519,7 @@ int main(int argc, char** argv) {
   /*   return result; */
   /* } */
 
-  result = test_PairAllocator();
+  result = test_FixedAllocator();
   if (result != 0) {
     return result;
   }
@@ -530,11 +530,6 @@ int main(int argc, char** argv) {
   /* } */
 
   /* result = test_float_labeling(); */
-  /* if (result != 0) { */
-  /*   return result; */
-  /* } */
-
-  /* result = test_symbols(); */
   /* if (result != 0) { */
   /*   return result; */
   /* } */

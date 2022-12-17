@@ -17,8 +17,8 @@ typedef float ZP_Float_t;
 #define ZP_LABEL_POINTER         0x00
 #define ZP_LABEL_INTERNAL_NODE   0x01
 #define ZP_LABEL_BUILTIN_ENUM    0x02
-#define ZP_LABEL_STRING          0x03
-#define ZP_LABEL_LIST            0x04
+#define ZP_LABEL_LIST            0x03
+#define ZP_LABEL_STRING          0x04
 #define ZP_LABEL_RECORD_TYPE     0x05
 #define ZP_LABEL_RECORD_OBJECT   0x06
 #define ZP_LABEL_RESERVED1       0x07
@@ -120,79 +120,86 @@ void ZP_RegionAllocator_copy_data(
   const char* data
 );
 
-/***** PairAllocator *********************************************************/
+/***** FixedAllocator ********************************************************/
 
-struct ZP_PairAllocator {
+struct ZP_FixedAllocator {
   ZP_Index_t* arena;
   ZP_RCnt_t* refcount;
   ZP_Index_t num_pairs;
   ZP_Index_t first_pointer;
   ZP_Index_t bump_pointer;
 };
-typedef struct ZP_PairAllocator ZP_PairAllocator_t;
+typedef struct ZP_FixedAllocator ZP_FixedAllocator_t;
 
-struct ZP_Pair {
+struct ZP_FixedLocation {
   ZP_Index_t first;
 };
-typedef struct ZP_Pair ZP_Pair_t;
+typedef struct ZP_FixedLocation ZP_FixedLocation_t;
 
-ZP_Error_t ZP_PairAllocator_new(
-  ZP_PairAllocator_t* pair_allocator,
+ZP_Error_t ZP_FixedAllocator_new(
+  ZP_FixedAllocator_t* fixed_allocator,
   void* arena,
   void* refcount,
   size_t arena_size,
   size_t refcount_size
 );
 
-ZP_Error_t ZP_PairAllocator_alloc(
-  ZP_PairAllocator_t* pair_allocator,
-  ZP_Pair_t* pair
+ZP_Error_t ZP_FixedAllocator_alloc(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_FixedLocation_t* fixed
 );
 
-void ZP_PairAllocator_free(
-  ZP_PairAllocator_t* pair_allocator,
-  ZP_Pair_t* pair
+void ZP_FixedAllocator_free(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_FixedLocation_t* fixed
 );
 
-void ZP_PairAllocator_get(
-  ZP_PairAllocator_t* pair_allocator,
-  ZP_Pair_t* pair,
+void ZP_FixedAllocator_get(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_FixedLocation_t* fixed,
   ZP_Index_t* one,
   ZP_Index_t* two
 );
 
-void ZP_PairAllocator_set(
-  ZP_PairAllocator_t* pair_allocator,
-  ZP_Pair_t* pair,
+void ZP_FixedAllocator_set(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_FixedLocation_t* fixed,
   ZP_Index_t one,
   ZP_Index_t two
 );
+
+/***** List ******************************************************************/
+
+/* void ZP_List_new_empty( */
+/*   ZP_List_t* list */
+/* ); */
+
 
 
 
 
 /***** Symbols ***************************************************************/
 
-struct ZP_SymbolSet {
-  ZP_Index_t first_pointer;
-};
-typedef struct ZP_SymbolSet ZP_SymbolSet_t;
+/* struct ZP_SymbolSet { */
+/*   ZP_Index_t first_pointer; */
+/* }; */
+/* typedef struct ZP_SymbolSet ZP_SymbolSet_t; */
 
-struct ZP_Symbol {
-  ZP_Index_t pointer;
-};
-typedef struct ZP_Symbol ZP_Symbol_t;
+/* struct ZP_Symbol { */
+/*   ZP_Index_t pointer; */
+/* }; */
+/* typedef struct ZP_Symbol ZP_Symbol_t; */
 
-ZP_Error_t ZP_SymbolSet_new(
-  ZP_SymbolSet_t* symbol_set
-);
+/* ZP_Error_t ZP_SymbolSet_new( */
+/*   ZP_SymbolSet_t* symbol_set */
+/* ); */
 
-ZP_Error_t ZP_Symbol_new(
-  ZP_SymbolSet_t* symbol_set,
-  ZP_RegionAllocator_t* region_allocator,
-  const char* symbol_data,
-  ZP_Index_t symbol_data_size,
-  ZP_Symbol_t* symbol
-);
+/* ZP_Error_t ZP_Symbol_new( */
+/*   ZP_SymbolSet_t* symbol_set, */
+/*   ZP_RegionAllocator_t* region_allocator, */
+/*   const char* symbol_data, */
+/*   ZP_Index_t symbol_data_size, */
+/*   ZP_Symbol_t* symbol */
+/* ); */
 
 #endif /* _ZIPPY_DATA_H */

@@ -2,8 +2,8 @@
 
 #include <zippy/data.h>
 
-const ZP_Index_t ZP_END_OF_FREE = -1;  /* used by both RegionAllocator and PairAllocator */
-const ZP_Index_t ZP_END_OF_SYMBOLS = -2;
+const ZP_Index_t ZP_END_OF_FREE = -1;  /* used by both RegionAllocator and FixedAllocator */
+const ZP_Index_t ZP_END_OF_LIST = -2;
 
 /***** Labeled ***************************************************************/
 
@@ -241,197 +241,212 @@ void ZP_RegionAllocator_copy_data(
   }
 }
 
-/***** PairAllocator *********************************************************/
+/***** FixedAllocator ********************************************************/
 
-ZP_Error_t ZP_PairAllocator_new(
-  ZP_PairAllocator_t* pair_allocator,
+ZP_Error_t ZP_FixedAllocator_new(
+  ZP_FixedAllocator_t* fixed_allocator,
   void* arena,
   void* refcount,
   size_t arena_size,
   size_t refcount_size
 ) {
   if (arena_size < 2 * sizeof(ZP_Index_t)) {
-    return "ZP_PairAllocator arena_size must be at least 2*sizeof(ZP_Index_t)";
+    return "ZP_FixedAllocator arena_size must be at least 2*sizeof(ZP_Index_t)";
   }
   if (arena_size > (1 << (8 * sizeof(ZP_Index_t) - 8))) {
-    return "ZP_PairAllocator arena_size must be at most 256**(sizeof(ZP_Index_t) - 1)";
+    return "ZP_FixedAllocator arena_size must be at most 256**(sizeof(ZP_Index_t) - 1)";
   }
   if (arena_size % (2 * sizeof(ZP_Index_t)) != 0) {
-    return "ZP_PairAllocator arena_size must be a multiple of 2*sizeof(ZP_Index_t)";
+    return "ZP_FixedAllocator arena_size must be a multiple of 2*sizeof(ZP_Index_t)";
   }
   if (arena_size != 2 * sizeof(ZP_Index_t) * refcount_size) { /* assumes sizeof(ZP_RCnt_t) == 1 */
-    return "ZP_PairAllocator arena_size must be equal to 2*sizeof(ZP_Index_t)*refcount_size";
+    return "ZP_FixedAllocator arena_size must be equal to 2*sizeof(ZP_Index_t)*refcount_size";
   }
 
-  pair_allocator->arena = (ZP_Index_t*)arena;
-  pair_allocator->refcount = (ZP_RCnt_t*)refcount;
-  pair_allocator->num_pairs = refcount_size;
-  pair_allocator->first_pointer = ZP_END_OF_FREE;
-  pair_allocator->bump_pointer = 0;
+  fixed_allocator->arena = (ZP_Index_t*)arena;
+  fixed_allocator->refcount = (ZP_RCnt_t*)refcount;
+  fixed_allocator->num_pairs = refcount_size;
+  fixed_allocator->first_pointer = ZP_END_OF_FREE;
+  fixed_allocator->bump_pointer = 0;
 
   return ZP_NOERROR;
 }
 
-ZP_Error_t ZP_PairAllocator_alloc(
-  ZP_PairAllocator_t* pair_allocator,
-  ZP_Pair_t* pair
+ZP_Error_t ZP_FixedAllocator_alloc(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_FixedLocation_t* fixed_location
 ) {
-  if (pair_allocator->first_pointer == ZP_END_OF_FREE) {
-    if (pair_allocator->bump_pointer == 2 * pair_allocator->num_pairs) {
-      return "not enough memory in PairAllocator to allocate pair";
+  if (fixed_allocator->first_pointer == ZP_END_OF_FREE) {
+    if (fixed_allocator->bump_pointer == 2 * fixed_allocator->num_pairs) {
+      return "not enough memory in FixedAllocator to allocate FixedLocation";
     }
     else {
-      pair->first = pair_allocator->bump_pointer;
-      pair_allocator->bump_pointer += 2;
+      fixed_location->first = fixed_allocator->bump_pointer;
+      fixed_allocator->bump_pointer += 2;
     }
   }
   else {
-    pair->first = pair_allocator->first_pointer;
-    pair_allocator->first_pointer = pair_allocator->arena[pair_allocator->first_pointer];
+    fixed_location->first = fixed_allocator->first_pointer;
+    fixed_allocator->first_pointer = fixed_allocator->arena[fixed_allocator->first_pointer];
   }
 
   return ZP_NOERROR;
 }
 
-void ZP_PairAllocator_free(
-  ZP_PairAllocator_t* pair_allocator,
-  ZP_Pair_t* pair
+void ZP_FixedAllocator_free(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_FixedLocation_t* fixed_location
 ) {
-  pair_allocator->arena[pair->first] = pair_allocator->first_pointer;
-  pair_allocator->first_pointer = pair->first;
+  fixed_allocator->arena[fixed_location->first] = fixed_allocator->first_pointer;
+  fixed_allocator->first_pointer = fixed_location->first;
 }
 
-void ZP_PairAllocator_get(
-  ZP_PairAllocator_t* pair_allocator,
-  ZP_Pair_t* pair,
+void ZP_FixedAllocator_get(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_FixedLocation_t* fixed_location,
   ZP_Index_t* one,
   ZP_Index_t* two
 ) {
-  *one = pair_allocator->arena[pair->first];
-  *two = pair_allocator->arena[pair->first + 1];
+  *one = fixed_allocator->arena[fixed_location->first];
+  *two = fixed_allocator->arena[fixed_location->first + 1];
 }
 
-void ZP_PairAllocator_set(
-  ZP_PairAllocator_t* pair_allocator,
-  ZP_Pair_t* pair,
+void ZP_FixedAllocator_set(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_FixedLocation_t* fixed_location,
   ZP_Index_t one,
   ZP_Index_t two
 ) {
-  pair_allocator->arena[pair->first] = one;
-  pair_allocator->arena[pair->first + 1] = two;
+  fixed_allocator->arena[fixed_location->first] = one;
+  fixed_allocator->arena[fixed_location->first + 1] = two;
 }
+
+/***** List ******************************************************************/
+
+/* void ZP_List_new_empty( */
+/*   ZP_List_t* list */
+/* ) { */
+/*   list->first =  */
+/* } */
+
+
+
+
+
 
 
 
 /***** Symbols ***************************************************************/
 
-struct ZP_SymbolHeader {
-  ZP_Index_t symbol_data_size;
-  ZP_Index_t next_pointer;
-};
-typedef struct ZP_SymbolHeader ZP_SymbolHeader_t;
+/* const ZP_Index_t ZP_END_OF_SYMBOLS = -2; */
 
-ZP_Error_t ZP_SymbolSet_new(
-  ZP_SymbolSet_t* symbol_set
-) {
-  symbol_set->first_pointer = ZP_END_OF_SYMBOLS;
-  return ZP_NOERROR;
-}
+/* struct ZP_SymbolHeader { */
+/*   ZP_Index_t symbol_data_size; */
+/*   ZP_Index_t next_pointer; */
+/* }; */
+/* typedef struct ZP_SymbolHeader ZP_SymbolHeader_t; */
 
-ZP_Cmp_t ZP_Symbol_cmp_data(
-  ZP_RegionAllocator_t* region_allocator,
-  ZP_Index_t pointer,
-  const char* symbol_data,
-  ZP_Index_t symbol_data_size
-) {
-  ZP_SymbolHeader_t* header
-    = (ZP_SymbolHeader_t*)ZP_RegionAllocator_at(region_allocator, pointer);
-  const char* data
-    = (const char*)ZP_RegionAllocator_at(region_allocator, pointer + sizeof(ZP_SymbolHeader_t));
+/* ZP_Error_t ZP_SymbolSet_new( */
+/*   ZP_SymbolSet_t* symbol_set */
+/* ) { */
+/*   symbol_set->first_pointer = ZP_END_OF_SYMBOLS; */
+/*   return ZP_NOERROR; */
+/* } */
 
-  ZP_Index_t min_size = header->symbol_data_size;
-  if (symbol_data_size < min_size) {
-    min_size = symbol_data_size;
-  }
+/* ZP_Cmp_t ZP_Symbol_cmp_data( */
+/*   ZP_RegionAllocator_t* region_allocator, */
+/*   ZP_Index_t pointer, */
+/*   const char* symbol_data, */
+/*   ZP_Index_t symbol_data_size */
+/* ) { */
+/*   ZP_SymbolHeader_t* header */
+/*     = (ZP_SymbolHeader_t*)ZP_RegionAllocator_at(region_allocator, pointer); */
+/*   const char* data */
+/*     = (const char*)ZP_RegionAllocator_at(region_allocator, pointer + sizeof(ZP_SymbolHeader_t)); */
 
-  ZP_Index_t i;
-  for (i = 0;  i < min_size;  i++) {
-    if (data[i] < symbol_data[i]) {
-      return -1;
-    }
-    else if (data[i] > symbol_data[i]) {
-      return 1;
-    }
-  }
+/*   ZP_Index_t min_size = header->symbol_data_size; */
+/*   if (symbol_data_size < min_size) { */
+/*     min_size = symbol_data_size; */
+/*   } */
 
-  if (header->symbol_data_size < symbol_data_size) {
-    return -1;
-  }
-  else if (header->symbol_data_size > symbol_data_size) {
-    return 1;
-  }
-  else {
-    return 0;
-  }
-}
+/*   ZP_Index_t i; */
+/*   for (i = 0;  i < min_size;  i++) { */
+/*     if (data[i] < symbol_data[i]) { */
+/*       return -1; */
+/*     } */
+/*     else if (data[i] > symbol_data[i]) { */
+/*       return 1; */
+/*     } */
+/*   } */
 
-ZP_Error_t ZP_Symbol_new(
-  ZP_SymbolSet_t* symbol_set,
-  ZP_RegionAllocator_t* region_allocator,
-  const char* symbol_data,
-  ZP_Index_t symbol_data_size,
-  ZP_Symbol_t* symbol
-) {
-  ZP_Index_t before = ZP_END_OF_SYMBOLS;
-  ZP_Index_t current = symbol_set->first_pointer;
+/*   if (header->symbol_data_size < symbol_data_size) { */
+/*     return -1; */
+/*   } */
+/*   else if (header->symbol_data_size > symbol_data_size) { */
+/*     return 1; */
+/*   } */
+/*   else { */
+/*     return 0; */
+/*   } */
+/* } */
 
-  while (current != ZP_END_OF_SYMBOLS) {
-    ZP_Cmp_t cmp = ZP_Symbol_cmp_data(region_allocator, current, symbol_data, symbol_data_size);
-    if (cmp == -1) {
-      ZP_SymbolHeader_t* current_header
-        = (ZP_SymbolHeader_t*)ZP_RegionAllocator_at(region_allocator, current);
-      before = current;
-      current = current_header->next_pointer;
-    }
-    else if (cmp == 0) {
-      symbol->pointer = current;
-      return ZP_NOERROR;
-    }
-    else if (cmp == 1) {
-      break;
-    }
-  }
+/* ZP_Error_t ZP_Symbol_new( */
+/*   ZP_SymbolSet_t* symbol_set, */
+/*   ZP_RegionAllocator_t* region_allocator, */
+/*   const char* symbol_data, */
+/*   ZP_Index_t symbol_data_size, */
+/*   ZP_Symbol_t* symbol */
+/* ) { */
+/*   ZP_Index_t before = ZP_END_OF_SYMBOLS; */
+/*   ZP_Index_t current = symbol_set->first_pointer; */
 
-  ZP_Index_t request_size = sizeof(ZP_SymbolHeader_t) + symbol_data_size;
+/*   while (current != ZP_END_OF_SYMBOLS) { */
+/*     ZP_Cmp_t cmp = ZP_Symbol_cmp_data(region_allocator, current, symbol_data, symbol_data_size); */
+/*     if (cmp == -1) { */
+/*       ZP_SymbolHeader_t* current_header */
+/*         = (ZP_SymbolHeader_t*)ZP_RegionAllocator_at(region_allocator, current); */
+/*       before = current; */
+/*       current = current_header->next_pointer; */
+/*     } */
+/*     else if (cmp == 0) { */
+/*       symbol->pointer = current; */
+/*       return ZP_NOERROR; */
+/*     } */
+/*     else if (cmp == 1) { */
+/*       break; */
+/*     } */
+/*   } */
 
-  ZP_Index_t pointer;
-  ZP_Error_t error = ZP_RegionAllocator_alloc(region_allocator, request_size, &pointer);
-  if (error != ZP_NOERROR) {
-    return error;
-  }
+/*   ZP_Index_t request_size = sizeof(ZP_SymbolHeader_t) + symbol_data_size; */
 
-  ZP_SymbolHeader_t* header
-    = (ZP_SymbolHeader_t*)ZP_RegionAllocator_at(region_allocator, pointer);
-  header->symbol_data_size = symbol_data_size;
-  header->next_pointer = current;
+/*   ZP_Index_t pointer; */
+/*   ZP_Error_t error = ZP_RegionAllocator_alloc(region_allocator, request_size, &pointer); */
+/*   if (error != ZP_NOERROR) { */
+/*     return error; */
+/*   } */
 
-  ZP_RegionAllocator_copy_data(
-    region_allocator,
-    pointer + sizeof(ZP_SymbolHeader_t),
-    symbol_data_size,
-    symbol_data
-  );
+/*   ZP_SymbolHeader_t* header */
+/*     = (ZP_SymbolHeader_t*)ZP_RegionAllocator_at(region_allocator, pointer); */
+/*   header->symbol_data_size = symbol_data_size; */
+/*   header->next_pointer = current; */
 
-  if (before == ZP_END_OF_SYMBOLS) {
-    symbol_set->first_pointer = pointer;
-  }
-  else {
-    ZP_SymbolHeader_t* before_header
-      = (ZP_SymbolHeader_t*)ZP_RegionAllocator_at(region_allocator, before);
-    before_header->next_pointer = pointer;
-  }
+/*   ZP_RegionAllocator_copy_data( */
+/*     region_allocator, */
+/*     pointer + sizeof(ZP_SymbolHeader_t), */
+/*     symbol_data_size, */
+/*     symbol_data */
+/*   ); */
 
-  symbol->pointer = pointer;
+/*   if (before == ZP_END_OF_SYMBOLS) { */
+/*     symbol_set->first_pointer = pointer; */
+/*   } */
+/*   else { */
+/*     ZP_SymbolHeader_t* before_header */
+/*       = (ZP_SymbolHeader_t*)ZP_RegionAllocator_at(region_allocator, before); */
+/*     before_header->next_pointer = pointer; */
+/*   } */
 
-  return ZP_NOERROR;
-}
+/*   symbol->pointer = pointer; */
+
+/*   return ZP_NOERROR; */
+/* } */
