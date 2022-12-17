@@ -361,6 +361,53 @@ ZP_Error_t ZP_FixedAllocator_incref(
   }
 }
 
+ZP_Error_t ZP_FixedAllocator_incref_newnode12(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_Labeled_t* labeled,
+  ZP_Index_t location
+) {
+  ZP_FixedLocation_t new_location;
+  ZP_Error_t error = ZP_FixedAllocator_alloc(fixed_allocator, &new_location);
+  if (error != ZP_NOERROR) {
+    return error;
+  }
+
+  ZP_FixedLocation_t old_location;
+  old_location.first = location;
+  ZP_Labeled_t labeled_one;
+  ZP_Labeled_t labeled_two;
+  ZP_FixedAllocator_get(
+    fixed_allocator,
+    &old_location,
+    &labeled_one.data,
+    &labeled_two.data
+  );
+
+  error = ZP_FixedAllocator_incref(fixed_allocator, &labeled_one);
+  if (error != ZP_NOERROR) {
+    ZP_FixedAllocator_free(fixed_allocator, &new_location);
+    return error;
+  }
+  error = ZP_FixedAllocator_incref(fixed_allocator, &labeled_two);
+  if (error != ZP_NOERROR) {
+    ZP_FixedAllocator_free(fixed_allocator, &new_location);
+    ZP_FixedAllocator_decref(fixed_allocator, &labeled_one);
+    return error;
+  }
+
+  ZP_FixedAllocator_set(
+    fixed_allocator,
+    &new_location,
+    labeled_one.data,
+    labeled_two.data
+  );
+
+  labeled->data = new_location.first | ZP_LIST_LABEL;
+  fixed_allocator->refcount[new_location.first >> 1] = 1;
+
+  return ZP_NOERROR;
+}
+
 void ZP_FixedAllocator_decref(
   ZP_FixedAllocator_t* fixed_allocator,
   ZP_Labeled_t* labeled
@@ -394,20 +441,18 @@ ZP_Error_t ZP_List_incref(
 ) {
   ZP_Index_t location = ZP_Labeled_to_raw(labeled);
   if (location != ZP_TERMINATOR) {
-    location >>= 1;
-
-    if (fixed_allocator->refcount[location] == ZP_RCNT_MAX) {
-      ZP_FixedLocation_t new_location;
-      ZP_Error_t error = ZP_FixedAllocator_alloc(fixed_allocator, &new_location);
+    if (fixed_allocator->refcount[location >> 1] == ZP_RCNT_MAX) {
+      ZP_Error_t error = ZP_FixedAllocator_incref_newnode12(
+        fixed_allocator,
+        labeled,
+        location
+      );
       if (error != ZP_NOERROR) {
         return error;
       }
-
-      return "not implemented";
     }
-
     else {
-      fixed_allocator->refcount[location]++;
+      fixed_allocator->refcount[location >> 1]++;
     }
   }
   return ZP_NOERROR;
@@ -419,8 +464,22 @@ void ZP_List_decref(
 ) {
   ZP_Index_t location = ZP_Labeled_to_raw(labeled);
   if (location != ZP_TERMINATOR) {
-    location >>= 1;
-    fixed_allocator->refcount[location]--;
+    fixed_allocator->refcount[location >> 1]--;
+
+    if (fixed_allocator->refcount[location >> 1] == 0) {
+      ZP_FixedLocation_t this_location;
+      this_location.first = location;
+      ZP_Labeled_t list_next;
+      ZP_Labeled_t list_item;
+      ZP_FixedAllocator_get(
+        fixed_allocator,
+        &this_location,
+        &list_next.data,
+        &list_item.data
+      );
+      ZP_List_decref(fixed_allocator, &list_next);
+      ZP_FixedAllocator_decref(fixed_allocator, &list_item);
+    }
   }
 }
 
@@ -430,8 +489,7 @@ ZP_RefCnt_t ZP_List_refcnt(
 ) {
   ZP_Index_t location = ZP_Labeled_to_raw(labeled);
   if (location != ZP_TERMINATOR) {
-    location >>= 1;
-    return fixed_allocator->refcount[location];
+    return fixed_allocator->refcount[location >> 1];
   }
   return 0;
 }
@@ -452,25 +510,35 @@ ZP_Error_t ZP_List_push(
     return "ZP_List_push(_, _, input_list, _) must be a list";
   }
 
-  ZP_Error_t error = ZP_List_incref(fixed_allocator, input_list);
+  ZP_Labeled_t input_list_copy;
+  ZP_Labeled_copy(&input_list_copy, input_list);
+  ZP_Error_t error = ZP_List_incref(fixed_allocator, &input_list_copy);
   if (error != ZP_NOERROR) {
     return error;
   }
-  error = ZP_FixedAllocator_incref(fixed_allocator, item);
+
+  ZP_Labeled_t item_copy;
+  ZP_Labeled_copy(&item_copy, item);
+  error = ZP_FixedAllocator_incref(fixed_allocator, &item_copy);
   if (error != ZP_NOERROR) {
-    ZP_List_decref(fixed_allocator, input_list);
+    ZP_List_decref(fixed_allocator, &input_list_copy);
     return error;
   }
 
   ZP_FixedLocation_t fixed_location;
   error = ZP_FixedAllocator_alloc(fixed_allocator, &fixed_location);
   if (error != ZP_NOERROR) {
-    ZP_List_decref(fixed_allocator, input_list);
-    ZP_List_decref(fixed_allocator, item);
+    ZP_List_decref(fixed_allocator, &input_list_copy);
+    ZP_List_decref(fixed_allocator, &item_copy);
     return error;
   }
 
-  ZP_FixedAllocator_set(fixed_allocator, &fixed_location, input_list->data, item->data);
+  ZP_FixedAllocator_set(
+    fixed_allocator,
+    &fixed_location,
+    input_list_copy.data,
+    item_copy.data
+  );
 
   output_list->data = fixed_location.first | ZP_LIST_LABEL;
   fixed_allocator->refcount[fixed_location.first >> 1] = 1;

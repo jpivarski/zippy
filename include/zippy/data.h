@@ -173,6 +173,12 @@ ZP_Error_t ZP_FixedAllocator_incref(
   ZP_Labeled_t* labeled
 );
 
+ZP_Error_t ZP_FixedAllocator_incref_newnode12(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_Labeled_t* labeled,
+  ZP_Index_t location
+);
+
 void ZP_FixedAllocator_decref(
   ZP_FixedAllocator_t* fixed_allocator,
   ZP_Labeled_t* labeled
