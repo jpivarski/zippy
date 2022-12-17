@@ -43,10 +43,16 @@ void view(void* arena, size_t arena_size) {
   printf("\n");
 }
 
-void viewhex(void* arena, size_t arena_size) {
+void viewhex(void* arena, size_t arena_size, size_t join) {
   ZP_Index_t i;
   for (i = 0;  i < arena_size;  i++) {
-    printf("%02x ", ((unsigned char*)arena)[i]);
+    printf("%02x", ((unsigned char*)arena)[i]);
+    if ((i + 1) % join == 0) {
+      printf(" ");
+    }
+    else {
+      printf("_");
+    }
   }
   printf("\n");
 }
@@ -145,14 +151,14 @@ int test_FixedAllocator() {
     refcount_size
   );
   handle_error(error);
-  viewhex(arena, arena_size);
+  viewhex(arena, arena_size, sizeof(ZP_Index_t));
   printf("\n");
 
   ZP_FixedLocation_t fixed1;
   error = ZP_FixedAllocator_alloc(&fixed_allocator, &fixed1);
   handle_error(error);
   ZP_FixedAllocator_set(&fixed_allocator, &fixed1, 5, 6);
-  viewhex(arena, arena_size);
+  viewhex(arena, arena_size, sizeof(ZP_Index_t));
   printf("\n");
 
   ZP_Index_t one;
@@ -165,21 +171,21 @@ int test_FixedAllocator() {
   error = ZP_FixedAllocator_alloc(&fixed_allocator, &fixed2);
   handle_error(error);
   ZP_FixedAllocator_set(&fixed_allocator, &fixed2, 0xeeeeee01, 0xeeeeee02);
-  viewhex(arena, arena_size);
+  viewhex(arena, arena_size, sizeof(ZP_Index_t));
   printf("\n");
 
   ZP_FixedLocation_t fixed3;
   error = ZP_FixedAllocator_alloc(&fixed_allocator, &fixed3);
   handle_error(error);
   ZP_FixedAllocator_set(&fixed_allocator, &fixed3, 0xdddddd01, 0xdddddd02);
-  viewhex(arena, arena_size);
+  viewhex(arena, arena_size, sizeof(ZP_Index_t));
   printf("\n");
 
   ZP_FixedLocation_t fixed4;
   error = ZP_FixedAllocator_alloc(&fixed_allocator, &fixed4);
   handle_error(error);
   ZP_FixedAllocator_set(&fixed_allocator, &fixed4, 0xaaaaaa01, 0xaaaaaa02);
-  viewhex(arena, arena_size);
+  viewhex(arena, arena_size, sizeof(ZP_Index_t));
   printf("\n");
 
   ZP_FixedAllocator_get(&fixed_allocator, &fixed3, &one, &two);
@@ -187,7 +193,7 @@ int test_FixedAllocator() {
   assert(two, 0xdddddd02);
 
   ZP_FixedAllocator_free(&fixed_allocator, &fixed3);
-  viewhex(arena, arena_size);
+  viewhex(arena, arena_size, sizeof(ZP_Index_t));
   printf("first_pointer %d\n", fixed_allocator.first_pointer);
   printf("\n");
 
@@ -195,22 +201,22 @@ int test_FixedAllocator() {
   error = ZP_FixedAllocator_alloc(&fixed_allocator, &fixed5);
   handle_error(error);
   ZP_FixedAllocator_set(&fixed_allocator, &fixed5, 0xbbbbbb01, 0xbbbbbb02);
-  viewhex(arena, arena_size);
+  viewhex(arena, arena_size, sizeof(ZP_Index_t));
   printf("first_pointer %d\n", fixed_allocator.first_pointer);
   printf("\n");
 
   ZP_FixedAllocator_free(&fixed_allocator, &fixed5);
-  viewhex(arena, arena_size);
+  viewhex(arena, arena_size, sizeof(ZP_Index_t));
   printf("first_pointer %d\n", fixed_allocator.first_pointer);
   printf("\n");
 
   ZP_FixedAllocator_free(&fixed_allocator, &fixed2);
-  viewhex(arena, arena_size);
+  viewhex(arena, arena_size, sizeof(ZP_Index_t));
   printf("first_pointer %d\n", fixed_allocator.first_pointer);
   printf("\n");
 
   ZP_FixedAllocator_free(&fixed_allocator, &fixed4);
-  viewhex(arena, arena_size);
+  viewhex(arena, arena_size, sizeof(ZP_Index_t));
   printf("first_pointer %d\n", fixed_allocator.first_pointer);
   printf("\n");
 
@@ -218,7 +224,7 @@ int test_FixedAllocator() {
   error = ZP_FixedAllocator_alloc(&fixed_allocator, &fixed6);
   handle_error(error);
   ZP_FixedAllocator_set(&fixed_allocator, &fixed6, 0xcccccc08, 0xcccccc09);
-  viewhex(arena, arena_size);
+  viewhex(arena, arena_size, sizeof(ZP_Index_t));
   printf("first_pointer %d\n", fixed_allocator.first_pointer);
   printf("\n");
 
@@ -226,7 +232,7 @@ int test_FixedAllocator() {
   error = ZP_FixedAllocator_alloc(&fixed_allocator, &fixed7);
   handle_error(error);
   ZP_FixedAllocator_set(&fixed_allocator, &fixed7, 0xcccccc06, 0xcccccc07);
-  viewhex(arena, arena_size);
+  viewhex(arena, arena_size, sizeof(ZP_Index_t));
   printf("first_pointer %d\n", fixed_allocator.first_pointer);
   printf("\n");
 
@@ -234,7 +240,7 @@ int test_FixedAllocator() {
   error = ZP_FixedAllocator_alloc(&fixed_allocator, &fixed8);
   handle_error(error);
   ZP_FixedAllocator_set(&fixed_allocator, &fixed8, 0xcccccc04, 0xcccccc05);
-  viewhex(arena, arena_size);
+  viewhex(arena, arena_size, sizeof(ZP_Index_t));
   printf("first_pointer %d\n", fixed_allocator.first_pointer);
   printf("\n");
 
@@ -242,7 +248,7 @@ int test_FixedAllocator() {
   error = ZP_FixedAllocator_alloc(&fixed_allocator, &fixed9);
   handle_error(error);
   ZP_FixedAllocator_set(&fixed_allocator, &fixed9, 0xcccccc02, 0xcccccc03);
-  viewhex(arena, arena_size);
+  viewhex(arena, arena_size, sizeof(ZP_Index_t));
   printf("first_pointer %d\n", fixed_allocator.first_pointer);
   printf("\n");
 
@@ -251,8 +257,8 @@ int test_FixedAllocator() {
   return 0;
 }
 
-int test_integer_labeling() {
-  printf("BEGIN test_integer_labeling\n");
+int test_int_labeling() {
+  printf("BEGIN test_int_labeling\n");
 
   const ZP_Index_t SHIFT = (8 * sizeof(ZP_Index_t)) - 3;
   const ZP_Index_t MAXINT = (1 << SHIFT) - 1;
@@ -280,104 +286,104 @@ int test_integer_labeling() {
   ZP_Index_t labeled_data_copy;
 
   integer_copy = myint_m2;
-  error = ZP_from_integer(&labeled, &myint_m2);
+  error = ZP_from_int(&labeled, &myint_m2);
   handle_error(error);
   assert(integer_copy, myint_m2);  /* didn't change the original */
   labeled_data_copy = labeled.data;
-  assert(ZP_to_integer(&labeled), myint_m2);
+  assert(ZP_to_int(&labeled), myint_m2);
   assert(labeled.data, labeled_data_copy);  /* didn't change the original */
 
   integer_copy = myint_m1;
-  error = ZP_from_integer(&labeled, &myint_m1);
+  error = ZP_from_int(&labeled, &myint_m1);
   handle_error(error);
   assert(integer_copy, myint_m1);  /* didn't change the original */
   labeled_data_copy = labeled.data;
-  assert(ZP_to_integer(&labeled), myint_m1);
+  assert(ZP_to_int(&labeled), myint_m1);
   assert(labeled.data, labeled_data_copy);  /* didn't change the original */
 
   integer_copy = myint_ze;
-  error = ZP_from_integer(&labeled, &myint_ze);
+  error = ZP_from_int(&labeled, &myint_ze);
   handle_error(error);
   assert(integer_copy, myint_ze);  /* didn't change the original */
   labeled_data_copy = labeled.data;
-  assert(ZP_to_integer(&labeled), myint_ze);
+  assert(ZP_to_int(&labeled), myint_ze);
   assert(labeled.data, labeled_data_copy);  /* didn't change the original */
 
   integer_copy = myint_p1;
-  error = ZP_from_integer(&labeled, &myint_p1);
+  error = ZP_from_int(&labeled, &myint_p1);
   handle_error(error);
   assert(integer_copy, myint_p1);  /* didn't change the original */
   labeled_data_copy = labeled.data;
-  assert(ZP_to_integer(&labeled), myint_p1);
+  assert(ZP_to_int(&labeled), myint_p1);
   assert(labeled.data, labeled_data_copy);  /* didn't change the original */
 
   integer_copy = myint_p2;
-  error = ZP_from_integer(&labeled, &myint_p2);
+  error = ZP_from_int(&labeled, &myint_p2);
   handle_error(error);
   assert(integer_copy, myint_p2);  /* didn't change the original */
   labeled_data_copy = labeled.data;
-  assert(ZP_to_integer(&labeled), myint_p2);
+  assert(ZP_to_int(&labeled), myint_p2);
   assert(labeled.data, labeled_data_copy);  /* didn't change the original */
 
   integer_copy = myint_high_1;
-  error = ZP_from_integer(&labeled, &myint_high_1);
+  error = ZP_from_int(&labeled, &myint_high_1);
   handle_error(error);
   assert(integer_copy, myint_high_1);  /* didn't change the original */
   labeled_data_copy = labeled.data;
-  assert(ZP_to_integer(&labeled), myint_high_1);
+  assert(ZP_to_int(&labeled), myint_high_1);
   assert(labeled.data, labeled_data_copy);  /* didn't change the original */
 
   integer_copy = myint_high_2;
-  error = ZP_from_integer(&labeled, &myint_high_2);
+  error = ZP_from_int(&labeled, &myint_high_2);
   handle_error(error);
   assert(integer_copy, myint_high_2);  /* didn't change the original */
   labeled_data_copy = labeled.data;
-  assert(ZP_to_integer(&labeled), myint_high_2);
+  assert(ZP_to_int(&labeled), myint_high_2);
   assert(labeled.data, labeled_data_copy);  /* didn't change the original */
 
   integer_copy = myint_high_3;
-  error = ZP_from_integer(&labeled, &myint_high_3);
+  error = ZP_from_int(&labeled, &myint_high_3);
   handle_error(error);
   assert(integer_copy, myint_high_3);  /* didn't change the original */
   labeled_data_copy = labeled.data;
-  assert(ZP_to_integer(&labeled), myint_high_3);
+  assert(ZP_to_int(&labeled), myint_high_3);
   assert(labeled.data, labeled_data_copy);  /* didn't change the original */
 
   integer_copy = myint_high_err;
-  error = ZP_from_integer(&labeled, &myint_high_err);
+  error = ZP_from_int(&labeled, &myint_high_err);
   handle_not_error(error);
   assert(integer_copy, myint_high_err);  /* didn't change the original */
 
   integer_copy = myint_low_1;
-  error = ZP_from_integer(&labeled, &myint_low_1);
+  error = ZP_from_int(&labeled, &myint_low_1);
   handle_error(error);
   assert(integer_copy, myint_low_1);  /* didn't change the original */
   labeled_data_copy = labeled.data;
-  assert(ZP_to_integer(&labeled), myint_low_1);
+  assert(ZP_to_int(&labeled), myint_low_1);
   assert(labeled.data, labeled_data_copy);  /* didn't change the original */
 
   integer_copy = myint_low_2;
-  error = ZP_from_integer(&labeled, &myint_low_2);
+  error = ZP_from_int(&labeled, &myint_low_2);
   handle_error(error);
   assert(integer_copy, myint_low_2);  /* didn't change the original */
   labeled_data_copy = labeled.data;
-  assert(ZP_to_integer(&labeled), myint_low_2);
+  assert(ZP_to_int(&labeled), myint_low_2);
   assert(labeled.data, labeled_data_copy);  /* didn't change the original */
 
   integer_copy = myint_low_3;
-  error = ZP_from_integer(&labeled, &myint_low_3);
+  error = ZP_from_int(&labeled, &myint_low_3);
   handle_error(error);
   assert(integer_copy, myint_low_3);  /* didn't change the original */
   labeled_data_copy = labeled.data;
-  assert(ZP_to_integer(&labeled), myint_low_3);
+  assert(ZP_to_int(&labeled), myint_low_3);
   assert(labeled.data, labeled_data_copy);  /* didn't change the original */
 
   integer_copy = myint_low_err;
-  error = ZP_from_integer(&labeled, &myint_low_err);
+  error = ZP_from_int(&labeled, &myint_low_err);
   handle_not_error(error);
   assert(integer_copy, myint_low_err);  /* didn't change the original */
 
-  printf("END test_integer_labeling\n");
+  printf("END test_int_labeling\n");
 
   return 0;
 }
@@ -453,6 +459,101 @@ int test_float_labeling() {
 
 int test_list() {
   printf("BEGIN test_list\n");
+
+  size_t arena_size = 64;
+  void* arena = malloc(arena_size);
+  init(arena, arena_size);
+
+  size_t refcount_size = 8;
+  void* refcount = malloc(refcount_size);
+  init(refcount, refcount_size);
+
+  ZP_Error_t error = ZP_NOERROR;
+
+  ZP_FixedAllocator_t fixed_allocator;
+  error = ZP_FixedAllocator_new(
+    &fixed_allocator,
+    arena,
+    refcount,
+    arena_size,
+    refcount_size
+  );
+  handle_error(error);
+  viewhex(arena, arena_size, sizeof(ZP_Index_t));
+  viewhex(refcount, refcount_size, sizeof(ZP_RCnt_t));
+  printf("\n");
+
+  ZP_Labeled_t list1;
+  ZP_List_new_empty(&list1);
+  assert(ZP_label_of(&list1), ZP_LABEL_LIST);
+
+  ZP_Labeled_t labeled_int1;
+  ZP_Int_t int1 = 5;
+  error = ZP_from_int(&labeled_int1, &int1);
+  handle_error(error);
+
+  ZP_Labeled_t list2;
+  error = ZP_List_push(&fixed_allocator, &list2, &list1, &labeled_int1);
+  handle_error(error);
+  viewhex(arena, arena_size, sizeof(ZP_Index_t));
+  viewhex(refcount, refcount_size, sizeof(ZP_RCnt_t));
+  printf("\n");
+
+  ZP_Labeled_t labeled_int2;
+  ZP_Int_t int2 = 6;
+  error = ZP_from_int(&labeled_int2, &int2);
+  handle_error(error);
+
+  ZP_Labeled_t list3;
+  error = ZP_List_push(&fixed_allocator, &list3, &list2, &labeled_int2);
+  handle_error(error);
+  viewhex(arena, arena_size, sizeof(ZP_Index_t));
+  viewhex(refcount, refcount_size, sizeof(ZP_RCnt_t));
+  printf("\n");
+
+  ZP_Labeled_t labeled_int3;
+  ZP_Int_t int3 = 7;
+  error = ZP_from_int(&labeled_int3, &int3);
+  handle_error(error);
+
+  ZP_Labeled_t list4;
+  error = ZP_List_push(&fixed_allocator, &list4, &list3, &labeled_int3);
+  handle_error(error);
+  viewhex(arena, arena_size, sizeof(ZP_Index_t));
+  viewhex(refcount, refcount_size, sizeof(ZP_RCnt_t));
+  printf("\n");
+
+  ZP_Labeled_t obj1;
+  ZP_Labeled_t obj2;
+  error = ZP_List_pop(&fixed_allocator, &obj1, &obj2, &list4);
+  handle_error(error);
+  assert(ZP_label_of(&obj1), ZP_LABEL_LIST);
+  assert(ZP_label_of(&obj2), ZP_LABEL_INT);
+  assert(ZP_to_int(&obj2), 7);
+  viewhex(refcount, refcount_size, sizeof(ZP_RCnt_t));
+  printf("\n");
+
+  ZP_Labeled_t obj3;
+  ZP_Labeled_t obj4;
+  error = ZP_List_pop(&fixed_allocator, &obj3, &obj4, &obj1);
+  handle_error(error);
+  assert(ZP_label_of(&obj3), ZP_LABEL_LIST);
+  assert(ZP_label_of(&obj4), ZP_LABEL_INT);
+  assert(ZP_to_int(&obj4), 6);
+  viewhex(refcount, refcount_size, sizeof(ZP_RCnt_t));
+  printf("\n");
+
+  ZP_Labeled_t obj5;
+  ZP_Labeled_t obj6;
+  error = ZP_List_pop(&fixed_allocator, &obj5, &obj6, &obj3);
+  handle_error(error);
+  assert(ZP_label_of(&obj5), ZP_LABEL_LIST);
+  assert(ZP_label_of(&obj6), ZP_LABEL_INT);
+  assert(ZP_to_raw(&obj5), 0x00ffffff);  /* list terminator */
+  assert(ZP_to_int(&obj6), 5);
+  viewhex(refcount, refcount_size, sizeof(ZP_RCnt_t));
+  printf("\n");
+
 
 
 
@@ -534,7 +635,7 @@ int main(int argc, char** argv) {
   /*   return result; */
   /* } */
 
-  /* result = test_integer_labeling(); */
+  /* result = test_int_labeling(); */
   /* if (result != 0) { */
   /*   return result; */
   /* } */

@@ -69,8 +69,8 @@ ZP_Label_t ZP_label_of(ZP_Labeled_t* labeled);
 
 ZP_Index_t ZP_to_raw(ZP_Labeled_t* labeled);
 
-ZP_Int_t ZP_to_integer(ZP_Labeled_t* labeled);
-ZP_Error_t ZP_from_integer(ZP_Labeled_t* labeled, ZP_Int_t* data);
+ZP_Int_t ZP_to_int(ZP_Labeled_t* labeled);
+ZP_Error_t ZP_from_int(ZP_Labeled_t* labeled, ZP_Int_t* data);
 
 ZP_Float_t ZP_to_float(ZP_Labeled_t* labeled);
 void ZP_from_float(ZP_Labeled_t* labeled, ZP_Float_t* data);
@@ -146,34 +146,47 @@ ZP_Error_t ZP_FixedAllocator_new(
 
 ZP_Error_t ZP_FixedAllocator_alloc(
   ZP_FixedAllocator_t* fixed_allocator,
-  ZP_FixedLocation_t* fixed
+  ZP_FixedLocation_t* fixed_location
 );
 
 void ZP_FixedAllocator_free(
   ZP_FixedAllocator_t* fixed_allocator,
-  ZP_FixedLocation_t* fixed
+  ZP_FixedLocation_t* fixed_location
 );
 
 void ZP_FixedAllocator_get(
   ZP_FixedAllocator_t* fixed_allocator,
-  ZP_FixedLocation_t* fixed,
+  ZP_FixedLocation_t* fixed_location,
   ZP_Index_t* one,
   ZP_Index_t* two
 );
 
 void ZP_FixedAllocator_set(
   ZP_FixedAllocator_t* fixed_allocator,
-  ZP_FixedLocation_t* fixed,
+  ZP_FixedLocation_t* fixed_location,
   ZP_Index_t one,
   ZP_Index_t two
 );
 
 /***** List ******************************************************************/
 
-/* void ZP_List_new_empty( */
-/*   ZP_List_t* list */
-/* ); */
+void ZP_List_new_empty(
+  ZP_Labeled_t* list
+);
 
+ZP_Error_t ZP_List_push(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_Labeled_t* output_list,
+  ZP_Labeled_t* input_list,
+  ZP_Labeled_t* item
+);
+
+ZP_Error_t ZP_List_pop(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_Labeled_t* output_list,
+  ZP_Labeled_t* output_item,
+  ZP_Labeled_t* input_list
+);
 
 
 

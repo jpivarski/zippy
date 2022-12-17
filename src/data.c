@@ -3,7 +3,6 @@
 #include <zippy/data.h>
 
 const ZP_Index_t ZP_END_OF_FREE = -1;  /* used by both RegionAllocator and FixedAllocator */
-const ZP_Index_t ZP_END_OF_LIST = -2;
 
 /***** Labeled ***************************************************************/
 
@@ -16,10 +15,29 @@ const ZP_Index_t ZP_INT_MASK_DATA = ~ZP_INT_MASK_SIGN;
 const ZP_Index_t ZP_INT_SIGN_TEST = 0x20 << ZP_LABEL_SHIFT;
 const ZP_Index_t ZP_INT_OVERFLOW_TEST = 0xe0 << ZP_LABEL_SHIFT;
 
+const ZP_Index_t ZP_POINTER_LABEL = ZP_LABEL_POINTER << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_INTERNAL_NODE_LABEL = ZP_LABEL_INTERNAL_NODE << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_BUILTIN_ENUM_LABEL = ZP_LABEL_BUILTIN_ENUM << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_LIST_LABEL = ZP_LABEL_LIST << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_STRING_LABEL = ZP_LABEL_STRING << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_RECORD_TYPE_LABEL = ZP_LABEL_RECORD_TYPE << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_RECORD_OBJECT_LABEL = ZP_LABEL_RECORD_OBJECT << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_RESERVED1_LABEL = ZP_LABEL_RESERVED1 << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_RESERVED2_LABEL = ZP_LABEL_RESERVED2 << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_RESERVED3_LABEL = ZP_LABEL_RESERVED3 << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_RESERVED4_LABEL = ZP_LABEL_RESERVED4 << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_RESERVED5_LABEL = ZP_LABEL_RESERVED5 << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_RESERVED6_LABEL = ZP_LABEL_RESERVED6 << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_RESERVED7_LABEL = ZP_LABEL_RESERVED7 << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_RESERVED8_LABEL = ZP_LABEL_RESERVED8 << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_RESERVED9_LABEL = ZP_LABEL_RESERVED9 << ZP_LABEL_SHIFT;
+
 const ZP_Index_t ZP_FLOAT_SIGN_0 = ZP_LABEL_FLOAT << ZP_LABEL_SHIFT;
 const ZP_Index_t ZP_FLOAT_SIGN_1 = ZP_FLOAT_SIGN_0 | 1;
 const ZP_Index_t ZP_FLOAT_MASK_DATA = ~ZP_FLOAT_SIGN_0;
 const ZP_Index_t ZP_FLOAT_MASK_SIGNIFICANT = ~(ZP_Index_t)1;
+
+const ZP_Index_t ZP_TERMINATOR = ZP_LABEL_MASK_DATA;
 
 ZP_Label_t ZP_label_of(ZP_Labeled_t* labeled) {
   ZP_Label_t out = labeled->data >> ZP_LABEL_SHIFT;
@@ -45,7 +63,7 @@ ZP_Index_t ZP_to_raw(ZP_Labeled_t* labeled) {
   return labeled->data & ZP_LABEL_MASK_DATA;
 }
 
-ZP_Int_t ZP_to_integer(ZP_Labeled_t* labeled) {
+ZP_Int_t ZP_to_int(ZP_Labeled_t* labeled) {
   /* remove the two label bits in a copy of the labeled->data */
   ZP_Index_t hold = labeled->data & ZP_INT_MASK_DATA;
 
@@ -55,7 +73,7 @@ ZP_Int_t ZP_to_integer(ZP_Labeled_t* labeled) {
   return *(ZP_Int_t*)(&hold);
 }
 
-ZP_Error_t ZP_from_integer(ZP_Labeled_t* labeled, ZP_Int_t* data) {
+ZP_Error_t ZP_from_int(ZP_Labeled_t* labeled, ZP_Int_t* data) {
   ZP_Int_t test = *data & ZP_INT_OVERFLOW_TEST;
   if (test != 0  &&  test != ZP_INT_OVERFLOW_TEST) {
     return "integer overflow";
@@ -323,13 +341,66 @@ void ZP_FixedAllocator_set(
 
 /***** List ******************************************************************/
 
-/* void ZP_List_new_empty( */
-/*   ZP_List_t* list */
-/* ) { */
-/*   list->first =  */
-/* } */
+void ZP_List_new_empty(
+  ZP_Labeled_t* list
+) {
+  list->data = ZP_TERMINATOR | ZP_LIST_LABEL;
+}
 
+ZP_Error_t ZP_List_push(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_Labeled_t* output_list,
+  ZP_Labeled_t* input_list,
+  ZP_Labeled_t* item
+) {
+  if (ZP_label_of(input_list) != ZP_LABEL_LIST) {
+    return "ZP_List_push(_, _, input_list, _) must be a list";
+  }
 
+  ZP_FixedLocation_t fixed_location;
+  ZP_Error_t error = ZP_FixedAllocator_alloc(fixed_allocator, &fixed_location);
+  if (error != ZP_NOERROR) {
+    return error;
+  }
+
+  ZP_FixedAllocator_set(fixed_allocator, &fixed_location, input_list->data, item->data);
+
+  output_list->data = fixed_location.first | ZP_LIST_LABEL;
+
+  return ZP_NOERROR;
+}
+
+ZP_Error_t ZP_List_pop(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_Labeled_t* output_list,
+  ZP_Labeled_t* output_item,
+  ZP_Labeled_t* input_list
+) {
+  if (ZP_label_of(input_list) != ZP_LABEL_LIST) {
+    return "ZP_List_pop(_, _, _, input_list) must be a list";
+  }
+
+  ZP_FixedLocation_t input_list_location;
+  input_list_location.first = ZP_to_raw(input_list);
+  if (input_list_location.first == ZP_TERMINATOR) {
+    return "cannot pop empty list";
+  }
+
+  ZP_Index_t output_list_data;
+  ZP_Index_t output_item_data;
+
+  ZP_FixedAllocator_get(
+    fixed_allocator,
+    &input_list_location,
+    &output_list_data,
+    &output_item_data
+  );
+
+  output_list->data = output_list_data;
+  output_item->data = output_item_data;
+
+  return ZP_NOERROR;
+}
 
 
 
