@@ -13,23 +13,34 @@ typedef float ZP_Float_t;
 
 /***** Labeled ***************************************************************/
 
-/* enumerated labels occupy the low 4 bits */
-#define ZP_LABEL_BUFFER_OWNED       0x00
-#define ZP_LABEL_BUFFER_VIEWED      0x01
-#define ZP_LABEL_INTERNAL_NODE      0x02
-#define ZP_LABEL_BUILTIN_ENUM       0x03
-#define ZP_LABEL_LIST               0x04
-#define ZP_LABEL_CLASS              0x05
-#define ZP_LABEL_INSTANCE           0x06
+/* for N = number of bits in ZP_Index_t (e.g. uint32_t => N = 32) */
 
 /* special label classes occupy the high 4 bits */
-#define ZP_LABEL_SCALAR             0x10   /* 0001xxxx where x is dtype */
-#define ZP_LABEL_ARRAY              0x20   /* 001xxxxx where x is dtype */
-#define ZP_LABEL_INT                0x40   /* 01...... */
-#define ZP_LABEL_FLOAT              0x80   /* 1....... */
+#define ZP_LABEL_ZERO_REF           0x00   /* 0000.... */
+#define ZP_LABEL_ONE_REF            0x10   /* 0001.... */
+#define ZP_LABEL_TWO_REF            0x20   /* 0010.... */
+#define ZP_LABEL_ARRAY              0x30   /* 0011xxxx where xxxx is dtype */
+#define ZP_LABEL_INT                0x40   /* 01...... N-2 bit int */
+#define ZP_LABEL_FLOAT              0x80   /* 1....... N-1 bit float */
 
-/* dtypes occupy the low 4 bits when ZP_LABEL_SCALAR or ZP_LABEL_ARRAY */
-#define ZP_LABEL_DTYPE_OBJECT       0x01
+/* within ZP_LABEL_ZERO_REF */
+#define ZP_LABEL_BUILTIN_ENUM       0x00   /* N-8 bit data */
+#define ZP_LABEL_BUFFER_OWNED       0x01   /* points to 2 region pointers */
+#define ZP_LABEL_BUFFER_VIEW        0x02   /* points to 2 region pointers */
+
+/* within ZP_LABEL_ONE_REF */
+#define ZP_LABEL_SCALAR_IN_ARRAY    0x10   /* (base_ref, INT) */
+
+/* within ZP_LABEL_TWO_REF */
+#define ZP_LABEL_BUFFER_VIEW_WRAP   0x20   /* (base_ref, BUFFER_VIEW) */
+#define ZP_LABEL_LIST               0x21   /* (next_list, item) */
+#define ZP_LABEL_CLASS              0x22   /* ??? */
+#define ZP_LABEL_INSTANCE           0x23   /* (class_ref, root_node) */
+#define ZP_LABEL_INSTANCE_NODE      0x24   /* (next_left, next_right) */
+
+/* within ZP_LABEL_ARRAY (in the low 4 bits) */
+#define ZP_LABEL_DTYPE_OBJECTS      0x00
+#define ZP_LABEL_DTYPE_INSTANCES    0x01   /* item -1 is class, rest are instances */
 #define ZP_LABEL_DTYPE_BOOL         0x02
 #define ZP_LABEL_DTYPE_UINT8        0x03
 #define ZP_LABEL_DTYPE_UINT16       0x04
@@ -53,15 +64,42 @@ struct ZP_Labeled {
 };
 typedef struct ZP_Labeled ZP_Labeled_t;
 
-ZP_Label_t ZP_Labeled_label_of(ZP_Labeled_t* labeled);
-ZP_Index_t ZP_Labeled_to_raw(ZP_Labeled_t* labeled);
-void ZP_Labeled_copy(ZP_Labeled_t* output, ZP_Labeled_t* input);
+ZP_Label_t ZP_Labeled_label_of(
+  ZP_Labeled_t* labeled
+);
 
-ZP_Int_t ZP_Labeled_to_int(ZP_Labeled_t* labeled);
-ZP_Error_t ZP_Labeled_from_int(ZP_Labeled_t* labeled, ZP_Int_t* data);
+ZP_Index_t ZP_Labeled_to_raw(
+  ZP_Labeled_t* labeled
+);
 
-ZP_Float_t ZP_Labeled_to_float(ZP_Labeled_t* labeled);
-void ZP_Labeled_from_float(ZP_Labeled_t* labeled, ZP_Float_t* data);
+void ZP_Labeled_from_raw_enumerated(
+  ZP_Labeled_t* output,
+  ZP_Index_t input,
+  ZP_Label_t label
+);
+
+void ZP_Labeled_copy(
+  ZP_Labeled_t* output,
+  ZP_Labeled_t* input
+);
+
+ZP_Int_t ZP_Labeled_to_int(
+  ZP_Labeled_t* labeled
+);
+
+ZP_Error_t ZP_Labeled_from_int(
+  ZP_Labeled_t* labeled,
+  ZP_Int_t* data
+);
+
+ZP_Float_t ZP_Labeled_to_float(
+  ZP_Labeled_t* labeled
+);
+
+void ZP_Labeled_from_float(
+  ZP_Labeled_t* labeled,
+  ZP_Float_t* data
+);
 
 /***** RegionAllocator *******************************************************/
 
@@ -80,7 +118,7 @@ ZP_Error_t ZP_RegionAllocator_new(
   size_t arena_size
 );
 
-bool ZP_RegionAllocator_full(
+bool ZP_RegionAllocator_is_full(
   ZP_RegionAllocator_t* region_allocator
 );
 
@@ -161,16 +199,24 @@ ZP_Error_t ZP_FixedAllocator_incref(
   ZP_Labeled_t* labeled
 );
 
+ZP_Error_t ZP_FixedAllocator_incref_standard(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_Labeled_t* labeled,
+  bool left_is_ref,
+  bool right_is_ref
+);
+
 ZP_Error_t ZP_FixedAllocator_incref_newnode(
   ZP_FixedAllocator_t* fixed_allocator,
   ZP_Labeled_t* labeled,
   ZP_Index_t location,
-  bool increment_left,
-  bool increment_right
+  bool left_is_ref,
+  bool right_is_ref
 );
 
 void ZP_FixedAllocator_decref(
   ZP_FixedAllocator_t* fixed_allocator,
+  ZP_RegionAllocator_t* region_allocator,
   ZP_Labeled_t* labeled
 );
 
@@ -179,15 +225,24 @@ ZP_RefCnt_t ZP_FixedAllocator_refcnt(
   ZP_Labeled_t* labeled
 );
 
-/***** List ******************************************************************/
+/***** Buffer ****************************************************************/
 
-ZP_Error_t ZP_List_incref(
+ZP_Error_t ZP_Buffer_new(
   ZP_FixedAllocator_t* fixed_allocator,
-  ZP_Labeled_t* labeled
+  ZP_RegionAllocator_t* region_allocator,
+  ZP_Labeled_t* labeled,
+  ZP_Index_t request_size
 );
+
+
+
+
+
+/***** List ******************************************************************/
 
 void ZP_List_decref(
   ZP_FixedAllocator_t* fixed_allocator,
+  ZP_RegionAllocator_t* region_allocator,
   ZP_Labeled_t* labeled
 );
 

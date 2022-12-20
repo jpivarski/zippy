@@ -456,6 +456,17 @@ int test_float_labeling() {
   return 0;
 }
 
+int test_buffer() {
+  printf("BEGIN test_buffer\n");
+
+
+
+
+  printf("END test_buffer\n");
+
+  return 0;
+}
+
 int test_list() {
   printf("BEGIN test_list\n");
 
@@ -592,14 +603,14 @@ int test_list() {
 
   printf("decref list4 many times\n");
   for (i = 0;  i < 254;  i++) {
-    ZP_FixedAllocator_decref(&fixed_allocator, &list4);
+    ZP_FixedAllocator_decref(&fixed_allocator, 0, &list4);
   }
   viewhex(arena, arena_size, sizeof(ZP_Index_t));
   viewhex(refcount, refcount_size, sizeof(ZP_RefCnt_t));
   printf("\n");
   assert(ZP_FixedAllocator_refcnt(&fixed_allocator, &list4), 1);
 
-  ZP_FixedAllocator_decref(&fixed_allocator, &list4);
+  ZP_FixedAllocator_decref(&fixed_allocator, 0, &list4);
   viewhex(arena, arena_size, sizeof(ZP_Index_t));
   viewhex(refcount, refcount_size, sizeof(ZP_RefCnt_t));
   printf("\n");
@@ -607,33 +618,33 @@ int test_list() {
   assert(ZP_FixedAllocator_refcnt(&fixed_allocator, &list3), 3);
   assert(ZP_FixedAllocator_refcnt(&fixed_allocator, &new_list4), 1);
 
-  ZP_FixedAllocator_decref(&fixed_allocator, &new_list4);
+  ZP_FixedAllocator_decref(&fixed_allocator, 0, &new_list4);
   viewhex(arena, arena_size, sizeof(ZP_Index_t));
   viewhex(refcount, refcount_size, sizeof(ZP_RefCnt_t));
   printf("\n");
   assert(ZP_FixedAllocator_refcnt(&fixed_allocator, &list2), 3);
   assert(ZP_FixedAllocator_refcnt(&fixed_allocator, &list3), 2);
 
-  ZP_FixedAllocator_decref(&fixed_allocator, &list3);
+  ZP_FixedAllocator_decref(&fixed_allocator, 0, &list3);
   viewhex(arena, arena_size, sizeof(ZP_Index_t));
   viewhex(refcount, refcount_size, sizeof(ZP_RefCnt_t));
   printf("\n");
   assert(ZP_FixedAllocator_refcnt(&fixed_allocator, &list2), 3);
   assert(ZP_FixedAllocator_refcnt(&fixed_allocator, &list3), 1);
 
-  ZP_FixedAllocator_decref(&fixed_allocator, &list3);
+  ZP_FixedAllocator_decref(&fixed_allocator, 0, &list3);
   viewhex(arena, arena_size, sizeof(ZP_Index_t));
   viewhex(refcount, refcount_size, sizeof(ZP_RefCnt_t));
   printf("\n");
   assert(ZP_FixedAllocator_refcnt(&fixed_allocator, &list2), 2);
 
-  ZP_FixedAllocator_decref(&fixed_allocator, &list2);
+  ZP_FixedAllocator_decref(&fixed_allocator, 0, &list2);
   viewhex(arena, arena_size, sizeof(ZP_Index_t));
   viewhex(refcount, refcount_size, sizeof(ZP_RefCnt_t));
   printf("\n");
   assert(ZP_FixedAllocator_refcnt(&fixed_allocator, &list2), 1);
 
-  ZP_FixedAllocator_decref(&fixed_allocator, &list2);
+  ZP_FixedAllocator_decref(&fixed_allocator, 0, &list2);
   viewhex(arena, arena_size, sizeof(ZP_Index_t));
   viewhex(refcount, refcount_size, sizeof(ZP_RefCnt_t));
   printf("\n");
@@ -726,7 +737,12 @@ int main(int argc, char** argv) {
   /*   return result; */
   /* } */
 
-  result = test_list();
+  /* result = test_list(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
+
+  result = test_buffer();
   if (result != 0) {
     return result;
   }
