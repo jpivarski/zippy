@@ -38,20 +38,20 @@ typedef float ZP_Float_t;
 #define ZP_LABEL_INSTANCE           0x23   /* (class_ref, root_node) */
 #define ZP_LABEL_INSTANCE_NODE      0x24   /* (next_left, next_right) */
 
-/* within ZP_LABEL_ARRAY (in the low 4 bits) */
-#define ZP_LABEL_DTYPE_OBJECTS      0x00
-#define ZP_LABEL_DTYPE_INSTANCES    0x01   /* item -1 is class, rest are instances */
-#define ZP_LABEL_DTYPE_BOOL         0x02
-#define ZP_LABEL_DTYPE_UINT8        0x03
-#define ZP_LABEL_DTYPE_UINT16       0x04
-#define ZP_LABEL_DTYPE_UINT32       0x05
-#define ZP_LABEL_DTYPE_UINT64       0x06
-#define ZP_LABEL_DTYPE_INT8         0x07
-#define ZP_LABEL_DTYPE_INT16        0x08
-#define ZP_LABEL_DTYPE_INT32        0x09
-#define ZP_LABEL_DTYPE_INT64        0x0a
-#define ZP_LABEL_DTYPE_FLOAT32      0x0b
-#define ZP_LABEL_DTYPE_FLOAT64      0x0c
+/* within ZP_LABEL_ARRAY */
+#define ZP_LABEL_DTYPE_OBJECTS      0x30
+#define ZP_LABEL_DTYPE_INSTANCES    0x31   /* item -1 is class, rest are instances */
+#define ZP_LABEL_DTYPE_BOOL         0x32
+#define ZP_LABEL_DTYPE_UINT8        0x33
+#define ZP_LABEL_DTYPE_UINT16       0x34
+#define ZP_LABEL_DTYPE_UINT32       0x35
+#define ZP_LABEL_DTYPE_UINT64       0x36
+#define ZP_LABEL_DTYPE_INT8         0x37
+#define ZP_LABEL_DTYPE_INT16        0x38
+#define ZP_LABEL_DTYPE_INT32        0x39
+#define ZP_LABEL_DTYPE_INT64        0x3a
+#define ZP_LABEL_DTYPE_FLOAT32      0x3b
+#define ZP_LABEL_DTYPE_FLOAT64      0x3c
 
 /* data values for ZP_LABEL_BUILTIN_ENUM */
 /* this space is inexhaustible: 256**(sizeof(ZP_Index_t) - 1) values */
@@ -194,6 +194,11 @@ void ZP_FixedAllocator_set(
   ZP_Index_t two
 );
 
+ZP_RefCnt_t ZP_FixedAllocator_refcnt(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_Labeled_t* labeled
+);
+
 ZP_Error_t ZP_FixedAllocator_incref(
   ZP_FixedAllocator_t* fixed_allocator,
   ZP_Labeled_t* labeled
@@ -220,11 +225,6 @@ void ZP_FixedAllocator_decref(
   ZP_Labeled_t* labeled
 );
 
-ZP_RefCnt_t ZP_FixedAllocator_refcnt(
-  ZP_FixedAllocator_t* fixed_allocator,
-  ZP_Labeled_t* labeled
-);
-
 /***** Buffer ****************************************************************/
 
 ZP_Error_t ZP_Buffer_new(
@@ -243,11 +243,6 @@ ZP_Error_t ZP_Buffer_new(
 void ZP_List_decref(
   ZP_FixedAllocator_t* fixed_allocator,
   ZP_RegionAllocator_t* region_allocator,
-  ZP_Labeled_t* labeled
-);
-
-ZP_RefCnt_t ZP_List_refcnt(
-  ZP_FixedAllocator_t* fixed_allocator,
   ZP_Labeled_t* labeled
 );
 

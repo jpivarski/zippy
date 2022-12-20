@@ -11,14 +11,12 @@ const ZP_Index_t ZP_LABEL_SHIFT = 8 * (sizeof(ZP_Index_t) - 1);
 const ZP_Index_t ZP_LABEL_MASK_LABEL = 0xff << ZP_LABEL_SHIFT;
 const ZP_Index_t ZP_LABEL_MASK_DATA = ~ZP_LABEL_MASK_LABEL;
 
-const ZP_Index_t ZP_LABEL_MASK_NUMBER = (ZP_LABEL_INT | ZP_LABEL_FLOAT) << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_LABEL_MASK_NUMBER = (ZP_LABEL_FLOAT | ZP_LABEL_INT) << ZP_LABEL_SHIFT;
 
-/* Note: ZP_LABEL_ARRAY (0x30) == ZP_LABEL_ONE_REF (0x10) | ZP_LABEL_TWO_REF (0x20) */
-const ZP_Index_t ZP_LABEL_MASK_AT_LEAST_ONE_REF = ZP_LABEL_ARRAY << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_LABEL_MASK_HAS_TWO_REFS = ZP_LABEL_TWO_REF << ZP_LABEL_SHIFT;
-
-const ZP_Index_t ZP_LABEL_IS_BUILTIN = ZP_LABEL_BUILTIN_ENUM << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_LABEL_IS_LIST = ZP_LABEL_LIST << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_FLOAT_SIGN_0 = ZP_LABEL_FLOAT << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_FLOAT_SIGN_1 = ZP_FLOAT_SIGN_0 | 1;
+const ZP_Index_t ZP_FLOAT_MASK_DATA = ~ZP_FLOAT_SIGN_0;
+const ZP_Index_t ZP_FLOAT_MASK_SIGNIFICANT = ~(ZP_Index_t)1;
 
 const ZP_Index_t ZP_INT_LABEL = ZP_LABEL_INT << ZP_LABEL_SHIFT;
 const ZP_Index_t ZP_INT_MASK_SIGN = 0xc0 << ZP_LABEL_SHIFT;
@@ -26,10 +24,12 @@ const ZP_Index_t ZP_INT_MASK_DATA = ~ZP_INT_MASK_SIGN;
 const ZP_Index_t ZP_INT_SIGN_TEST = 0x20 << ZP_LABEL_SHIFT;
 const ZP_Index_t ZP_INT_OVERFLOW_TEST = 0xe0 << ZP_LABEL_SHIFT;
 
-const ZP_Index_t ZP_FLOAT_SIGN_0 = ZP_LABEL_FLOAT << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_FLOAT_SIGN_1 = ZP_FLOAT_SIGN_0 | 1;
-const ZP_Index_t ZP_FLOAT_MASK_DATA = ~ZP_FLOAT_SIGN_0;
-const ZP_Index_t ZP_FLOAT_MASK_SIGNIFICANT = ~(ZP_Index_t)1;
+/* Note: ZP_LABEL_ARRAY (0x30) == ZP_LABEL_ONE_REF (0x10) | ZP_LABEL_TWO_REF (0x20) */
+const ZP_Index_t ZP_LABEL_MASK_AT_LEAST_ONE_REF = ZP_LABEL_ARRAY << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_LABEL_MASK_HAS_TWO_REFS = ZP_LABEL_TWO_REF << ZP_LABEL_SHIFT;
+
+const ZP_Index_t ZP_LABEL_IS_BUILTIN = ZP_LABEL_BUILTIN_ENUM << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_LABEL_IS_LIST = ZP_LABEL_LIST << ZP_LABEL_SHIFT;
 
 const ZP_Index_t ZP_TERMINATOR = ZP_LABEL_MASK_DATA;
 
@@ -364,6 +364,27 @@ void ZP_FixedAllocator_set(
   fixed_allocator->arena[fixed_location->first + 1] = two;
 }
 
+ZP_RefCnt_t ZP_FixedAllocator_refcnt(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_Labeled_t* labeled
+) {
+  if (labeled->data & ZP_LABEL_MASK_NUMBER) {
+    return 0;
+  }
+
+  ZP_Index_t label = labeled->data & ZP_LABEL_MASK_LABEL;
+  if (label == ZP_LABEL_IS_BUILTIN) {
+    return 0;
+  }
+
+  ZP_Index_t location = labeled->data & ZP_LABEL_MASK_DATA;
+  if (location == ZP_TERMINATOR) {
+    return 0;
+  }
+
+  return fixed_allocator->refcount[location >> 1];
+}
+
 ZP_Error_t ZP_FixedAllocator_incref(
   ZP_FixedAllocator_t* fixed_allocator,
   ZP_Labeled_t* labeled
@@ -468,18 +489,6 @@ void ZP_FixedAllocator_decref(
   }
 }
 
-ZP_RefCnt_t ZP_FixedAllocator_refcnt(
-  ZP_FixedAllocator_t* fixed_allocator,
-  ZP_Labeled_t* labeled
-) {
-  switch (ZP_Labeled_label_of(labeled)) {
-  case ZP_LABEL_LIST:
-    return ZP_List_refcnt(fixed_allocator, labeled);
-  default:
-    return 0;
-  }
-}
-
 /***** Buffer ****************************************************************/
 
 ZP_Error_t ZP_Buffer_new(
@@ -541,17 +550,6 @@ void ZP_List_decref(
       ZP_FixedAllocator_decref(fixed_allocator, region_allocator, &list_item);
     }
   }
-}
-
-ZP_RefCnt_t ZP_List_refcnt(
-  ZP_FixedAllocator_t* fixed_allocator,
-  ZP_Labeled_t* labeled
-) {
-  ZP_Index_t location = ZP_Labeled_to_raw(labeled);
-  if (location != ZP_TERMINATOR) {
-    return fixed_allocator->refcount[location >> 1];
-  }
-  return 0;
 }
 
 void ZP_List_new_empty(
