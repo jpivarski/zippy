@@ -72,12 +72,6 @@ ZP_Index_t ZP_Labeled_to_raw(
   ZP_Labeled_t* labeled
 );
 
-void ZP_Labeled_from_raw_enumerated(
-  ZP_Labeled_t* output,
-  ZP_Index_t input,
-  ZP_Label_t label
-);
-
 void ZP_Labeled_copy(
   ZP_Labeled_t* output,
   ZP_Labeled_t* input
@@ -225,16 +219,21 @@ void ZP_FixedAllocator_decref(
   ZP_Labeled_t* labeled
 );
 
-/***** Buffer ****************************************************************/
+/***** BufferOwned ***********************************************************/
 
-ZP_Error_t ZP_Buffer_new(
+ZP_Error_t ZP_BufferOwned_new(
   ZP_FixedAllocator_t* fixed_allocator,
   ZP_RegionAllocator_t* region_allocator,
   ZP_Labeled_t* labeled,
   ZP_Index_t request_size
 );
 
-
+void ZP_BufferOwned_copy_data(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_RegionAllocator_t* region_allocator,
+  ZP_Labeled_t* labeled,
+  const char* data
+);
 
 
 

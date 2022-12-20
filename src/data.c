@@ -29,6 +29,7 @@ const ZP_Index_t ZP_LABEL_MASK_AT_LEAST_ONE_REF = ZP_LABEL_ARRAY << ZP_LABEL_SHI
 const ZP_Index_t ZP_LABEL_MASK_HAS_TWO_REFS = ZP_LABEL_TWO_REF << ZP_LABEL_SHIFT;
 
 const ZP_Index_t ZP_LABEL_IS_BUILTIN = ZP_LABEL_BUILTIN_ENUM << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_LABEL_IS_BUFFER_OWNED = ZP_LABEL_BUFFER_OWNED << ZP_LABEL_SHIFT;
 const ZP_Index_t ZP_LABEL_IS_LIST = ZP_LABEL_LIST << ZP_LABEL_SHIFT;
 
 const ZP_Index_t ZP_TERMINATOR = ZP_LABEL_MASK_DATA;
@@ -58,15 +59,6 @@ ZP_Index_t ZP_Labeled_to_raw(
   ZP_Labeled_t* labeled
 ) {
   return labeled->data & ZP_LABEL_MASK_DATA;
-}
-
-void ZP_Labeled_from_raw_enumerated(
-  ZP_Labeled_t* output,
-  ZP_Index_t input,
-  ZP_Label_t label
-) {
-  /* only for enumerated labels; everything else needs a specialized function */
-  output->data = input | label;
 }
 
 void ZP_Labeled_copy(
@@ -489,16 +481,16 @@ void ZP_FixedAllocator_decref(
   }
 }
 
-/***** Buffer ****************************************************************/
+/***** BufferOwned ***********************************************************/
 
-ZP_Error_t ZP_Buffer_new(
+ZP_Error_t ZP_BufferOwned_new(
   ZP_FixedAllocator_t* fixed_allocator,
   ZP_RegionAllocator_t* region_allocator,
   ZP_Labeled_t* labeled,
   ZP_Index_t request_size
 ) {
-  ZP_FixedLocation_t location;
-  ZP_Error_t error = ZP_FixedAllocator_alloc(fixed_allocator, &location);
+  ZP_FixedLocation_t fixed_location;
+  ZP_Error_t error = ZP_FixedAllocator_alloc(fixed_allocator, &fixed_location);
   if (error != ZP_NOERROR) {
     return error;
   }
@@ -506,23 +498,42 @@ ZP_Error_t ZP_Buffer_new(
   ZP_Index_t pointer;
   error = ZP_RegionAllocator_alloc(region_allocator, request_size, &pointer);
   if (error != ZP_NOERROR) {
-    ZP_FixedAllocator_free(fixed_allocator, &location);
+    ZP_FixedAllocator_free(fixed_allocator, &fixed_location);
     return error;
   }
 
-  ZP_FixedAllocator_set(fixed_allocator, &location, pointer, request_size);
+  ZP_FixedAllocator_set(fixed_allocator, &fixed_location, pointer, request_size);
 
-  ZP_Labeled_from_raw_enumerated(labeled, location.first, ZP_LABEL_BUFFER_OWNED);
+  labeled->data = fixed_location.first | ZP_LABEL_IS_BUFFER_OWNED;
 
   error = ZP_FixedAllocator_incref(fixed_allocator, labeled);
   if (error != ZP_NOERROR) {
-    ZP_FixedAllocator_free(fixed_allocator, &location);
+    ZP_FixedAllocator_free(fixed_allocator, &fixed_location);
     ZP_RegionAllocator_free(region_allocator, pointer, request_size);
     return error;
   }
 
   return ZP_NOERROR;
 }
+
+void ZP_BufferOwned_copy_data(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_RegionAllocator_t* region_allocator,
+  ZP_Labeled_t* buffer,
+  const char* data
+) {
+  ZP_FixedLocation_t buffer_location;
+  buffer_location.first = ZP_Labeled_to_raw(buffer);
+
+  ZP_Index_t pointer;
+  ZP_Index_t request_size;
+  ZP_FixedAllocator_get(fixed_allocator, &buffer_location, &pointer, &request_size);
+
+  ZP_RegionAllocator_copy_data(region_allocator, pointer, request_size, data);
+}
+
+
+
 
 /***** List ******************************************************************/
 

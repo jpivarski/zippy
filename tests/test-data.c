@@ -459,6 +459,51 @@ int test_float_labeling() {
 int test_buffer() {
   printf("BEGIN test_buffer\n");
 
+  size_t fixed_arena_size = 64;
+  void* fixed_arena = malloc(fixed_arena_size);
+  init(fixed_arena, fixed_arena_size);
+
+  size_t refcount_size = 8;
+  void* refcount = malloc(refcount_size);
+
+  size_t region_arena_size = 64;
+  void* region_arena = malloc(region_arena_size);
+  init(region_arena, region_arena_size);
+
+  ZP_Error_t error = ZP_NOERROR;
+
+  ZP_FixedAllocator_t fixed_allocator;
+  error = ZP_FixedAllocator_new(
+    &fixed_allocator,
+    fixed_arena,
+    refcount,
+    fixed_arena_size,
+    refcount_size
+  );
+  handle_error(error);
+
+  ZP_RegionAllocator_t region_allocator;
+  error = ZP_RegionAllocator_new(&region_allocator, region_arena, region_arena_size);
+
+  viewhex(fixed_arena, fixed_arena_size, sizeof(ZP_Index_t));
+  viewhex(refcount, refcount_size, sizeof(ZP_RefCnt_t));
+  handle_error(error);
+  view(region_arena, region_arena_size);
+  printf("\n");
+
+  ZP_Labeled_t buffer1;
+  const char* payload1 = "hello there";
+  ZP_Index_t payload1_size = 11;
+  error = ZP_BufferOwned_new(&fixed_allocator, &region_allocator, &buffer1, payload1_size);
+
+  ZP_BufferOwned_copy_data(&fixed_allocator, &region_allocator, &buffer1, payload1);
+
+  viewhex(fixed_arena, fixed_arena_size, sizeof(ZP_Index_t));
+  viewhex(refcount, refcount_size, sizeof(ZP_RefCnt_t));
+  handle_error(error);
+  view(region_arena, region_arena_size);
+  printf("\n");
+
 
 
 
