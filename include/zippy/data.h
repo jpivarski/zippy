@@ -95,6 +95,51 @@ void ZP_Labeled_from_float(
   ZP_Float_t* data
 );
 
+/***** FixedAllocator ********************************************************/
+
+struct ZP_FixedAllocator {
+  ZP_Index_t* arena;
+  ZP_Index_t num_pairs;
+  ZP_Index_t first_pointer;
+  ZP_Index_t bump_pointer;
+};
+typedef struct ZP_FixedAllocator ZP_FixedAllocator_t;
+
+struct ZP_FixedLocation {
+  ZP_Index_t first;
+};
+typedef struct ZP_FixedLocation ZP_FixedLocation_t;
+
+void ZP_FixedAllocator_new(
+  ZP_FixedAllocator_t* fixed_allocator,
+  void* arena,
+  size_t arena_size
+);
+
+ZP_Error_t ZP_FixedAllocator_alloc(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_FixedLocation_t* fixed_location
+);
+
+void ZP_FixedAllocator_free(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_FixedLocation_t* fixed_location
+);
+
+void ZP_FixedAllocator_get(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_FixedLocation_t* fixed_location,
+  ZP_Index_t* one,
+  ZP_Index_t* two
+);
+
+void ZP_FixedAllocator_set(
+  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_FixedLocation_t* fixed_location,
+  ZP_Index_t one,
+  ZP_Index_t two
+);
+
 /***** RegionAllocator *******************************************************/
 
 #define ZP_NOERROR 0
@@ -106,7 +151,7 @@ struct ZP_RegionAllocator {
 };
 typedef struct ZP_RegionAllocator ZP_RegionAllocator_t;
 
-ZP_Error_t ZP_RegionAllocator_new(
+void ZP_RegionAllocator_new(
   ZP_RegionAllocator_t* region_allocator,
   void* arena,
   size_t arena_size
@@ -140,97 +185,65 @@ void ZP_RegionAllocator_copy_data(
   const char* data
 );
 
-/***** FixedAllocator ********************************************************/
+/***** Context ***************************************************************/
 
-struct ZP_FixedAllocator {
-  ZP_Index_t* arena;
+struct ZP_Context {
+  ZP_FixedAllocator_t fixed_allocator;
+  ZP_RegionAllocator_t region_allocator;
   ZP_RefCnt_t* refcount;
-  ZP_Index_t num_pairs;
-  ZP_Index_t first_pointer;
-  ZP_Index_t bump_pointer;
 };
-typedef struct ZP_FixedAllocator ZP_FixedAllocator_t;
+typedef struct ZP_Context ZP_Context_t;
 
-struct ZP_FixedLocation {
-  ZP_Index_t first;
-};
-typedef struct ZP_FixedLocation ZP_FixedLocation_t;
-
-ZP_Error_t ZP_FixedAllocator_new(
-  ZP_FixedAllocator_t* fixed_allocator,
-  void* arena,
-  void* refcount,
-  size_t arena_size,
+ZP_Error_t ZP_Context_new(
+  ZP_Context_t* context,
+  void* fixed_arena,
+  void* region_arena,
+  void* refcount_arena,
+  size_t fixed_size,
+  size_t region_size,
   size_t refcount_size
 );
 
-ZP_Error_t ZP_FixedAllocator_alloc(
-  ZP_FixedAllocator_t* fixed_allocator,
-  ZP_FixedLocation_t* fixed_location
-);
-
-void ZP_FixedAllocator_free(
-  ZP_FixedAllocator_t* fixed_allocator,
-  ZP_FixedLocation_t* fixed_location
-);
-
-void ZP_FixedAllocator_get(
-  ZP_FixedAllocator_t* fixed_allocator,
-  ZP_FixedLocation_t* fixed_location,
-  ZP_Index_t* one,
-  ZP_Index_t* two
-);
-
-void ZP_FixedAllocator_set(
-  ZP_FixedAllocator_t* fixed_allocator,
-  ZP_FixedLocation_t* fixed_location,
-  ZP_Index_t one,
-  ZP_Index_t two
-);
-
-ZP_RefCnt_t ZP_FixedAllocator_refcnt(
-  ZP_FixedAllocator_t* fixed_allocator,
+ZP_RefCnt_t ZP_Context_refcnt(
+  ZP_Context_t* context,
   ZP_Labeled_t* labeled
 );
 
-ZP_Error_t ZP_FixedAllocator_incref(
-  ZP_FixedAllocator_t* fixed_allocator,
+ZP_Error_t ZP_Context_incref(
+  ZP_Context_t* context,
   ZP_Labeled_t* labeled
 );
 
-ZP_Error_t ZP_FixedAllocator_incref_standard(
-  ZP_FixedAllocator_t* fixed_allocator,
+ZP_Error_t ZP_Context_incref_standard(
+  ZP_Context_t* context,
   ZP_Labeled_t* labeled,
   bool left_is_ref,
   bool right_is_ref
 );
 
-ZP_Error_t ZP_FixedAllocator_incref_newnode(
-  ZP_FixedAllocator_t* fixed_allocator,
+ZP_Error_t ZP_Context_incref_newnode(
+  ZP_Context_t* context,
   ZP_Labeled_t* labeled,
   ZP_Index_t location,
   bool left_is_ref,
   bool right_is_ref
 );
 
-void ZP_FixedAllocator_decref(
-  ZP_FixedAllocator_t* fixed_allocator,
-  ZP_RegionAllocator_t* region_allocator,
+void ZP_Context_decref(
+  ZP_Context_t* context,
   ZP_Labeled_t* labeled
 );
 
 /***** BufferOwned ***********************************************************/
 
 ZP_Error_t ZP_BufferOwned_new(
-  ZP_FixedAllocator_t* fixed_allocator,
-  ZP_RegionAllocator_t* region_allocator,
+  ZP_Context_t* context,
   ZP_Labeled_t* labeled,
   ZP_Index_t request_size
 );
 
 void ZP_BufferOwned_copy_data(
-  ZP_FixedAllocator_t* fixed_allocator,
-  ZP_RegionAllocator_t* region_allocator,
+  ZP_Context_t* context,
   ZP_Labeled_t* labeled,
   const char* data
 );
@@ -240,8 +253,7 @@ void ZP_BufferOwned_copy_data(
 /***** List ******************************************************************/
 
 void ZP_List_decref(
-  ZP_FixedAllocator_t* fixed_allocator,
-  ZP_RegionAllocator_t* region_allocator,
+  ZP_Context_t* context,
   ZP_Labeled_t* labeled
 );
 
@@ -250,14 +262,14 @@ void ZP_List_new_empty(
 );
 
 ZP_Error_t ZP_List_push(
-  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_Context_t* context,
   ZP_Labeled_t* output_list,
   ZP_Labeled_t* input_list,
   ZP_Labeled_t* item
 );
 
 ZP_Error_t ZP_List_pop(
-  ZP_FixedAllocator_t* fixed_allocator,
+  ZP_Context_t* context,
   ZP_Labeled_t* output_list,
   ZP_Labeled_t* output_item,
   ZP_Labeled_t* input_list
