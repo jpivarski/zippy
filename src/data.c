@@ -29,6 +29,7 @@ const ZP_Index_t ZP_LABEL_MASK_AT_LEAST_ONE_REF = ZP_LABEL_ARRAY << ZP_LABEL_SHI
 const ZP_Index_t ZP_LABEL_MASK_HAS_TWO_REFS = ZP_LABEL_TWO_REF << ZP_LABEL_SHIFT;
 
 const ZP_Index_t ZP_LABEL_IS_BUILTIN_ENUM = ZP_LABEL_BUILTIN_ENUM << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_LABEL_IS_BUFFER_SYMBOL = ZP_LABEL_BUFFER_SYMBOL << ZP_LABEL_SHIFT;
 const ZP_Index_t ZP_LABEL_IS_BUFFER_OWNED = ZP_LABEL_BUFFER_OWNED << ZP_LABEL_SHIFT;
 const ZP_Index_t ZP_LABEL_IS_BUFFER_VIEW = ZP_LABEL_BUFFER_VIEW << ZP_LABEL_SHIFT;
 const ZP_Index_t ZP_LABEL_IS_SCALAR_IN_ARRAY = ZP_LABEL_SCALAR_IN_ARRAY << ZP_LABEL_SHIFT;
@@ -223,21 +224,21 @@ void ZP_FixedAllocator_free(
 void ZP_FixedAllocator_get(
   ZP_FixedAllocator_t* fixed_allocator,
   ZP_FixedLocation_t* fixed_location,
-  ZP_Index_t* one,
-  ZP_Index_t* two
+  ZP_Index_t* left,
+  ZP_Index_t* right
 ) {
-  *one = fixed_allocator->arena[fixed_location->at];
-  *two = fixed_allocator->arena[fixed_location->at + 1];
+  *left = fixed_allocator->arena[fixed_location->at];
+  *right = fixed_allocator->arena[fixed_location->at + 1];
 }
 
 void ZP_FixedAllocator_set(
   ZP_FixedAllocator_t* fixed_allocator,
   ZP_FixedLocation_t* fixed_location,
-  ZP_Index_t one,
-  ZP_Index_t two
+  ZP_Index_t left,
+  ZP_Index_t right
 ) {
-  fixed_allocator->arena[fixed_location->at] = one;
-  fixed_allocator->arena[fixed_location->at + 1] = two;
+  fixed_allocator->arena[fixed_location->at] = left;
+  fixed_allocator->arena[fixed_location->at + 1] = right;
 }
 
 /***** RegionAllocator *******************************************************/
@@ -507,7 +508,7 @@ ZP_Error_t ZP_Context_incref(
   }
 
   if (context->refcount[location.at >> 1] == ZP_REFCNT_MAX) {
-    if (label_mask == ZP_LABEL_IS_BUFFER_OWNED) {
+    if (label_mask == ZP_LABEL_IS_BUFFER_SYMBOL  ||  label_mask == ZP_LABEL_IS_BUFFER_OWNED) {
       /* if a BufferOwned were copied as a BufferOwned, both would think they */
       /* can delete the data in the RegionAllocator; only one can be the owner */
       ZP_Index_t pointer;
@@ -652,25 +653,85 @@ void ZP_Context_decref_children(
   }
 }
 
-/* ZP_Error_t ZP_Symbol_new_or_get( */
-/*   ZP_Context_t* context, */
-/*   const char* symbol_data, */
-/*   ZP_Index_t symbol_size */
-/* ) { */
-/*   ZP_Labeled_t list_node = context->symbol_set.list; */
+ZP_Error_t ZP_Symbol_new_or_get(
+  ZP_Context_t* context,
+  ZP_Labeled_t* labeled,
+  const char* symbol_data,
+  ZP_Index_t symbol_size
+) {
+  ZP_Labeled_t list_node = context->symbol_set.list;
 
-/*   while (!ZP_List_is_empty(list_node)) { */
-/*     ZP_Labeled_t list */
+  while (!ZP_List_is_empty(&list_node)) {
+    /* extract the BufferOwned char data at this list_node */
 
+    ZP_FixedLocation_t list_node_location;
+    ZP_Labeled_to_FixedLocation(&list_node_location, &list_node);
 
+    ZP_Labeled_t list_next;
+    ZP_Labeled_t buffer_owned;
+    ZP_FixedAllocator_get(
+      &context->fixed_allocator,
+      &list_node_location,
+      &list_next.data,
+      &buffer_owned.data
+    );
 
+    ZP_FixedLocation_t buffer_owned_location;
+    ZP_Labeled_to_FixedLocation(&buffer_owned_location, &buffer_owned);
 
+    ZP_Index_t pointer;
+    ZP_Index_t request_size;
+    ZP_FixedAllocator_get(
+      &context->fixed_allocator,
+      &buffer_owned_location,
+      &pointer,
+      &request_size
+    );
 
-/*     list_node = list_next; */
-/*   } */
+    /* compare this char data with the provided char data */
+    if (symbol_size == request_size) {
+      const char* compare_symbol = (const char*)ZP_RegionAllocator_at(
+        &context->region_allocator,
+        pointer
+      );
 
+      bool same = true;
+      ZP_Index_t i;
+      for (i = 0;  i < symbol_size;  i++) {
+        if (symbol_data[i] != compare_symbol[i]) {
+          same = false;
+          break;
+        }
+      }
 
-/* } */
+      /* if it's the same, return a new reference to it (which might be a */
+      /* BufferView if the BufferSymbol refcnt reached its maximum) */
+      if (same) {
+        ZP_Labeled_copy(labeled, &list_node);
+        return ZP_Context_incref(context, labeled);
+      }
+    }
+
+    /* otherwise, keep walking the list */
+    list_node = list_next;
+  }
+
+  /* this symbol is not in the list; add it */
+
+  ZP_Error_t error = ZP_BufferOwned_new(context, labeled, symbol_size);
+  if (error != ZP_NOERROR) {
+    return error;
+  }
+
+  ZP_BufferOwned_copy_data(context, labeled, symbol_data);
+
+  /* remove the BUFFER_OWNED label */
+  labeled->data &= ZP_LABEL_MASK_DATA;
+  /* add the BUFFER_SYMBOL label */
+  labeled->data |= ZP_LABEL_IS_BUFFER_SYMBOL;
+
+  return ZP_NOERROR;
+}
 
 /***** BufferOwned ***********************************************************/
 
@@ -779,8 +840,12 @@ ZP_Error_t ZP_BufferView_new(
   ZP_Index_t stop
 ) {
   ZP_Label_t base_label = ZP_Labeled_label_of(base);
-  if (base_label != ZP_LABEL_BUFFER_OWNED  &&  base_label != ZP_LABEL_BUFFER_VIEW_WRAP) {
-    return "ZP_BufferView_new(_, _, base, _, _) must be a buffer";
+  if (
+      base_label != ZP_LABEL_BUFFER_SYMBOL
+      &&  base_label != ZP_LABEL_BUFFER_OWNED
+      &&  base_label != ZP_LABEL_BUFFER_VIEW_WRAP
+  ) {
+    return "ZP_BufferView_new(_, _, base, _, _) must be a buffer or symbol";
   }
 
   ZP_Labeled_t base_increfed;

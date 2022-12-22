@@ -36,8 +36,9 @@ void ZP_slice(
 
 /* within ZP_LABEL_ZERO_REF */
 #define ZP_LABEL_BUILTIN_ENUM       0x00   /* N-8 bit data */
-#define ZP_LABEL_BUFFER_OWNED       0x01   /* points to 2 region pointers */
-#define ZP_LABEL_BUFFER_VIEW        0x02   /* points to 2 region pointers */
+#define ZP_LABEL_BUFFER_SYMBOL      0x01   /* as below, but in symbol_set list */
+#define ZP_LABEL_BUFFER_OWNED       0x02   /* points to 2 region pointers */
+#define ZP_LABEL_BUFFER_VIEW        0x03   /* points to 2 region pointers */
 
 /* within ZP_LABEL_ONE_REF */
 #define ZP_LABEL_SCALAR_IN_ARRAY    0x10   /* (base_ref, INT) */
@@ -150,15 +151,15 @@ void ZP_FixedAllocator_free(
 void ZP_FixedAllocator_get(
   ZP_FixedAllocator_t* fixed_allocator,
   ZP_FixedLocation_t* fixed_location,
-  ZP_Index_t* one,
-  ZP_Index_t* two
+  ZP_Index_t* left,
+  ZP_Index_t* right
 );
 
 void ZP_FixedAllocator_set(
   ZP_FixedAllocator_t* fixed_allocator,
   ZP_FixedLocation_t* fixed_location,
-  ZP_Index_t one,
-  ZP_Index_t two
+  ZP_Index_t left,
+  ZP_Index_t right
 );
 
 /***** RegionAllocator *******************************************************/
@@ -269,6 +270,7 @@ void ZP_Context_decref_children(
 
 ZP_Error_t ZP_Symbol_new_or_get(
   ZP_Context_t* context,
+  ZP_Labeled_t* labeled,
   const char* symbol_data,
   ZP_Index_t symbol_size
 );

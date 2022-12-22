@@ -744,95 +744,60 @@ int test_list() {
   return 0;
 }
 
-/* int test_symbols() { */
-/*   printf("BEGIN test_symbols\n\n"); */
+int test_symbols() {
+  printf("BEGIN test_symbols\n");
 
-/*   size_t arena_size = 64; */
-/*   void* arena = malloc(arena_size); */
-/*   init(arena, arena_size); */
+  ZP_Context_t context;
+  ZP_Error_t error = new_context(&context);
+  handle_error(error);
 
-/*   ZP_Error_t error = ZP_NOERROR; */
+  view_fixed(&context);
+  view_refcount(&context);
+  printf("\n");
 
-/*   ZP_RegionAllocator_t region_allocator; */
-/*   error = ZP_RegionAllocator_new(&region_allocator, arena, arena_size); */
-/*   handle_error(error); */
-/*   view(arena, arena_size); */
-/*   printf("\n"); */
 
-/*   ZP_SymbolSet_t symbol_set; */
-/*   error = ZP_SymbolSet_new(&symbol_set); */
-/*   handle_error(error); */
 
-/*   ZP_Symbol_t symbol_one; */
-/*   error = ZP_Symbol_new( */
-/*     &symbol_set, */
-/*     &region_allocator, */
-/*     "symbol22", */
-/*     8, */
-/*     &symbol_one */
-/*   ); */
-/*   handle_error(error); */
-/*   view(arena, arena_size); */
-/*   printf("\n"); */
 
-/*   ZP_Symbol_t symbol_two; */
-/*   error = ZP_Symbol_new( */
-/*     &symbol_set, */
-/*     &region_allocator, */
-/*     "symbol33", */
-/*     8, */
-/*     &symbol_two */
-/*   ); */
-/*   handle_error(error); */
-/*   view(arena, arena_size); */
-/*   printf("\n"); */
 
-/*   ZP_Symbol_t symbol_three; */
-/*   error = ZP_Symbol_new( */
-/*     &symbol_set, */
-/*     &region_allocator, */
-/*     "symbol11", */
-/*     8, */
-/*     &symbol_three */
-/*   ); */
-/*   handle_error(error); */
-/*   view(arena, arena_size); */
-/*   printf("\n"); */
+  printf("END test_symbols\n");
 
-/*   printf("END test_symbols\n"); */
-
-/*   return 0; */
-/* } */
+  return 0;
+}
 
 int main(int argc, char** argv) {
   int result;
 
-  result = test_RegionAllocator();
-  if (result != 0) {
-    return result;
-  }
+  /* result = test_RegionAllocator(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
 
-  result = test_FixedAllocator();
-  if (result != 0) {
-    return result;
-  }
+  /* result = test_FixedAllocator(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
 
-  result = test_int_labeling();
-  if (result != 0) {
-    return result;
-  }
+  /* result = test_int_labeling(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
 
-  result = test_float_labeling();
-  if (result != 0) {
-    return result;
-  }
+  /* result = test_float_labeling(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
 
-  result = test_buffer();
-  if (result != 0) {
-    return result;
-  }
+  /* result = test_buffer(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
 
-  result = test_list();
+  /* result = test_list(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
+
+  result = test_symbols();
   if (result != 0) {
     return result;
   }
