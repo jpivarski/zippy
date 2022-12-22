@@ -343,28 +343,4 @@ ZP_Error_t ZP_List_pop(
   ZP_Labeled_t* input_list
 );
 
-/***** Symbols ***************************************************************/
-
-/* struct ZP_SymbolSet { */
-/*   ZP_Index_t first_pointer; */
-/* }; */
-/* typedef struct ZP_SymbolSet ZP_SymbolSet_t; */
-
-/* struct ZP_Symbol { */
-/*   ZP_Index_t pointer; */
-/* }; */
-/* typedef struct ZP_Symbol ZP_Symbol_t; */
-
-/* ZP_Error_t ZP_SymbolSet_new( */
-/*   ZP_SymbolSet_t* symbol_set */
-/* ); */
-
-/* ZP_Error_t ZP_Symbol_new( */
-/*   ZP_SymbolSet_t* symbol_set, */
-/*   ZP_RegionAllocator_t* region_allocator, */
-/*   const char* symbol_data, */
-/*   ZP_Index_t symbol_data_size, */
-/*   ZP_Symbol_t* symbol */
-/* ); */
-
 #endif /* _ZIPPY_DATA_H */
