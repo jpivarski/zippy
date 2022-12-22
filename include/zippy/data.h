@@ -208,10 +208,16 @@ void ZP_RegionAllocator_copy_data(
 
 /***** Context ***************************************************************/
 
+struct ZP_SymbolSet {
+  ZP_Labeled_t list;
+};
+typedef struct ZP_SymbolSet ZP_SymbolSet_t;
+
 struct ZP_Context {
   ZP_FixedAllocator_t fixed_allocator;
   ZP_RegionAllocator_t region_allocator;
   ZP_RefCnt_t* refcount;
+  ZP_SymbolSet_t symbol_set;
 };
 typedef struct ZP_Context ZP_Context_t;
 
@@ -261,6 +267,12 @@ void ZP_Context_decref_children(
   bool right_is_ref
 );
 
+ZP_Error_t ZP_Symbol_new_or_get(
+  ZP_Context_t* context,
+  const char* symbol_data,
+  ZP_Index_t symbol_size
+);
+
 /***** BufferOwned ***********************************************************/
 
 void ZP_BufferOwned_decref(
@@ -308,6 +320,10 @@ void ZP_List_decref(
 );
 
 void ZP_List_new_empty(
+  ZP_Labeled_t* list
+);
+
+bool ZP_List_is_empty(
   ZP_Labeled_t* list
 );
 

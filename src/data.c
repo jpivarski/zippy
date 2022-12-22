@@ -454,6 +454,8 @@ ZP_Error_t ZP_Context_new(
     context->refcount[i] = 0;
   }
 
+  ZP_List_new_empty(&context->symbol_set.list);
+
   return ZP_NOERROR;
 }
 
@@ -498,26 +500,55 @@ ZP_Error_t ZP_Context_incref(
     return ZP_NOERROR;
   }
 
-  ZP_Index_t location = labeled->data & ZP_LABEL_MASK_DATA;
-  if (location == ZP_TERMINATOR) {
+  ZP_FixedLocation_t location;
+  location.at = labeled->data & ZP_LABEL_MASK_DATA;
+  if (location.at == ZP_TERMINATOR) {
     return ZP_NOERROR;
   }
 
-  if (context->refcount[location >> 1] == ZP_REFCNT_MAX) {
-    ZP_Error_t error = ZP_Context_incref_newnode(
-      context,
-      labeled,
-      location,
-      (label_mask & ZP_LABEL_MASK_AT_LEAST_ONE_REF) != 0,
-      (label_mask & ZP_LABEL_MASK_HAS_TWO_REFS) != 0,
-      label_mask
-    );
-    if (error != ZP_NOERROR) {
-      return error;
+  if (context->refcount[location.at >> 1] == ZP_REFCNT_MAX) {
+    if (label_mask == ZP_LABEL_IS_BUFFER_OWNED) {
+      /* if a BufferOwned were copied as a BufferOwned, both would think they */
+      /* can delete the data in the RegionAllocator; only one can be the owner */
+      ZP_Index_t pointer;
+      ZP_Index_t request_size;
+      ZP_FixedAllocator_get(
+        &context->fixed_allocator,
+        &location,
+        &pointer,
+        &request_size
+      );
+      ZP_Labeled_t original;
+      original.data = labeled->data;
+      ZP_Error_t error = ZP_BufferView_new(
+        context,
+        labeled,    /* replaced with the new BufferView */
+        &original,  /* the original BufferOwned */
+        0,
+        request_size
+      );
+      if (error != ZP_NOERROR) {
+        return error;
+      }
+    }
+
+    else {
+      /* anything else can just be copied into a new reference */
+      ZP_Error_t error = ZP_Context_incref_newnode(
+        context,
+        labeled,
+        location.at,
+        (label_mask & ZP_LABEL_MASK_AT_LEAST_ONE_REF) != 0,
+        (label_mask & ZP_LABEL_MASK_HAS_TWO_REFS) != 0,
+        label_mask
+      );
+      if (error != ZP_NOERROR) {
+        return error;
+      }
     }
   }
   else {
-    context->refcount[location >> 1]++;
+    context->refcount[location.at >> 1]++;
   }
 
   return ZP_NOERROR;
@@ -620,6 +651,26 @@ void ZP_Context_decref_children(
     ZP_Context_decref(context, &right);
   }
 }
+
+/* ZP_Error_t ZP_Symbol_new_or_get( */
+/*   ZP_Context_t* context, */
+/*   const char* symbol_data, */
+/*   ZP_Index_t symbol_size */
+/* ) { */
+/*   ZP_Labeled_t list_node = context->symbol_set.list; */
+
+/*   while (!ZP_List_is_empty(list_node)) { */
+/*     ZP_Labeled_t list */
+
+
+
+
+
+/*     list_node = list_next; */
+/*   } */
+
+
+/* } */
 
 /***** BufferOwned ***********************************************************/
 
@@ -856,6 +907,12 @@ void ZP_List_new_empty(
   ZP_Labeled_t* list
 ) {
   list->data = ZP_TERMINATOR | ZP_LABEL_IS_LIST;
+}
+
+bool ZP_List_is_empty(
+  ZP_Labeled_t* list
+) {
+  return list->data == (ZP_TERMINATOR | ZP_LABEL_IS_LIST);
 }
 
 ZP_Error_t ZP_List_push(
