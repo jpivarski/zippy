@@ -120,6 +120,11 @@ struct ZP_FixedLocation {
 };
 typedef struct ZP_FixedLocation ZP_FixedLocation_t;
 
+void ZP_Labeled_to_FixedLocation(
+  ZP_FixedLocation_t* location,
+  ZP_Labeled_t* labeled
+);
+
 void ZP_Labeled_from_FixedLocation(
   ZP_Labeled_t* labeled,
   ZP_FixedLocation_t* location,

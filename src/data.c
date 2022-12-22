@@ -165,6 +165,13 @@ void ZP_Labeled_from_float(
 
 /***** FixedAllocator ********************************************************/
 
+void ZP_Labeled_to_FixedLocation(
+  ZP_FixedLocation_t* location,
+  ZP_Labeled_t* labeled
+) {
+  location->first = labeled->data & ZP_LABEL_MASK_DATA;
+}
+
 void ZP_Labeled_from_FixedLocation(
   ZP_Labeled_t* labeled,
   ZP_FixedLocation_t* location,
@@ -598,17 +605,16 @@ void ZP_BufferOwned_decref(
   ZP_Context_t* context,
   ZP_Labeled_t* labeled
 ) {
-  ZP_Index_t location = ZP_Labeled_to_raw(labeled);
-  context->refcount[location >> 1]--;
+  ZP_FixedLocation_t location;
+  ZP_Labeled_to_FixedLocation(&location, labeled);
+  context->refcount[location.first >> 1]--;
 
-  if (context->refcount[location >> 1] == 0) {
-    ZP_FixedLocation_t this_location;
-    this_location.first = location;
+  if (context->refcount[location.first >> 1] == 0) {
     ZP_Index_t pointer;
     ZP_Index_t request_size;
     ZP_FixedAllocator_get(
       &context->fixed_allocator,
-      &this_location,
+      &location,
       &pointer,
       &request_size
     );
@@ -673,25 +679,25 @@ void ZP_BufferView_decref_node(
   ZP_Context_t* context,
   ZP_Labeled_t* labeled
 ) {
-  ZP_Index_t location = ZP_Labeled_to_raw(labeled);
-  context->refcount[location >> 1]--;
+  ZP_FixedLocation_t location;
+  ZP_Labeled_to_FixedLocation(&location, labeled);
+  context->refcount[location.first >> 1]--;
 }
 
 void ZP_BufferView_decref(
   ZP_Context_t* context,
   ZP_Labeled_t* labeled
 ) {
-  ZP_Index_t location = ZP_Labeled_to_raw(labeled);
-  context->refcount[location >> 1]--;
+  ZP_FixedLocation_t location;
+  ZP_Labeled_to_FixedLocation(&location, labeled);
+  context->refcount[location.first >> 1]--;
 
-  if (context->refcount[location >> 1] == 0) {
-    ZP_FixedLocation_t this_location;
-    this_location.first = location;
+  if (context->refcount[location.first >> 1] == 0) {
     ZP_Labeled_t base_buffer;
     ZP_Labeled_t view_node;
     ZP_FixedAllocator_get(
       &context->fixed_allocator,
-      &this_location,
+      &location,
       &base_buffer.data,
       &view_node.data
     );
@@ -822,18 +828,17 @@ void ZP_List_decref(
   ZP_Context_t* context,
   ZP_Labeled_t* labeled
 ) {
-  ZP_Index_t location = ZP_Labeled_to_raw(labeled);
-  if (location != ZP_TERMINATOR) {
-    context->refcount[location >> 1]--;
+  ZP_FixedLocation_t location;
+  ZP_Labeled_to_FixedLocation(&location, labeled);
+  if (location.first != ZP_TERMINATOR) {
+    context->refcount[location.first >> 1]--;
 
-    if (context->refcount[location >> 1] == 0) {
-      ZP_FixedLocation_t this_location;
-      this_location.first = location;
+    if (context->refcount[location.first >> 1] == 0) {
       ZP_Labeled_t list_next;
       ZP_Labeled_t list_item;
       ZP_FixedAllocator_get(
         &context->fixed_allocator,
-        &this_location,
+        &location,
         &list_next.data,
         &list_item.data
       );
