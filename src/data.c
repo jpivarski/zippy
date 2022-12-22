@@ -28,16 +28,19 @@ const ZP_Index_t ZP_INT_OVERFLOW_TEST = 0xe0 << ZP_LABEL_SHIFT;
 const ZP_Index_t ZP_LABEL_MASK_AT_LEAST_ONE_REF = ZP_LABEL_ARRAY << ZP_LABEL_SHIFT;
 const ZP_Index_t ZP_LABEL_MASK_HAS_TWO_REFS = ZP_LABEL_TWO_REF << ZP_LABEL_SHIFT;
 
-const ZP_Index_t ZP_LABEL_IS_BUILTIN_ENUM = ZP_LABEL_BUILTIN_ENUM << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_LABEL_IS_BUFFER_SYMBOL = ZP_LABEL_BUFFER_SYMBOL << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_LABEL_IS_BUFFER_OWNED = ZP_LABEL_BUFFER_OWNED << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_LABEL_IS_BUFFER_VIEW = ZP_LABEL_BUFFER_VIEW << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_LABEL_IS_SCALAR_IN_ARRAY = ZP_LABEL_SCALAR_IN_ARRAY << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_LABEL_IS_BUFFER_VIEW_WRAP = ZP_LABEL_BUFFER_VIEW_WRAP << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_LABEL_IS_LIST = ZP_LABEL_LIST << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_LABEL_IS_CLASS = ZP_LABEL_CLASS << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_LABEL_IS_INSTANCE = ZP_LABEL_INSTANCE << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_LABEL_IS_INSTANCE_NODE = ZP_LABEL_INSTANCE_NODE << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_LABEL_MASK_INT = ZP_LABEL_INT << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_LABEL_MASK_FLOAT = ZP_LABEL_FLOAT << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_LABEL_MASK_ARRAY = ZP_LABEL_ARRAY << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_LABEL_MASK_BUILTIN_ENUM = ZP_LABEL_BUILTIN_ENUM << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_LABEL_MASK_BUFFER_SYMBOL = ZP_LABEL_BUFFER_SYMBOL << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_LABEL_MASK_BUFFER_OWNED = ZP_LABEL_BUFFER_OWNED << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_LABEL_MASK_BUFFER_VIEW = ZP_LABEL_BUFFER_VIEW << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_LABEL_MASK_SCALAR_IN_ARRAY = ZP_LABEL_SCALAR_IN_ARRAY << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_LABEL_MASK_BUFFER_VIEW_WRAP = ZP_LABEL_BUFFER_VIEW_WRAP << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_LABEL_MASK_LIST = ZP_LABEL_LIST << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_LABEL_MASK_CLASS = ZP_LABEL_CLASS << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_LABEL_MASK_INSTANCE = ZP_LABEL_INSTANCE << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_LABEL_MASK_INSTANCE_NODE = ZP_LABEL_INSTANCE_NODE << ZP_LABEL_SHIFT;
 
 const ZP_Index_t ZP_TERMINATOR = ZP_LABEL_MASK_DATA;
 
@@ -79,25 +82,33 @@ void ZP_slice(
 
 /***** Labeled ***************************************************************/
 
-ZP_Label_t ZP_Labeled_label_of(
+/* used internally; does not convert ZP_Index_t -> 8-bit */
+ZP_Index_t ZP_Labeled_label_mask_of(
   ZP_Labeled_t* labeled
 ) {
-  ZP_Label_t out = labeled->data >> ZP_LABEL_SHIFT;
+  ZP_Index_t out = labeled->data;
 
   /* special label classes need to be explicitly checked */
-  if (out & ZP_LABEL_FLOAT) {
-    return ZP_LABEL_FLOAT;
+  if (out & ZP_LABEL_MASK_FLOAT) {
+    return ZP_LABEL_MASK_FLOAT;
   }
-  else if (out & ZP_LABEL_INT) {
-    return ZP_LABEL_INT;
+  else if (out & ZP_LABEL_MASK_INT) {
+    return ZP_LABEL_MASK_INT;
   }
-  else if ((out & ZP_LABEL_ARRAY) == ZP_LABEL_ARRAY) {
+  else if ((out & ZP_LABEL_MASK_ARRAY) == ZP_LABEL_MASK_ARRAY) {
     return out & 0xf0;  /* remove dtype from label */
   }
   else {
     /* enumerated label passed through as-is */
-    return out;
+    return out & ZP_LABEL_MASK_LABEL;
   }
+}
+
+/* public: uses the labels defined in data.h */
+ZP_Label_t ZP_Labeled_label_of(
+  ZP_Labeled_t* labeled
+) {
+  return ZP_Labeled_label_mask_of(labeled) >> ZP_LABEL_SHIFT;
 }
 
 ZP_Index_t ZP_Labeled_to_raw(
@@ -469,7 +480,7 @@ ZP_RefCnt_t ZP_Context_refcnt(
   }
 
   ZP_Index_t label = labeled->data & ZP_LABEL_MASK_LABEL;
-  if (label == ZP_LABEL_IS_BUILTIN_ENUM) {
+  if (label == ZP_LABEL_MASK_BUILTIN_ENUM) {
     return 0;
   }
 
@@ -497,7 +508,7 @@ ZP_Error_t ZP_Context_incref(
   }
 
   ZP_Index_t label_mask = labeled->data & ZP_LABEL_MASK_LABEL;
-  if (label_mask == ZP_LABEL_IS_BUILTIN_ENUM) {
+  if (label_mask == ZP_LABEL_MASK_BUILTIN_ENUM) {
     return ZP_NOERROR;
   }
 
@@ -508,11 +519,11 @@ ZP_Error_t ZP_Context_incref(
   }
 
   if (context->refcount[location.at >> 1] == ZP_REFCNT_MAX) {
-    if (label_mask == ZP_LABEL_IS_BUFFER_SYMBOL) {
+    if (label_mask == ZP_LABEL_MASK_BUFFER_SYMBOL) {
       return "symbols cannot be referenced more than ZP_REFCNT_MAX times";
     }
 
-    else if (label_mask == ZP_LABEL_IS_BUFFER_OWNED) {
+    else if (label_mask == ZP_LABEL_MASK_BUFFER_OWNED) {
       return "directly owned buffers cannot be referenced more than ZP_REFCNT_MAX times";
     }
 
@@ -596,17 +607,17 @@ void ZP_Context_decref(
   ZP_Context_t* context,
   ZP_Labeled_t* labeled
 ) {
-  switch (ZP_Labeled_label_of(labeled)) {
-  case ZP_LABEL_BUFFER_OWNED:
+  switch (ZP_Labeled_label_mask_of(labeled)) {
+  case ZP_LABEL_MASK_BUFFER_OWNED:
     ZP_BufferOwned_decref(context, labeled);
     return;
-  case ZP_LABEL_BUFFER_VIEW:
+  case ZP_LABEL_MASK_BUFFER_VIEW:
     ZP_BufferView_decref_node(context, labeled);
     return;
-  case ZP_LABEL_BUFFER_VIEW_WRAP:
+  case ZP_LABEL_MASK_BUFFER_VIEW_WRAP:
     ZP_BufferView_decref(context, labeled);
     return;
-  case ZP_LABEL_LIST:
+  case ZP_LABEL_MASK_LIST:
     ZP_List_decref(context, labeled);
     return;
   default:
@@ -712,7 +723,7 @@ ZP_Error_t ZP_Symbol_new_or_get(
   /* remove the BUFFER_OWNED label */
   labeled->data &= ZP_LABEL_MASK_DATA;
   /* add the BUFFER_SYMBOL label */
-  labeled->data |= ZP_LABEL_IS_BUFFER_SYMBOL;
+  labeled->data |= ZP_LABEL_MASK_BUFFER_SYMBOL;
 
   /* and push it to the end of the symbol_set list */
 
@@ -779,7 +790,7 @@ ZP_Error_t ZP_BufferOwned_new(
 
   ZP_FixedAllocator_set(&context->fixed_allocator, &fixed_location, pointer, request_size);
 
-  ZP_Labeled_from_FixedLocation(labeled, &fixed_location, ZP_LABEL_IS_BUFFER_OWNED);
+  ZP_Labeled_from_FixedLocation(labeled, &fixed_location, ZP_LABEL_MASK_BUFFER_OWNED);
 
   error = ZP_Context_incref(context, labeled);
   if (error != ZP_NOERROR) {
@@ -837,11 +848,11 @@ ZP_Error_t ZP_BufferView_new(
   ZP_Index_t start,
   ZP_Index_t stop
 ) {
-  ZP_Label_t base_label = ZP_Labeled_label_of(base);
+  ZP_Index_t base_label = ZP_Labeled_label_mask_of(base);
   if (
-      base_label != ZP_LABEL_BUFFER_SYMBOL
-      &&  base_label != ZP_LABEL_BUFFER_OWNED
-      &&  base_label != ZP_LABEL_BUFFER_VIEW_WRAP
+      base_label != ZP_LABEL_MASK_BUFFER_SYMBOL
+      &&  base_label != ZP_LABEL_MASK_BUFFER_OWNED
+      &&  base_label != ZP_LABEL_MASK_BUFFER_VIEW_WRAP
   ) {
     return "ZP_BufferView_new(_, _, base, _, _) must be a buffer or symbol";
   }
@@ -863,7 +874,7 @@ ZP_Error_t ZP_BufferView_new(
   ZP_Labeled_from_FixedLocation(
     &labeled_buffer_view,
     &buffer_view_location,
-    ZP_LABEL_IS_BUFFER_VIEW
+    ZP_LABEL_MASK_BUFFER_VIEW
   );
 
   error = ZP_Context_incref(context, &labeled_buffer_view);
@@ -935,7 +946,7 @@ ZP_Error_t ZP_BufferView_new(
   ZP_Labeled_from_FixedLocation(
     output,
     &buffer_wrap_location,
-    ZP_LABEL_IS_BUFFER_VIEW_WRAP
+    ZP_LABEL_MASK_BUFFER_VIEW_WRAP
   );
 
   error = ZP_Context_incref(context, output);
@@ -969,13 +980,13 @@ void ZP_List_decref(
 void ZP_List_new_empty(
   ZP_Labeled_t* list
 ) {
-  list->data = ZP_TERMINATOR | ZP_LABEL_IS_LIST;
+  list->data = ZP_TERMINATOR | ZP_LABEL_MASK_LIST;
 }
 
 bool ZP_List_is_empty(
   ZP_Labeled_t* list
 ) {
-  return list->data == (ZP_TERMINATOR | ZP_LABEL_IS_LIST);
+  return list->data == (ZP_TERMINATOR | ZP_LABEL_MASK_LIST);
 }
 
 ZP_Error_t ZP_List_push(
@@ -984,7 +995,7 @@ ZP_Error_t ZP_List_push(
   ZP_Labeled_t* input_list,
   ZP_Labeled_t* item
 ) {
-  if (ZP_Labeled_label_of(input_list) != ZP_LABEL_LIST) {
+  if (ZP_Labeled_label_mask_of(input_list) != ZP_LABEL_MASK_LIST) {
     return "ZP_List_push(_, _, input_list, _) must be a list";
   }
 
@@ -1018,7 +1029,7 @@ ZP_Error_t ZP_List_push(
     item_increfed.data
   );
 
-  ZP_Labeled_from_FixedLocation(output_list, &fixed_location, ZP_LABEL_IS_LIST);
+  ZP_Labeled_from_FixedLocation(output_list, &fixed_location, ZP_LABEL_MASK_LIST);
   ZP_Context_refcnt_init(context, &fixed_location);
 
   return ZP_NOERROR;
@@ -1030,7 +1041,7 @@ ZP_Error_t ZP_List_pop(
   ZP_Labeled_t* output_item,
   ZP_Labeled_t* input_list
 ) {
-  if (ZP_Labeled_label_of(input_list) != ZP_LABEL_LIST) {
+  if (ZP_Labeled_label_mask_of(input_list) != ZP_LABEL_MASK_LIST) {
     return "ZP_List_pop(_, _, _, input_list) must be a list";
   }
 
