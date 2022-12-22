@@ -599,6 +599,28 @@ void ZP_Context_decref(
   }
 }
 
+void ZP_Context_decref_children(
+  ZP_Context_t* context,
+  ZP_FixedLocation_t* location,
+  bool left_is_ref,
+  bool right_is_ref
+) {
+  ZP_Labeled_t left;
+  ZP_Labeled_t right;
+  ZP_FixedAllocator_get(
+    &context->fixed_allocator,
+    location,
+    &left.data,
+    &right.data
+  );
+  if (left_is_ref) {
+    ZP_Context_decref(context, &left);
+  }
+  if (right_is_ref) {
+    ZP_Context_decref(context, &right);
+  }
+}
+
 /***** BufferOwned ***********************************************************/
 
 void ZP_BufferOwned_decref(
@@ -610,6 +632,7 @@ void ZP_BufferOwned_decref(
   context->refcount[location.first >> 1]--;
 
   if (context->refcount[location.first >> 1] == 0) {
+    /* children are RegionAllocator-tracked, not FixedAllocator-tracked */
     ZP_Index_t pointer;
     ZP_Index_t request_size;
     ZP_FixedAllocator_get(
@@ -682,6 +705,7 @@ void ZP_BufferView_decref_node(
   ZP_FixedLocation_t location;
   ZP_Labeled_to_FixedLocation(&location, labeled);
   context->refcount[location.first >> 1]--;
+  /* children are neither FixedAllocator-tracked nor RegionAllocator-tracked */
 }
 
 void ZP_BufferView_decref(
@@ -691,18 +715,8 @@ void ZP_BufferView_decref(
   ZP_FixedLocation_t location;
   ZP_Labeled_to_FixedLocation(&location, labeled);
   context->refcount[location.first >> 1]--;
-
   if (context->refcount[location.first >> 1] == 0) {
-    ZP_Labeled_t base_buffer;
-    ZP_Labeled_t view_node;
-    ZP_FixedAllocator_get(
-      &context->fixed_allocator,
-      &location,
-      &base_buffer.data,
-      &view_node.data
-    );
-    ZP_Context_decref(context, &base_buffer);
-    ZP_BufferView_decref_node(context, &view_node);
+    ZP_Context_decref_children(context, &location, true, true);
   }
 }
 
@@ -832,18 +846,8 @@ void ZP_List_decref(
   ZP_Labeled_to_FixedLocation(&location, labeled);
   if (location.first != ZP_TERMINATOR) {
     context->refcount[location.first >> 1]--;
-
     if (context->refcount[location.first >> 1] == 0) {
-      ZP_Labeled_t list_next;
-      ZP_Labeled_t list_item;
-      ZP_FixedAllocator_get(
-        &context->fixed_allocator,
-        &location,
-        &list_next.data,
-        &list_item.data
-      );
-      ZP_List_decref(context, &list_next);
-      ZP_Context_decref(context, &list_item);
+      ZP_Context_decref_children(context, &location, true, true);
     }
   }
 }

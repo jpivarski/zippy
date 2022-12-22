@@ -254,6 +254,13 @@ void ZP_Context_decref(
   ZP_Labeled_t* labeled
 );
 
+void ZP_Context_decref_children(
+  ZP_Context_t* context,
+  ZP_FixedLocation_t* location,
+  bool left_is_ref,
+  bool right_is_ref
+);
+
 /***** BufferOwned ***********************************************************/
 
 void ZP_BufferOwned_decref(
