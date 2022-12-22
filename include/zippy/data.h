@@ -120,6 +120,12 @@ struct ZP_FixedLocation {
 };
 typedef struct ZP_FixedLocation ZP_FixedLocation_t;
 
+void ZP_Labeled_from_FixedLocation(
+  ZP_Labeled_t* labeled,
+  ZP_FixedLocation_t* location,
+  ZP_Index_t label_mask
+);
+
 void ZP_FixedAllocator_new(
   ZP_FixedAllocator_t* fixed_allocator,
   void* arena,
@@ -224,19 +230,13 @@ ZP_Error_t ZP_Context_incref(
   ZP_Labeled_t* labeled
 );
 
-ZP_Error_t ZP_Context_incref_standard(
-  ZP_Context_t* context,
-  ZP_Labeled_t* labeled,
-  bool left_is_ref,
-  bool right_is_ref
-);
-
 ZP_Error_t ZP_Context_incref_newnode(
   ZP_Context_t* context,
   ZP_Labeled_t* labeled,
   ZP_Index_t location,
   bool left_is_ref,
-  bool right_is_ref
+  bool right_is_ref,
+  ZP_Index_t label_mask
 );
 
 void ZP_Context_decref(

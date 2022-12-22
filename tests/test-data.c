@@ -807,35 +807,35 @@ int test_list() {
 int main(int argc, char** argv) {
   int result;
 
-  /* result = test_RegionAllocator(); */
-  /* if (result != 0) { */
-  /*   return result; */
-  /* } */
+  result = test_RegionAllocator();
+  if (result != 0) {
+    return result;
+  }
 
-  /* result = test_FixedAllocator(); */
-  /* if (result != 0) { */
-  /*   return result; */
-  /* } */
+  result = test_FixedAllocator();
+  if (result != 0) {
+    return result;
+  }
 
-  /* result = test_int_labeling(); */
-  /* if (result != 0) { */
-  /*   return result; */
-  /* } */
+  result = test_int_labeling();
+  if (result != 0) {
+    return result;
+  }
 
-  /* result = test_float_labeling(); */
-  /* if (result != 0) { */
-  /*   return result; */
-  /* } */
+  result = test_float_labeling();
+  if (result != 0) {
+    return result;
+  }
 
-  /* result = test_buffer(); */
-  /* if (result != 0) { */
-  /*   return result; */
-  /* } */
+  result = test_buffer();
+  if (result != 0) {
+    return result;
+  }
 
-  /* result = test_list(); */
-  /* if (result != 0) { */
-  /*   return result; */
-  /* } */
+  result = test_list();
+  if (result != 0) {
+    return result;
+  }
 
   return 0;
 }

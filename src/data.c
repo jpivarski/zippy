@@ -165,6 +165,14 @@ void ZP_Labeled_from_float(
 
 /***** FixedAllocator ********************************************************/
 
+void ZP_Labeled_from_FixedLocation(
+  ZP_Labeled_t* labeled,
+  ZP_FixedLocation_t* location,
+  ZP_Index_t label_mask
+) {
+  labeled->data = location->first | label_mask;
+}
+
 void ZP_FixedAllocator_new(
   ZP_FixedAllocator_t* fixed_allocator,
   void* arena,
@@ -471,8 +479,8 @@ ZP_Error_t ZP_Context_incref(
     return ZP_NOERROR;
   }
 
-  ZP_Index_t label = labeled->data & ZP_LABEL_MASK_LABEL;
-  if (label == ZP_LABEL_IS_BUILTIN_ENUM) {
+  ZP_Index_t label_mask = labeled->data & ZP_LABEL_MASK_LABEL;
+  if (label_mask == ZP_LABEL_IS_BUILTIN_ENUM) {
     return ZP_NOERROR;
   }
 
@@ -486,8 +494,9 @@ ZP_Error_t ZP_Context_incref(
       context,
       labeled,
       location,
-      (label & ZP_LABEL_MASK_AT_LEAST_ONE_REF) != 0,
-      (label & ZP_LABEL_MASK_HAS_TWO_REFS) != 0
+      (label_mask & ZP_LABEL_MASK_AT_LEAST_ONE_REF) != 0,
+      (label_mask & ZP_LABEL_MASK_HAS_TWO_REFS) != 0,
+      label_mask
     );
     if (error != ZP_NOERROR) {
       return error;
@@ -505,7 +514,8 @@ ZP_Error_t ZP_Context_incref_newnode(
   ZP_Labeled_t* labeled,
   ZP_Index_t location,
   bool at_least_one_ref,
-  bool has_two_refs
+  bool has_two_refs,
+  ZP_Index_t label_mask
 ) {
   ZP_FixedLocation_t new_location;
   ZP_Error_t error = ZP_FixedAllocator_alloc(&context->fixed_allocator, &new_location);
@@ -547,7 +557,7 @@ ZP_Error_t ZP_Context_incref_newnode(
     labeled_right.data
   );
 
-  labeled->data = new_location.first | ZP_LABEL_IS_LIST;
+  ZP_Labeled_from_FixedLocation(labeled, &new_location, label_mask);
   context->refcount[new_location.first >> 1] = 1;
 
   return ZP_NOERROR;
@@ -623,7 +633,7 @@ ZP_Error_t ZP_BufferOwned_new(
 
   ZP_FixedAllocator_set(&context->fixed_allocator, &fixed_location, pointer, request_size);
 
-  labeled->data = fixed_location.first | ZP_LABEL_IS_BUFFER_OWNED;
+  ZP_Labeled_from_FixedLocation(labeled, &fixed_location, ZP_LABEL_IS_BUFFER_OWNED);
 
   error = ZP_Context_incref(context, labeled);
   if (error != ZP_NOERROR) {
@@ -695,9 +705,9 @@ ZP_Error_t ZP_BufferView_new(
     return "ZP_BufferView_new(_, _, base, _, _) must be a buffer";
   }
 
-  ZP_Labeled_t base_copy;
-  ZP_Labeled_copy(&base_copy, base);
-  ZP_Error_t error = ZP_Context_incref(context, &base_copy);
+  ZP_Labeled_t base_increfed;
+  ZP_Labeled_copy(&base_increfed, base);
+  ZP_Error_t error = ZP_Context_incref(context, &base_increfed);
   if (error != ZP_NOERROR) {
     return error;
   }
@@ -705,15 +715,19 @@ ZP_Error_t ZP_BufferView_new(
   ZP_FixedLocation_t buffer_view_location;
   error = ZP_FixedAllocator_alloc(&context->fixed_allocator, &buffer_view_location);
   if (error != ZP_NOERROR) {
-    ZP_List_decref(context, &base_copy);
+    ZP_List_decref(context, &base_increfed);
     return error;
   }
   ZP_Labeled_t labeled_buffer_view;
-  labeled_buffer_view.data = buffer_view_location.first | ZP_LABEL_IS_BUFFER_VIEW;
+  ZP_Labeled_from_FixedLocation(
+    &labeled_buffer_view,
+    &buffer_view_location,
+    ZP_LABEL_IS_BUFFER_VIEW
+  );
 
   error = ZP_Context_incref(context, &labeled_buffer_view);
   if (error != ZP_NOERROR) {
-    ZP_List_decref(context, &base_copy);
+    ZP_List_decref(context, &base_increfed);
     ZP_List_decref(context, &labeled_buffer_view);
     return error;
   }
@@ -764,7 +778,7 @@ ZP_Error_t ZP_BufferView_new(
   ZP_FixedLocation_t buffer_wrap_location;
   error = ZP_FixedAllocator_alloc(&context->fixed_allocator, &buffer_wrap_location);
   if (error != ZP_NOERROR) {
-    ZP_List_decref(context, &base_copy);
+    ZP_List_decref(context, &base_increfed);
     ZP_List_decref(context, &labeled_buffer_view);
     ZP_FixedAllocator_free(&context->fixed_allocator, &buffer_view_location);
     return error;
@@ -773,15 +787,19 @@ ZP_Error_t ZP_BufferView_new(
   ZP_FixedAllocator_set(
     &context->fixed_allocator,
     &buffer_wrap_location,
-    base_copy.data,
+    base_increfed.data,
     labeled_buffer_view.data
   );
 
-  output->data = buffer_wrap_location.first | ZP_LABEL_IS_BUFFER_VIEW_WRAP;
+  ZP_Labeled_from_FixedLocation(
+    output,
+    &buffer_wrap_location,
+    ZP_LABEL_IS_BUFFER_VIEW_WRAP
+  );
 
   error = ZP_Context_incref(context, output);
   if (error != ZP_NOERROR) {
-    ZP_List_decref(context, &base_copy);
+    ZP_List_decref(context, &base_increfed);
     ZP_List_decref(context, &labeled_buffer_view);
     ZP_FixedAllocator_free(&context->fixed_allocator, &buffer_view_location);
     ZP_List_decref(context, output);
@@ -834,37 +852,37 @@ ZP_Error_t ZP_List_push(
     return "ZP_List_push(_, _, input_list, _) must be a list";
   }
 
-  ZP_Labeled_t input_list_copy;
-  ZP_Labeled_copy(&input_list_copy, input_list);
-  ZP_Error_t error = ZP_Context_incref(context, &input_list_copy);
+  ZP_Labeled_t input_list_increfed;
+  ZP_Labeled_copy(&input_list_increfed, input_list);
+  ZP_Error_t error = ZP_Context_incref(context, &input_list_increfed);
   if (error != ZP_NOERROR) {
     return error;
   }
 
-  ZP_Labeled_t item_copy;
-  ZP_Labeled_copy(&item_copy, item);
-  error = ZP_Context_incref(context, &item_copy);
+  ZP_Labeled_t item_increfed;
+  ZP_Labeled_copy(&item_increfed, item);
+  error = ZP_Context_incref(context, &item_increfed);
   if (error != ZP_NOERROR) {
-    ZP_List_decref(context, &input_list_copy);
+    ZP_List_decref(context, &input_list_increfed);
     return error;
   }
 
   ZP_FixedLocation_t fixed_location;
   error = ZP_FixedAllocator_alloc(&context->fixed_allocator, &fixed_location);
   if (error != ZP_NOERROR) {
-    ZP_List_decref(context, &input_list_copy);
-    ZP_List_decref(context, &item_copy);
+    ZP_List_decref(context, &input_list_increfed);
+    ZP_List_decref(context, &item_increfed);
     return error;
   }
 
   ZP_FixedAllocator_set(
     &context->fixed_allocator,
     &fixed_location,
-    input_list_copy.data,
-    item_copy.data
+    input_list_increfed.data,
+    item_increfed.data
   );
 
-  output_list->data = fixed_location.first | ZP_LABEL_IS_LIST;
+  ZP_Labeled_from_FixedLocation(output_list, &fixed_location, ZP_LABEL_IS_LIST);
   context->refcount[fixed_location.first >> 1] = 1;
 
   return ZP_NOERROR;
