@@ -11,6 +11,17 @@ typedef uint8_t ZP_RefCnt_t;
 typedef int32_t ZP_Int_t;
 typedef float ZP_Float_t;
 
+/***** utilities *************************************************************/
+
+void ZP_slice(
+  ZP_Index_t* new_pointer,
+  ZP_Index_t* new_size,
+  ZP_Index_t base_pointer,
+  ZP_Index_t base_size,
+  ZP_Index_t slice_start,
+  ZP_Index_t slice_stop
+);
+
 /***** Labeled ***************************************************************/
 
 /* for N = number of bits in ZP_Index_t (e.g. uint32_t => N = 32) */
@@ -236,6 +247,11 @@ void ZP_Context_decref(
 
 /***** BufferOwned ***********************************************************/
 
+void ZP_BufferOwned_decref(
+  ZP_Context_t* context,
+  ZP_Labeled_t* labeled
+);
+
 ZP_Error_t ZP_BufferOwned_new(
   ZP_Context_t* context,
   ZP_Labeled_t* labeled,
@@ -248,7 +264,25 @@ void ZP_BufferOwned_copy_data(
   const char* data
 );
 
+/***** BufferView ************************************************************/
 
+void ZP_BufferView_decref_node(
+  ZP_Context_t* context,
+  ZP_Labeled_t* labeled
+);
+
+void ZP_BufferView_decref(
+  ZP_Context_t* context,
+  ZP_Labeled_t* labeled
+);
+
+ZP_Error_t ZP_BufferView_new(
+  ZP_Context_t* context,
+  ZP_Labeled_t* labeled,
+  ZP_Labeled_t* base,
+  ZP_Index_t start,
+  ZP_Index_t stop
+);
 
 /***** List ******************************************************************/
 
@@ -274,8 +308,6 @@ ZP_Error_t ZP_List_pop(
   ZP_Labeled_t* output_item,
   ZP_Labeled_t* input_list
 );
-
-
 
 /***** Symbols ***************************************************************/
 

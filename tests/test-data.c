@@ -59,7 +59,8 @@ void view_fixed(ZP_Context_t* context) {
 
 void view_refcount(ZP_Context_t* context) {
   ZP_Index_t i;
-  for (i = 0;  i < context->fixed_allocator.num_pairs / 2;  i++) {
+  printf("refcnt: ");
+  for (i = 0;  i < context->fixed_allocator.num_pairs;  i++) {
     printf("%02x ", ((unsigned char*)context->refcount)[i]);
   }
   printf("\n");
@@ -485,6 +486,8 @@ int test_buffer() {
   ZP_Index_t payload1_size = 11;
   error = ZP_BufferOwned_new(&context, &buffer1, payload1_size);
   handle_error(error);
+  assert(ZP_Labeled_label_of(&buffer1), ZP_LABEL_BUFFER_OWNED);
+  printf("hello there: 0x%08x\n", buffer1.data);
 
   ZP_BufferOwned_copy_data(&context, &buffer1, payload1);
 
@@ -493,8 +496,75 @@ int test_buffer() {
   view_region(&context);
   printf("\n");
 
+  ZP_Labeled_t buffer2;
+  const char* payload2 = "you guys";
+  ZP_Index_t payload2_size = 8;
+  error = ZP_BufferOwned_new(&context, &buffer2, payload2_size);
+  handle_error(error);
+  assert(ZP_Labeled_label_of(&buffer2), ZP_LABEL_BUFFER_OWNED);
+  printf("you guys: 0x%08x\n", buffer2.data);
 
+  ZP_BufferOwned_copy_data(&context, &buffer2, payload2);
 
+  view_fixed(&context);
+  view_refcount(&context);
+  view_region(&context);
+  printf("\n");
+
+  ZP_Labeled_t buffer3;
+  error = ZP_BufferView_new(&context, &buffer3, &buffer1, 3, 7);
+  handle_error(error);
+  assert(ZP_Labeled_label_of(&buffer3), ZP_LABEL_BUFFER_VIEW_WRAP);
+
+  view_fixed(&context);
+  view_refcount(&context);
+  view_region(&context);
+  printf("\n");
+
+  ZP_Labeled_t buffer4;
+  error = ZP_BufferView_new(&context, &buffer4, &buffer2, 3, 5);
+  handle_error(error);
+  assert(ZP_Labeled_label_of(&buffer4), ZP_LABEL_BUFFER_VIEW_WRAP);
+
+  view_fixed(&context);
+  view_refcount(&context);
+  view_region(&context);
+  printf("\n");
+
+  ZP_Labeled_t buffer5;
+  error = ZP_BufferView_new(&context, &buffer5, &buffer4, 0, 100);
+  handle_error(error);
+  assert(ZP_Labeled_label_of(&buffer5), ZP_LABEL_BUFFER_VIEW_WRAP);
+
+  view_fixed(&context);
+  view_refcount(&context);
+  view_region(&context);
+  printf("\n");
+
+  ZP_Context_decref(&context, &buffer1);
+  view_refcount(&context);
+  view_region(&context);
+  printf("\n");
+
+  ZP_Context_decref(&context, &buffer3);
+  view_refcount(&context);
+  view_region(&context);
+  printf("\n");
+
+  ZP_Context_decref(&context, &buffer5);
+  view_refcount(&context);
+  view_region(&context);
+  printf("\n");
+
+  ZP_Context_decref(&context, &buffer4);
+  view_refcount(&context);
+  view_region(&context);
+  printf("\n");
+
+  ZP_Context_decref(&context, &buffer2);
+  view_refcount(&context);
+  view_region(&context);
+  printf("\n");
 
   printf("END test_buffer\n");
 
