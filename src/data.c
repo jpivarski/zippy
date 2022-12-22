@@ -358,6 +358,15 @@ void ZP_RegionAllocator_free(
     else {
       /* there's non-free data between the regions; make a link in the linked list */
       *(ZP_Index_t*)(region_allocator->arena + prev + sizeof(ZP_Index_t)) = pointer;
+
+      if (at != ZP_END_OF_FREE  &&  pointer + round_size == at) {
+        /* this region is contiguous with the next one, so enlarge this one, */
+        /* taking over the next one */
+        ZP_Index_t next_size = *(ZP_Index_t*)(region_allocator->arena + at);
+        ZP_Index_t next_at = *(ZP_Index_t*)(region_allocator->arena + at + sizeof(ZP_Index_t));
+        *(ZP_Index_t*)(region_allocator->arena + pointer) += next_size;
+        *(ZP_Index_t*)(region_allocator->arena + pointer + sizeof(ZP_Index_t)) = next_at;
+      }
     }
   }
 }
