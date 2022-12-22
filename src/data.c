@@ -169,7 +169,7 @@ void ZP_Labeled_to_FixedLocation(
   ZP_FixedLocation_t* location,
   ZP_Labeled_t* labeled
 ) {
-  location->first = labeled->data & ZP_LABEL_MASK_DATA;
+  location->at = labeled->data & ZP_LABEL_MASK_DATA;
 }
 
 void ZP_Labeled_from_FixedLocation(
@@ -177,7 +177,7 @@ void ZP_Labeled_from_FixedLocation(
   ZP_FixedLocation_t* location,
   ZP_Index_t label_mask
 ) {
-  labeled->data = location->first | label_mask;
+  labeled->data = location->at | label_mask;
 }
 
 void ZP_FixedAllocator_new(
@@ -200,12 +200,12 @@ ZP_Error_t ZP_FixedAllocator_alloc(
       return "not enough memory in FixedAllocator to allocate FixedLocation";
     }
     else {
-      fixed_location->first = fixed_allocator->bump_pointer;
+      fixed_location->at = fixed_allocator->bump_pointer;
       fixed_allocator->bump_pointer += 2;
     }
   }
   else {
-    fixed_location->first = fixed_allocator->first_pointer;
+    fixed_location->at = fixed_allocator->first_pointer;
     fixed_allocator->first_pointer = fixed_allocator->arena[fixed_allocator->first_pointer];
   }
 
@@ -216,8 +216,8 @@ void ZP_FixedAllocator_free(
   ZP_FixedAllocator_t* fixed_allocator,
   ZP_FixedLocation_t* fixed_location
 ) {
-  fixed_allocator->arena[fixed_location->first] = fixed_allocator->first_pointer;
-  fixed_allocator->first_pointer = fixed_location->first;
+  fixed_allocator->arena[fixed_location->at] = fixed_allocator->first_pointer;
+  fixed_allocator->first_pointer = fixed_location->at;
 }
 
 void ZP_FixedAllocator_get(
@@ -226,8 +226,8 @@ void ZP_FixedAllocator_get(
   ZP_Index_t* one,
   ZP_Index_t* two
 ) {
-  *one = fixed_allocator->arena[fixed_location->first];
-  *two = fixed_allocator->arena[fixed_location->first + 1];
+  *one = fixed_allocator->arena[fixed_location->at];
+  *two = fixed_allocator->arena[fixed_location->at + 1];
 }
 
 void ZP_FixedAllocator_set(
@@ -236,8 +236,8 @@ void ZP_FixedAllocator_set(
   ZP_Index_t one,
   ZP_Index_t two
 ) {
-  fixed_allocator->arena[fixed_location->first] = one;
-  fixed_allocator->arena[fixed_location->first + 1] = two;
+  fixed_allocator->arena[fixed_location->at] = one;
+  fixed_allocator->arena[fixed_location->at + 1] = two;
 }
 
 /***** RegionAllocator *******************************************************/
@@ -482,7 +482,7 @@ void ZP_Context_refcnt_init(
   ZP_Context_t* context,
   ZP_FixedLocation_t* location
 ) {
-  context->refcount[location->first >> 1] = 1;
+  context->refcount[location->at >> 1] = 1;
 }
 
 ZP_Error_t ZP_Context_incref(
@@ -538,7 +538,7 @@ ZP_Error_t ZP_Context_incref_newnode(
   }
 
   ZP_FixedLocation_t old_location;
-  old_location.first = location;
+  old_location.at = location;
   ZP_Labeled_t labeled_left;
   ZP_Labeled_t labeled_right;
   ZP_FixedAllocator_get(
@@ -629,9 +629,9 @@ void ZP_BufferOwned_decref(
 ) {
   ZP_FixedLocation_t location;
   ZP_Labeled_to_FixedLocation(&location, labeled);
-  context->refcount[location.first >> 1]--;
+  context->refcount[location.at >> 1]--;
 
-  if (context->refcount[location.first >> 1] == 0) {
+  if (context->refcount[location.at >> 1] == 0) {
     /* children are RegionAllocator-tracked, not FixedAllocator-tracked */
     ZP_Index_t pointer;
     ZP_Index_t request_size;
@@ -687,7 +687,7 @@ void ZP_BufferOwned_copy_data(
   const char* data
 ) {
   ZP_FixedLocation_t buffer_location;
-  buffer_location.first = ZP_Labeled_to_raw(buffer);
+  buffer_location.at = ZP_Labeled_to_raw(buffer);
 
   ZP_Index_t pointer;
   ZP_Index_t request_size;
@@ -704,7 +704,7 @@ void ZP_BufferView_decref_node(
 ) {
   ZP_FixedLocation_t location;
   ZP_Labeled_to_FixedLocation(&location, labeled);
-  context->refcount[location.first >> 1]--;
+  context->refcount[location.at >> 1]--;
   /* children are neither FixedAllocator-tracked nor RegionAllocator-tracked */
 }
 
@@ -714,8 +714,8 @@ void ZP_BufferView_decref(
 ) {
   ZP_FixedLocation_t location;
   ZP_Labeled_to_FixedLocation(&location, labeled);
-  context->refcount[location.first >> 1]--;
-  if (context->refcount[location.first >> 1] == 0) {
+  context->refcount[location.at >> 1]--;
+  if (context->refcount[location.at >> 1] == 0) {
     ZP_Context_decref_children(context, &location, true, true);
   }
 }
@@ -763,7 +763,7 @@ ZP_Error_t ZP_BufferView_new(
   ZP_Index_t base_size;
   if (base_label == ZP_LABEL_BUFFER_OWNED) {
     ZP_FixedLocation_t base_location;
-    base_location.first = ZP_Labeled_to_raw(base);
+    base_location.at = ZP_Labeled_to_raw(base);
     ZP_FixedAllocator_get(
       &context->fixed_allocator,
       &base_location,
@@ -773,7 +773,7 @@ ZP_Error_t ZP_BufferView_new(
   }
   else {
     ZP_FixedLocation_t base_location;
-    base_location.first = ZP_Labeled_to_raw(base);
+    base_location.at = ZP_Labeled_to_raw(base);
     ZP_Labeled_t base_base;
     ZP_Labeled_t base_node;
     ZP_FixedAllocator_get(
@@ -783,7 +783,7 @@ ZP_Error_t ZP_BufferView_new(
       &base_node.data
     );
     ZP_FixedLocation_t base_node_location;
-    base_node_location.first = ZP_Labeled_to_raw(&base_node);
+    base_node_location.at = ZP_Labeled_to_raw(&base_node);
     ZP_FixedAllocator_get(
       &context->fixed_allocator,
       &base_node_location,
@@ -844,9 +844,9 @@ void ZP_List_decref(
 ) {
   ZP_FixedLocation_t location;
   ZP_Labeled_to_FixedLocation(&location, labeled);
-  if (location.first != ZP_TERMINATOR) {
-    context->refcount[location.first >> 1]--;
-    if (context->refcount[location.first >> 1] == 0) {
+  if (location.at != ZP_TERMINATOR) {
+    context->refcount[location.at >> 1]--;
+    if (context->refcount[location.at >> 1] == 0) {
       ZP_Context_decref_children(context, &location, true, true);
     }
   }
@@ -915,8 +915,8 @@ ZP_Error_t ZP_List_pop(
   }
 
   ZP_FixedLocation_t input_list_location;
-  input_list_location.first = ZP_Labeled_to_raw(input_list);
-  if (input_list_location.first == ZP_TERMINATOR) {
+  input_list_location.at = ZP_Labeled_to_raw(input_list);
+  if (input_list_location.at == ZP_TERMINATOR) {
     return "cannot pop empty list";
   }
 

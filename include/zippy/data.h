@@ -116,7 +116,7 @@ struct ZP_FixedAllocator {
 typedef struct ZP_FixedAllocator ZP_FixedAllocator_t;
 
 struct ZP_FixedLocation {
-  ZP_Index_t first;
+  ZP_Index_t at;
 };
 typedef struct ZP_FixedLocation ZP_FixedLocation_t;
 
