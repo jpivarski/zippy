@@ -827,15 +827,15 @@ int main(int argc, char** argv) {
   /*   return result; */
   /* } */
 
-  /* result = test_list(); */
+  /* result = test_buffer(); */
   /* if (result != 0) { */
   /*   return result; */
   /* } */
 
-  result = test_buffer();
-  if (result != 0) {
-    return result;
-  }
+  /* result = test_list(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
 
   return 0;
 }
