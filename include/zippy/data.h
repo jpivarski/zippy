@@ -225,6 +225,11 @@ ZP_RefCnt_t ZP_Context_refcnt(
   ZP_Labeled_t* labeled
 );
 
+void ZP_Context_refcnt_init(
+  ZP_Context_t* context,
+  ZP_FixedLocation_t* location
+);
+
 ZP_Error_t ZP_Context_incref(
   ZP_Context_t* context,
   ZP_Labeled_t* labeled

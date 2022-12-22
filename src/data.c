@@ -471,6 +471,13 @@ ZP_RefCnt_t ZP_Context_refcnt(
   return context->refcount[location >> 1];
 }
 
+void ZP_Context_refcnt_init(
+  ZP_Context_t* context,
+  ZP_FixedLocation_t* location
+) {
+  context->refcount[location->first >> 1] = 1;
+}
+
 ZP_Error_t ZP_Context_incref(
   ZP_Context_t* context,
   ZP_Labeled_t* labeled
@@ -558,7 +565,7 @@ ZP_Error_t ZP_Context_incref_newnode(
   );
 
   ZP_Labeled_from_FixedLocation(labeled, &new_location, label_mask);
-  context->refcount[new_location.first >> 1] = 1;
+  ZP_Context_refcnt_init(context, &new_location);
 
   return ZP_NOERROR;
 }
@@ -883,7 +890,7 @@ ZP_Error_t ZP_List_push(
   );
 
   ZP_Labeled_from_FixedLocation(output_list, &fixed_location, ZP_LABEL_IS_LIST);
-  context->refcount[fixed_location.first >> 1] = 1;
+  ZP_Context_refcnt_init(context, &fixed_location);
 
   return ZP_NOERROR;
 }
