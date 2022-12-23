@@ -4,17 +4,17 @@
 
 #include <zippy/data.h>
 
-#define handle_error(error)   \
-  if (error != ZP_NOERROR) {  \
-    printf("error: %s\n", error);    \
-    return -1;                \
-  }                           \
+#define handle_error(error)        \
+  if (error != ZP_NO_ERROR) {      \
+    printf("error: %s\n", error);  \
+    return -1;                     \
+  }                                \
 
-#define handle_not_error(error)  \
-  if (error == ZP_NOERROR) {     \
+#define handle_not_error(error)    \
+  if (error == ZP_NO_ERROR) {      \
     printf("didn't encounter expected error\n"); \
-    return -1;                   \
-  }                              \
+    return -1;                     \
+  }                                \
 
 #define assert(obtained, expected) \
   if ((obtained) != (expected)) {  \
@@ -881,40 +881,119 @@ int test_symbols() {
   return 0;
 }
 
+int test_class() {
+  printf("BEGIN test_class\n");
+
+  ZP_Context_t context;
+  ZP_Error_t error = new_context(&context);
+  handle_error(error);
+
+  view_fixed(&context);
+  view_refcount(&context);
+  view_region(&context);
+  printf("\n");
+
+  const char* symbol1_data = "one";
+  ZP_Index_t symbol1_size = 3;
+  ZP_Tagged_t symbol1;
+  error = ZP_Symbol_new_or_get(&context, &symbol1, symbol1_data, symbol1_size);
+  handle_error(error);
+  assert(ZP_Tagged_tag_of(&symbol1), ZP_TAG_SYMBOL);
+
+  const char* symbol2_data = "two";
+  ZP_Index_t symbol2_size = 3;
+  ZP_Tagged_t symbol2;
+  error = ZP_Symbol_new_or_get(&context, &symbol2, symbol2_data, symbol2_size);
+  handle_error(error);
+  assert(ZP_Tagged_tag_of(&symbol2), ZP_TAG_SYMBOL);
+
+  const char* symbol3_data = "three";
+  ZP_Index_t symbol3_size = 5;
+  ZP_Tagged_t symbol3;
+  error = ZP_Symbol_new_or_get(&context, &symbol3, symbol3_data, symbol3_size);
+  handle_error(error);
+  assert(ZP_Tagged_tag_of(&symbol3), ZP_TAG_SYMBOL);
+
+  view_fixed(&context);
+  view_refcount(&context);
+  view_region(&context);
+  printf("\n");
+
+  ZP_Tagged_t list0;
+  ZP_List_new_empty(&list0);
+
+  ZP_Tagged_t list1;
+  error = ZP_List_push(&context, &list1, &list0, &symbol2);
+  handle_error(error);
+
+  ZP_Tagged_t list2;
+  error = ZP_List_push(&context, &list2, &list1, &symbol3);
+  handle_error(error);
+
+  view_fixed(&context);
+  view_refcount(&context);
+  view_region(&context);
+  printf("\n");
+
+  ZP_Tagged_t list_of_supers;
+  ZP_List_new_empty(&list_of_supers);
+  ZP_Tagged_t class1;
+  error = ZP_Class_new(&context, &class1, &list_of_supers, &list2);
+  handle_error(error);
+
+  view_fixed(&context);
+  view_refcount(&context);
+  view_region(&context);
+  printf("\n");
+
+
+
+
+
+  printf("END test_class\n");
+
+  return 0;
+}
+
 int main(int argc, char** argv) {
   int result;
 
-  result = test_RegionAllocator();
-  if (result != 0) {
-    return result;
-  }
+  /* result = test_RegionAllocator(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
 
-  result = test_FixedAllocator();
-  if (result != 0) {
-    return result;
-  }
+  /* result = test_FixedAllocator(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
 
-  result = test_int_tagging();
-  if (result != 0) {
-    return result;
-  }
+  /* result = test_int_tagging(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
 
-  result = test_float_tagging();
-  if (result != 0) {
-    return result;
-  }
+  /* result = test_float_tagging(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
 
-  result = test_buffer();
-  if (result != 0) {
-    return result;
-  }
+  /* result = test_buffer(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
 
-  result = test_list();
-  if (result != 0) {
-    return result;
-  }
+  /* result = test_list(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
 
-  result = test_symbols();
+  /* result = test_symbols(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
+
+  result = test_class();
   if (result != 0) {
     return result;
   }

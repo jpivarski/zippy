@@ -46,7 +46,7 @@ void ZP_slice(
 /* within ZP_TAG_TWO_REF */
 #define ZP_TAG_BUFFER_VIEW_WRAP   0x20   /* (base_ref, BUFFER_VIEW) */
 #define ZP_TAG_LIST               0x21   /* (next_list, item) */
-#define ZP_TAG_CLASS              0x22   /* (list_of_supers, array_of_symbols) */
+#define ZP_TAG_CLASS              0x22   /* (list of supers, buffer of symbol INTs) */
 #define ZP_TAG_INSTANCE           0x23   /* (class_ref, root_node) */
 #define ZP_TAG_INSTANCE_NODE      0x24   /* (next_left, next_right) */
 
@@ -163,7 +163,7 @@ void ZP_FixedAllocator_set(
 
 /***** RegionAllocator *******************************************************/
 
-#define ZP_NOERROR 0
+#define ZP_NO_ERROR 0
 
 struct ZP_RegionAllocator {
   void* arena;
@@ -289,6 +289,11 @@ ZP_Error_t ZP_Symbol_new_or_get(
   ZP_Index_t symbol_size
 );
 
+ZP_Int_t ZP_Symbol_number(
+  ZP_Context_t* context,
+  ZP_Tagged_t* symbol
+);
+
 /***** BufferOwned ***********************************************************/
 
 void ZP_BufferOwned_decref(
@@ -300,6 +305,12 @@ ZP_Error_t ZP_BufferOwned_new(
   ZP_Context_t* context,
   ZP_Tagged_t* tagged,
   ZP_Index_t request_size
+);
+
+void* ZP_BufferOwned_pointer_and_size(
+  ZP_Context_t* context,
+  ZP_Index_t* request_size,
+  ZP_Tagged_t* buffer
 );
 
 void ZP_BufferOwned_copy_data(
@@ -343,6 +354,18 @@ bool ZP_List_is_empty(
   ZP_Tagged_t* list
 );
 
+ZP_Index_t ZP_List_size(
+  ZP_Context_t* context,
+  ZP_Tagged_t* list
+);
+
+void ZP_List_peek(
+  ZP_Context_t* context,
+  ZP_Tagged_t* next_list,
+  ZP_Tagged_t* this_item,
+  ZP_Tagged_t* current_list
+);
+
 ZP_Error_t ZP_List_push(
   ZP_Context_t* context,
   ZP_Tagged_t* output_list,
@@ -357,7 +380,15 @@ ZP_Error_t ZP_List_pop(
   ZP_Tagged_t* input_list
 );
 
-/***** Array *****************************************************************/
+/***** Class *****************************************************************/
+
+ZP_Error_t ZP_Class_new(
+  ZP_Context_t* context,
+  ZP_Tagged_t* cls,
+  ZP_Tagged_t* list_of_supers,
+  ZP_Tagged_t* list_of_members
+);
+
 
 
 
