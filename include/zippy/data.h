@@ -51,18 +51,17 @@ void ZP_slice(
 #define ZP_LABEL_INSTANCE_NODE      0x24   /* (next_left, next_right) */
 
 /* within ZP_LABEL_ARRAY */
-#define ZP_LABEL_DTYPE_OBJECTS      0x30
-#define ZP_LABEL_DTYPE_BOOL         0x31
-#define ZP_LABEL_DTYPE_UINT8        0x32
-#define ZP_LABEL_DTYPE_UINT16       0x33
-#define ZP_LABEL_DTYPE_UINT32       0x34
-#define ZP_LABEL_DTYPE_UINT64       0x35
-#define ZP_LABEL_DTYPE_INT8         0x36
-#define ZP_LABEL_DTYPE_INT16        0x37
-#define ZP_LABEL_DTYPE_INT32        0x38
-#define ZP_LABEL_DTYPE_INT64        0x39
-#define ZP_LABEL_DTYPE_FLOAT32      0x3a
-#define ZP_LABEL_DTYPE_FLOAT64      0x3b
+#define ZP_LABEL_DTYPE_BOOL         0x30
+#define ZP_LABEL_DTYPE_UINT8        0x31
+#define ZP_LABEL_DTYPE_UINT16       0x32
+#define ZP_LABEL_DTYPE_UINT32       0x33
+#define ZP_LABEL_DTYPE_UINT64       0x34
+#define ZP_LABEL_DTYPE_INT8         0x35
+#define ZP_LABEL_DTYPE_INT16        0x36
+#define ZP_LABEL_DTYPE_INT32        0x37
+#define ZP_LABEL_DTYPE_INT64        0x38
+#define ZP_LABEL_DTYPE_FLOAT32      0x39
+#define ZP_LABEL_DTYPE_FLOAT64      0x3a
 
 /* data values for ZP_LABEL_BUILTIN_ENUM */
 /* this space is inexhaustible: 256**(sizeof(ZP_Index_t) - 1) values */
