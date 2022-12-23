@@ -893,6 +893,7 @@ int test_class() {
   view_region(&context);
   printf("\n");
 
+  printf("define symbol1\n");
   const char* symbol1_data = "one";
   ZP_Index_t symbol1_size = 3;
   ZP_Tagged_t symbol1;
@@ -900,6 +901,7 @@ int test_class() {
   handle_error(error);
   assert(ZP_Tagged_tag_of(&symbol1), ZP_TAG_SYMBOL);
 
+  printf("define symbol2\n");
   const char* symbol2_data = "two";
   ZP_Index_t symbol2_size = 3;
   ZP_Tagged_t symbol2;
@@ -907,6 +909,7 @@ int test_class() {
   handle_error(error);
   assert(ZP_Tagged_tag_of(&symbol2), ZP_TAG_SYMBOL);
 
+  printf("define symbol3\n");
   const char* symbol3_data = "three";
   ZP_Index_t symbol3_size = 5;
   ZP_Tagged_t symbol3;
@@ -919,6 +922,7 @@ int test_class() {
   view_region(&context);
   printf("\n");
 
+  printf("put them in a list\n");
   ZP_Tagged_t list0;
   ZP_List_new_empty(&list0);
 
@@ -935,6 +939,7 @@ int test_class() {
   view_region(&context);
   printf("\n");
 
+  printf("make a class\n");
   ZP_Tagged_t list_of_supers;
   ZP_List_new_empty(&list_of_supers);
   ZP_Tagged_t class1;
@@ -946,9 +951,13 @@ int test_class() {
   view_region(&context);
   printf("\n");
 
+  printf("now decref it\n");
+  ZP_Class_decref(&context, &class1);
 
-
-
+  view_fixed(&context);
+  view_refcount(&context);
+  view_region(&context);
+  printf("\n");
 
   printf("END test_class\n");
 

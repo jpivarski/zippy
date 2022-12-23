@@ -646,6 +646,9 @@ void ZP_Context_decref(
   case ZP_TAG_MASK_LIST:
     ZP_List_decref(context, tagged);
     return;
+  case ZP_TAG_MASK_CLASS:
+    ZP_Class_decref(context, tagged);
+    return;
   default:
     return;
   }
@@ -742,6 +745,29 @@ void ZP_Symbol_decref(
 
     /* decref the buffer_owned */
     ZP_Context_decref_children(context, &location, true, false);
+  }
+}
+
+void ZP_Symbol_decref_by_number(
+  ZP_Context_t* context,
+  ZP_Int_t symbol_number
+) {
+  ZP_Tagged_t current_list;
+  ZP_Tagged_copy(&current_list, &context->symbol_set.list);
+
+  while (!ZP_List_is_empty(&current_list)) {
+    ZP_Tagged_t next_list;
+    ZP_Tagged_t this_symbol;
+    ZP_List_peek(context, &next_list, &this_symbol, &current_list);
+
+    ZP_Int_t this_number = ZP_Symbol_number(context, &this_symbol);
+
+    if (symbol_number == this_number) {
+      ZP_Symbol_decref(context, &this_symbol);
+      return;
+    }
+
+    current_list = next_list;
   }
 }
 
@@ -1343,6 +1369,41 @@ ZP_Error_t ZP_List_pop(
 }
 
 /***** Class *****************************************************************/
+
+void ZP_Class_decref(
+  ZP_Context_t* context,
+  ZP_Tagged_t* tagged
+) {
+  ZP_FixedLocation_t location;
+  ZP_Tagged_to_FixedLocation(&location, tagged);
+  context->refcount[location.at >> 1]--;
+
+  if (context->refcount[location.at >> 1] == 0) {
+    ZP_Tagged_t list_of_supers;
+    ZP_Tagged_t buffer_owned;
+    ZP_FixedAllocator_get(
+      &context->fixed_allocator,
+      &location,
+      &list_of_supers.data,
+      &buffer_owned.data
+    );
+
+    ZP_Index_t request_size;
+    ZP_Int_t* ptr = (ZP_Int_t*)ZP_BufferOwned_pointer_and_size(
+      context,
+      &request_size,
+      &buffer_owned
+    );
+
+    ZP_Index_t i;
+    for (i = 0;  i < request_size / sizeof(ZP_Int_t);  i++) {
+      ZP_Symbol_decref_by_number(context, ptr[i]);
+    }
+
+    ZP_List_decref(context, &list_of_supers);
+    ZP_BufferOwned_decref(context, &buffer_owned);
+  }
+}
 
 ZP_Error_t ZP_Class_new(
   ZP_Context_t* context,

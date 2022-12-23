@@ -275,6 +275,11 @@ void ZP_Symbol_decref(
   ZP_Tagged_t* tagged
 );
 
+void ZP_Symbol_decref_by_number(
+  ZP_Context_t* context,
+  ZP_Int_t symbol_number
+);
+
 void ZP_Symbol_pointer_and_size(
   ZP_Context_t* context,
   ZP_Index_t* pointer,
@@ -381,6 +386,11 @@ ZP_Error_t ZP_List_pop(
 );
 
 /***** Class *****************************************************************/
+
+void ZP_Class_decref(
+  ZP_Context_t* context,
+  ZP_Tagged_t* tagged
+);
 
 ZP_Error_t ZP_Class_new(
   ZP_Context_t* context,
