@@ -24,6 +24,9 @@ const ZP_Index_t ZP_INT_MASK_DATA = ~ZP_INT_MASK_SIGN;
 const ZP_Index_t ZP_INT_SIGN_TEST = 0x20 << ZP_LABEL_SHIFT;
 const ZP_Index_t ZP_INT_OVERFLOW_TEST = 0xe0 << ZP_LABEL_SHIFT;
 
+const ZP_Index_t ZP_INT_MAXINT = (1 << ((8 * sizeof(ZP_Index_t)) - 3)) - 1;
+const ZP_Index_t ZP_INT_MININT = -ZP_INT_MAXINT - 1;
+
 /* Note: ZP_LABEL_ARRAY (0x30) == ZP_LABEL_ONE_REF (0x10) | ZP_LABEL_TWO_REF (0x20) */
 const ZP_Index_t ZP_LABEL_MASK_AT_LEAST_ONE_REF = ZP_LABEL_ARRAY << ZP_LABEL_SHIFT;
 const ZP_Index_t ZP_LABEL_MASK_HAS_TWO_REFS = ZP_LABEL_TWO_REF << ZP_LABEL_SHIFT;
@@ -32,9 +35,9 @@ const ZP_Index_t ZP_LABEL_MASK_INT = ZP_LABEL_INT << ZP_LABEL_SHIFT;
 const ZP_Index_t ZP_LABEL_MASK_FLOAT = ZP_LABEL_FLOAT << ZP_LABEL_SHIFT;
 const ZP_Index_t ZP_LABEL_MASK_ARRAY = ZP_LABEL_ARRAY << ZP_LABEL_SHIFT;
 const ZP_Index_t ZP_LABEL_MASK_BUILTIN_ENUM = ZP_LABEL_BUILTIN_ENUM << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_LABEL_MASK_BUFFER_SYMBOL = ZP_LABEL_BUFFER_SYMBOL << ZP_LABEL_SHIFT;
 const ZP_Index_t ZP_LABEL_MASK_BUFFER_OWNED = ZP_LABEL_BUFFER_OWNED << ZP_LABEL_SHIFT;
 const ZP_Index_t ZP_LABEL_MASK_BUFFER_VIEW = ZP_LABEL_BUFFER_VIEW << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_LABEL_MASK_SYMBOL = ZP_LABEL_SYMBOL << ZP_LABEL_SHIFT;
 const ZP_Index_t ZP_LABEL_MASK_SCALAR_IN_ARRAY = ZP_LABEL_SCALAR_IN_ARRAY << ZP_LABEL_SHIFT;
 const ZP_Index_t ZP_LABEL_MASK_BUFFER_VIEW_WRAP = ZP_LABEL_BUFFER_VIEW_WRAP << ZP_LABEL_SHIFT;
 const ZP_Index_t ZP_LABEL_MASK_LIST = ZP_LABEL_LIST << ZP_LABEL_SHIFT;
@@ -467,6 +470,7 @@ ZP_Error_t ZP_Context_new(
   }
 
   ZP_List_new_empty(&context->symbol_set.list);
+  context->symbol_set.next_number = 0;
 
   return ZP_NOERROR;
 }
@@ -519,12 +523,24 @@ ZP_Error_t ZP_Context_incref(
   }
 
   if (context->refcount[location.at >> 1] == ZP_REFCNT_MAX) {
-    if (label_mask == ZP_LABEL_MASK_BUFFER_SYMBOL) {
-      return "symbols cannot be referenced more than ZP_REFCNT_MAX times";
+    if (label_mask == ZP_LABEL_MASK_BUFFER_OWNED) {
+      return "directly owned buffers cannot be referenced more than ZP_REFCNT_MAX times";
     }
 
-    else if (label_mask == ZP_LABEL_MASK_BUFFER_OWNED) {
-      return "directly owned buffers cannot be referenced more than ZP_REFCNT_MAX times";
+    else if (label_mask == ZP_LABEL_MASK_SYMBOL) {
+      /* symbol references are also limited (transitively by the limitation on */
+      /* owned buffers), but the symbol_data can be copied into a new symbol */
+      /* with the same identifying number */
+      ZP_Index_t pointer;
+      ZP_Index_t symbol_size;
+      ZP_Symbol_pointer_and_size(context, &pointer, &symbol_size, labeled);
+
+      const char* symbol_data = (const char*)ZP_RegionAllocator_at(
+        &context->region_allocator,
+        pointer
+      );
+
+      return ZP_Symbol_new_or_get(context, labeled, symbol_data, symbol_size);
     }
 
     else {
@@ -647,6 +663,44 @@ void ZP_Context_decref_children(
   }
 }
 
+/***** Symbol ****************************************************************/
+
+ZP_Error_t ZP_Symbol_decref(
+  ZP_Context_t* context,
+  ZP_Labeled_t* labeled
+) {
+  return ZP_NOERROR;
+}
+
+void ZP_Symbol_pointer_and_size(
+  ZP_Context_t* context,
+  ZP_Index_t* pointer,
+  ZP_Index_t* request_size,
+  ZP_Labeled_t* labeled
+) {
+  ZP_FixedLocation_t location;
+  ZP_Labeled_to_FixedLocation(&location, labeled);
+
+  ZP_Labeled_t buffer_owned;
+  ZP_Labeled_t symbol_number;
+  ZP_FixedAllocator_get(
+    &context->fixed_allocator,
+    &location,
+    &buffer_owned.data,
+    &symbol_number.data
+  );
+
+  ZP_FixedLocation_t buffer_owned_location;
+  ZP_Labeled_to_FixedLocation(&buffer_owned_location, &buffer_owned);
+
+  ZP_FixedAllocator_get(
+    &context->fixed_allocator,
+    &buffer_owned_location,
+    pointer,
+    request_size
+  );
+}
+
 ZP_Error_t ZP_Symbol_new_or_get(
   ZP_Context_t* context,
   ZP_Labeled_t* labeled,
@@ -655,6 +709,9 @@ ZP_Error_t ZP_Symbol_new_or_get(
 ) {
   ZP_Labeled_t list_node;
   ZP_Labeled_copy(&list_node, &context->symbol_set.list);
+
+  ZP_Int_t number_to_use = -1;
+  bool duplicate = false;
 
   while (!ZP_List_is_empty(&list_node)) {
     /* extract the Symbol character data at this list_node */
@@ -671,17 +728,9 @@ ZP_Error_t ZP_Symbol_new_or_get(
       &this_symbol.data
     );
 
-    ZP_FixedLocation_t this_symbol_location;
-    ZP_Labeled_to_FixedLocation(&this_symbol_location, &this_symbol);
-
     ZP_Index_t pointer;
     ZP_Index_t request_size;
-    ZP_FixedAllocator_get(
-      &context->fixed_allocator,
-      &this_symbol_location,
-      &pointer,
-      &request_size
-    );
+    ZP_Symbol_pointer_and_size(context, &pointer, &request_size, &this_symbol);
 
     /* compare this char data with the provided char data */
     if (symbol_size == request_size) {
@@ -699,45 +748,126 @@ ZP_Error_t ZP_Symbol_new_or_get(
         }
       }
 
-      /* if it's the same, return a new reference to it (which might be a */
-      /* BufferView if the BufferSymbol refcnt reached its maximum) */
       if (same) {
-        ZP_Labeled_copy(labeled, &this_symbol);
-        return ZP_Context_incref(context, labeled);
+        ZP_FixedLocation_t this_symbol_location;
+        ZP_Labeled_to_FixedLocation(&this_symbol_location, &this_symbol);
+
+        if (context->refcount[this_symbol_location.at >> 1] == ZP_REFCNT_MAX) {
+          /* if it's the same and the reference count has been exceeded, */
+          /* stop searching and add a new symbol node to the list */
+          ZP_Labeled_t buffer_owned;
+          ZP_Labeled_t symbol_number;
+          ZP_FixedAllocator_get(
+            &context->fixed_allocator,
+            &this_symbol_location,
+            &buffer_owned.data,
+            &symbol_number.data
+          );
+          number_to_use = ZP_Labeled_to_int(&symbol_number);
+          duplicate = true;
+          break;
+        }
+        else {
+          /* if it's the same and the reference count has not been exceeded, */
+          /* return a new reference to it */
+          ZP_Labeled_copy(labeled, &this_symbol);
+          return ZP_Context_incref(context, labeled);
+        }
       }
     }
 
     /* otherwise, keep walking the list */
     list_node = list_next;
+
+  } /* end loop over existing list */
+
+  /* the new symbol is either a deliberate duplicate (because the reference count */
+  /* has been used up) or a new number, which are globally unique in the context */
+  if (!duplicate) {
+    number_to_use = context->symbol_set.next_number;
   }
 
-  /* this symbol is not in the list, so create it */
+  if (number_to_use == ZP_INT_MAXINT) {
+    return "no more symbols can be created in this context";
+    /* FIXME: can get twice as many by skipping the invalid domain, using */
+    /* negative numbers, and eventually stopping on -1 instead of ZP_INT_MAXINT */
+  }
 
-  ZP_Error_t error = ZP_BufferOwned_new(context, labeled, symbol_size);
+  /* first, make the buffer_owned */
+  ZP_Labeled_t buffer_owned;
+  ZP_Error_t error = ZP_BufferOwned_new(context, &buffer_owned, symbol_size);
   if (error != ZP_NOERROR) {
     return error;
   }
 
-  ZP_BufferOwned_copy_data(context, labeled, symbol_data);
+  ZP_BufferOwned_copy_data(context, &buffer_owned, symbol_data);
 
-  /* remove the BUFFER_OWNED label */
-  labeled->data &= ZP_LABEL_MASK_DATA;
-  /* add the BUFFER_SYMBOL label */
-  labeled->data |= ZP_LABEL_MASK_BUFFER_SYMBOL;
+  /* this newly created buffer_owned will not reach MAXREFCNT, don't need to copy it */
+  error = ZP_Context_incref(context, &buffer_owned);
+  if (error != ZP_NOERROR) {
+    ZP_BufferOwned_decref(context, &buffer_owned);  /* decref the BufferOwned_new */
+    return error;
+  }
 
-  /* and push it to the end of the symbol_set list */
+  /* next, make the symbol object itself */
+  ZP_FixedLocation_t new_symbol_location;
+  error = ZP_FixedAllocator_alloc(&context->fixed_allocator, &new_symbol_location);
+  if (error != ZP_NOERROR) {
+    ZP_BufferOwned_decref(context, &buffer_owned);  /* decref the BufferOwned_new */
+    ZP_BufferOwned_decref(context, &buffer_owned);  /* decref the incref */
+    return error;
+  }
 
+  ZP_Labeled_t symbol_number;
+  error = ZP_Labeled_from_int(&symbol_number, &number_to_use);
+  if (error != ZP_NOERROR) {
+    ZP_BufferOwned_decref(context, &buffer_owned);  /* decref the BufferOwned_new */
+    ZP_BufferOwned_decref(context, &buffer_owned);  /* decref the incref */
+    ZP_FixedAllocator_free(&context->fixed_allocator, &new_symbol_location);
+    return error;
+  }
+
+  ZP_FixedAllocator_set(
+    &context->fixed_allocator,
+    &new_symbol_location,
+    buffer_owned.data,
+    symbol_number.data
+  );
+
+  ZP_Labeled_from_FixedLocation(
+    labeled,
+    &new_symbol_location,
+    ZP_LABEL_MASK_SYMBOL
+  );
+
+  error = ZP_Context_incref(context, labeled); /* this will create a chained ref */
+  if (error != ZP_NOERROR) {
+    ZP_BufferOwned_decref(context, &buffer_owned);  /* decref the BufferOwned_new */
+    ZP_BufferOwned_decref(context, &buffer_owned);  /* decref the incref */
+    ZP_FixedAllocator_free(&context->fixed_allocator, &new_symbol_location);
+    return error;
+  }
+
+  /* finally, push it to the end of the symbol_set list */
   ZP_Labeled_t current_list_end;
   ZP_Labeled_copy(&current_list_end, &context->symbol_set.list);
 
   ZP_Labeled_t new_list_end;
   error = ZP_List_push(context, &new_list_end, &current_list_end, labeled);
   if (error != ZP_NOERROR) {
+    ZP_BufferOwned_decref(context, &buffer_owned);  /* decref the BufferOwned_new */
+    ZP_BufferOwned_decref(context, &buffer_owned);  /* decref the incref */
+    ZP_FixedAllocator_free(&context->fixed_allocator, &new_symbol_location);
     ZP_Context_decref(context, labeled);
     return error;
   }
 
   ZP_Labeled_copy(&context->symbol_set.list, &new_list_end);
+
+  if (!duplicate) {
+    /* this symbol used up one integer value (non-renewable) */
+    context->symbol_set.next_number++;
+  }
 
   return ZP_NOERROR;
 }
@@ -850,9 +980,8 @@ ZP_Error_t ZP_BufferView_new(
 ) {
   ZP_Index_t base_label = ZP_Labeled_label_mask_of(base);
   if (
-      base_label != ZP_LABEL_MASK_BUFFER_SYMBOL
-      &&  base_label != ZP_LABEL_MASK_BUFFER_OWNED
-      &&  base_label != ZP_LABEL_MASK_BUFFER_VIEW_WRAP
+    base_label != ZP_LABEL_MASK_BUFFER_OWNED
+    &&  base_label != ZP_LABEL_MASK_BUFFER_VIEW_WRAP
   ) {
     return "ZP_BufferView_new(_, _, base, _, _) must be a buffer or symbol";
   }
@@ -1070,3 +1199,5 @@ ZP_Error_t ZP_List_pop(
 
   return ZP_NOERROR;
 }
+
+/***** Array *****************************************************************/

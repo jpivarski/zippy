@@ -79,7 +79,7 @@ void view_refcount(ZP_Context_t* context) {
 }
 
 ZP_Error_t new_context(ZP_Context_t* context) {
-  size_t fixed_size = 64;
+  size_t fixed_size = 96;
   void* fixed_arena = malloc(fixed_size);
   init(fixed_arena, fixed_size);
 
@@ -87,7 +87,7 @@ ZP_Error_t new_context(ZP_Context_t* context) {
   void* region_arena = malloc(region_size);
   init(region_arena, region_size);
 
-  size_t refcount_size = 8;
+  size_t refcount_size = 12;
   void* refcount_arena = malloc(refcount_size);
 
   return ZP_Context_new(
@@ -773,7 +773,7 @@ int test_symbols() {
   ZP_Labeled_t symbol1;
   error = ZP_Symbol_new_or_get(&context, &symbol1, symbol1_data, symbol1_size);
   handle_error(error);
-  assert(ZP_Labeled_label_of(&symbol1), ZP_LABEL_BUFFER_SYMBOL);
+  assert(ZP_Labeled_label_of(&symbol1), ZP_LABEL_SYMBOL);
 
   view_fixed(&context);
   view_refcount(&context);
@@ -785,25 +785,31 @@ int test_symbols() {
   ZP_Labeled_t symbol2;
   error = ZP_Symbol_new_or_get(&context, &symbol2, symbol2_data, symbol2_size);
   handle_error(error);
-  assert(ZP_Labeled_label_of(&symbol2), ZP_LABEL_BUFFER_SYMBOL);
+  assert(ZP_Labeled_label_of(&symbol2), ZP_LABEL_SYMBOL);
 
   view_fixed(&context);
   view_refcount(&context);
   view_region(&context);
   printf("\n");
 
-  printf("incref symbol1 many times\n");
+  printf("incref symbol2 many times\n");
   ZP_Index_t i;
-  for (i = 0;  i < 254;  i++) {
-    ZP_Context_incref(&context, &symbol1);
+  for (i = 0;  i < 253;  i++) {
+    ZP_Context_incref(&context, &symbol2);
   }
 
   view_fixed(&context);
   view_refcount(&context);
+  view_region(&context);
+  printf("\n");
 
-  printf("incref symbol1 once more, should raise error\n");
-  error = ZP_Context_incref(&context, &symbol1);
-  handle_not_error(error);
+  printf("incref symbol2 once more, should create a new symbol, not in the list\n");
+  error = ZP_Context_incref(&context, &symbol2);
+  handle_error(error);
+
+  view_fixed(&context);
+  view_refcount(&context);
+  view_region(&context);
   printf("\n");
 
   const char* symbol3_data = "anotherSymbol";
@@ -811,36 +817,17 @@ int test_symbols() {
   ZP_Labeled_t symbol3;
   error = ZP_Symbol_new_or_get(&context, &symbol3, symbol3_data, symbol3_size);
   handle_error(error);
-  assert(ZP_Labeled_label_of(&symbol3), ZP_LABEL_BUFFER_SYMBOL);
+  assert(ZP_Labeled_label_of(&symbol3), ZP_LABEL_SYMBOL);
 
   view_fixed(&context);
   view_refcount(&context);
   view_region(&context);
   printf("\n");
 
-  const char* symbol4_data = "anotherSymbol";
-  ZP_Index_t symbol4_size = 13;
-  ZP_Labeled_t symbol4;
-  error = ZP_Symbol_new_or_get(&context, &symbol4, symbol4_data, symbol4_size);
-  handle_error(error);
-  assert(ZP_Labeled_label_of(&symbol4), ZP_LABEL_BUFFER_SYMBOL);
 
-  view_fixed(&context);
-  view_refcount(&context);
-  view_region(&context);
-  printf("\n");
 
-  const char* symbol5_data = "thisOneIsDifferent";
-  ZP_Index_t symbol5_size = 18;
-  ZP_Labeled_t symbol5;
-  error = ZP_Symbol_new_or_get(&context, &symbol5, symbol5_data, symbol5_size);
-  handle_error(error);
-  assert(ZP_Labeled_label_of(&symbol5), ZP_LABEL_BUFFER_SYMBOL);
 
-  view_fixed(&context);
-  view_refcount(&context);
-  view_region(&context);
-  printf("\n");
+
 
   printf("END test_symbols\n");
 
@@ -850,35 +837,35 @@ int test_symbols() {
 int main(int argc, char** argv) {
   int result;
 
-  result = test_RegionAllocator();
-  if (result != 0) {
-    return result;
-  }
+  /* result = test_RegionAllocator(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
 
-  result = test_FixedAllocator();
-  if (result != 0) {
-    return result;
-  }
+  /* result = test_FixedAllocator(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
 
-  result = test_int_labeling();
-  if (result != 0) {
-    return result;
-  }
+  /* result = test_int_labeling(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
 
-  result = test_float_labeling();
-  if (result != 0) {
-    return result;
-  }
+  /* result = test_float_labeling(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
 
-  result = test_buffer();
-  if (result != 0) {
-    return result;
-  }
+  /* result = test_buffer(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
 
-  result = test_list();
-  if (result != 0) {
-    return result;
-  }
+  /* result = test_list(); */
+  /* if (result != 0) { */
+  /*   return result; */
+  /* } */
 
   result = test_symbols();
   if (result != 0) {

@@ -36,12 +36,12 @@ void ZP_slice(
 
 /* within ZP_LABEL_ZERO_REF */
 #define ZP_LABEL_BUILTIN_ENUM       0x00   /* N-8 bit data */
-#define ZP_LABEL_BUFFER_SYMBOL      0x01   /* as below, but in symbol_set list */
-#define ZP_LABEL_BUFFER_OWNED       0x02   /* points to 2 region pointers */
-#define ZP_LABEL_BUFFER_VIEW        0x03   /* points to 2 region pointers */
+#define ZP_LABEL_BUFFER_OWNED       0x01   /* points to 2 region pointers */
+#define ZP_LABEL_BUFFER_VIEW        0x02   /* points to 2 region pointers */
 
 /* within ZP_LABEL_ONE_REF */
-#define ZP_LABEL_SCALAR_IN_ARRAY    0x10   /* (base_ref, INT) */
+#define ZP_LABEL_SYMBOL             0x10   /* (buffer_owned, unique INT) */
+#define ZP_LABEL_SCALAR_IN_ARRAY    0x11   /* (base_ref, INT) */
 
 /* within ZP_LABEL_TWO_REF */
 #define ZP_LABEL_BUFFER_VIEW_WRAP   0x20   /* (base_ref, BUFFER_VIEW) */
@@ -211,6 +211,7 @@ void ZP_RegionAllocator_copy_data(
 
 struct ZP_SymbolSet {
   ZP_Labeled_t list;
+  ZP_Int_t next_number;
 };
 typedef struct ZP_SymbolSet ZP_SymbolSet_t;
 
@@ -266,6 +267,20 @@ void ZP_Context_decref_children(
   ZP_FixedLocation_t* location,
   bool left_is_ref,
   bool right_is_ref
+);
+
+/***** Symbol ****************************************************************/
+
+ZP_Error_t ZP_Symbol_decref(
+  ZP_Context_t* context,
+  ZP_Labeled_t* labeled
+);
+
+void ZP_Symbol_pointer_and_size(
+  ZP_Context_t* context,
+  ZP_Index_t* pointer,
+  ZP_Index_t* request_size,
+  ZP_Labeled_t* labeled
 );
 
 ZP_Error_t ZP_Symbol_new_or_get(
@@ -342,5 +357,9 @@ ZP_Error_t ZP_List_pop(
   ZP_Labeled_t* output_item,
   ZP_Labeled_t* input_list
 );
+
+/***** Array *****************************************************************/
+
+
 
 #endif /* _ZIPPY_DATA_H */
