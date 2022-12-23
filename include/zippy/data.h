@@ -65,9 +65,9 @@ void ZP_slice(
 
 /* data values for ZP_TAG_BUILTIN_ENUM */
 /* this space is inexhaustible: 256**(sizeof(ZP_Index_t) - 1) values */
-#define ZP_ENUM_FALSE               0
-#define ZP_ENUM_TRUE                1
-#define ZP_ENUM_NONE                2
+#define ZP_ENUM_NONE                0
+#define ZP_ENUM_FALSE               1
+#define ZP_ENUM_TRUE                2
 
 struct ZP_Tagged {
   ZP_Index_t data;
