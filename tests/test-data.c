@@ -7,7 +7,7 @@
 #define handle_error(error)   \
   if (error != ZP_NOERROR) {  \
     printf("error: %s\n", error);    \
-    /* return -1; */                \
+    return -1;                \
   }                           \
 
 #define handle_not_error(error)  \

@@ -368,6 +368,13 @@ void ZP_RegionAllocator_free(
 
   /* link the previous node (if any) to this new one */
   if (prev == ZP_END_OF_FREE) {
+    if (round_size == at) {
+      /* immediately after this block is the first free region, so merge them */
+      ZP_Index_t next_size = *(ZP_Index_t*)(region_allocator->arena + at);
+      ZP_Index_t next_at = *(ZP_Index_t*)(region_allocator->arena + at + sizeof(ZP_Index_t));
+      *(ZP_Index_t*)(region_allocator->arena + pointer) += next_size;
+      *(ZP_Index_t*)(region_allocator->arena + pointer + sizeof(ZP_Index_t)) = next_at;
+    }
     region_allocator->first_free = pointer;
   }
   else {
