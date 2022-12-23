@@ -7,45 +7,45 @@
 const ZP_Index_t ZP_END_OF_FREE = -1;  /* used by RegionAllocator and FixedAllocator */
 const ZP_RefCnt_t ZP_REFCNT_MAX = 0xff;  /* used by FixedAllocator */
 
-const ZP_Index_t ZP_LABEL_SHIFT = 8 * (sizeof(ZP_Index_t) - 1);
-const ZP_Index_t ZP_LABEL_MASK_LABEL = 0xff << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_LABEL_MASK_DATA = ~ZP_LABEL_MASK_LABEL;
+const ZP_Index_t ZP_TAG_SHIFT = 8 * (sizeof(ZP_Index_t) - 1);
+const ZP_Index_t ZP_TAG_MASK_TAG = 0xff << ZP_TAG_SHIFT;
+const ZP_Index_t ZP_TAG_MASK_DATA = ~ZP_TAG_MASK_TAG;
 
-const ZP_Index_t ZP_LABEL_MASK_NUMBER = (ZP_LABEL_FLOAT | ZP_LABEL_INT) << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_TAG_MASK_NUMBER = (ZP_TAG_FLOAT | ZP_TAG_INT) << ZP_TAG_SHIFT;
 
-const ZP_Index_t ZP_FLOAT_SIGN_0 = ZP_LABEL_FLOAT << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_FLOAT_SIGN_0 = ZP_TAG_FLOAT << ZP_TAG_SHIFT;
 const ZP_Index_t ZP_FLOAT_SIGN_1 = ZP_FLOAT_SIGN_0 | 1;
 const ZP_Index_t ZP_FLOAT_MASK_DATA = ~ZP_FLOAT_SIGN_0;
 const ZP_Index_t ZP_FLOAT_MASK_SIGNIFICANT = ~(ZP_Index_t)1;
 
-const ZP_Index_t ZP_INT_LABEL = ZP_LABEL_INT << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_INT_MASK_SIGN = 0xc0 << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_INT_TAG = ZP_TAG_INT << ZP_TAG_SHIFT;
+const ZP_Index_t ZP_INT_MASK_SIGN = 0xc0 << ZP_TAG_SHIFT;
 const ZP_Index_t ZP_INT_MASK_DATA = ~ZP_INT_MASK_SIGN;
-const ZP_Index_t ZP_INT_SIGN_TEST = 0x20 << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_INT_OVERFLOW_TEST = 0xe0 << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_INT_SIGN_TEST = 0x20 << ZP_TAG_SHIFT;
+const ZP_Index_t ZP_INT_OVERFLOW_TEST = 0xe0 << ZP_TAG_SHIFT;
 
 const ZP_Index_t ZP_INT_MAXINT = (1 << ((8 * sizeof(ZP_Index_t)) - 3)) - 1;
 const ZP_Index_t ZP_INT_MININT = -ZP_INT_MAXINT - 1;
 
-/* Note: ZP_LABEL_ARRAY (0x30) == ZP_LABEL_ONE_REF (0x10) | ZP_LABEL_TWO_REF (0x20) */
-const ZP_Index_t ZP_LABEL_MASK_AT_LEAST_ONE_REF = ZP_LABEL_ARRAY << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_LABEL_MASK_HAS_TWO_REFS = ZP_LABEL_TWO_REF << ZP_LABEL_SHIFT;
+/* Note: ZP_TAG_ARRAY (0x30) == ZP_TAG_ONE_REF (0x10) | ZP_TAG_TWO_REF (0x20) */
+const ZP_Index_t ZP_TAG_MASK_AT_LEAST_ONE_REF = ZP_TAG_ARRAY << ZP_TAG_SHIFT;
+const ZP_Index_t ZP_TAG_MASK_HAS_TWO_REFS = ZP_TAG_TWO_REF << ZP_TAG_SHIFT;
 
-const ZP_Index_t ZP_LABEL_MASK_INT = ZP_LABEL_INT << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_LABEL_MASK_FLOAT = ZP_LABEL_FLOAT << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_LABEL_MASK_ARRAY = ZP_LABEL_ARRAY << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_LABEL_MASK_BUILTIN_ENUM = ZP_LABEL_BUILTIN_ENUM << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_LABEL_MASK_BUFFER_OWNED = ZP_LABEL_BUFFER_OWNED << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_LABEL_MASK_BUFFER_VIEW = ZP_LABEL_BUFFER_VIEW << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_LABEL_MASK_SYMBOL = ZP_LABEL_SYMBOL << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_LABEL_MASK_SCALAR_IN_ARRAY = ZP_LABEL_SCALAR_IN_ARRAY << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_LABEL_MASK_BUFFER_VIEW_WRAP = ZP_LABEL_BUFFER_VIEW_WRAP << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_LABEL_MASK_LIST = ZP_LABEL_LIST << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_LABEL_MASK_CLASS = ZP_LABEL_CLASS << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_LABEL_MASK_INSTANCE = ZP_LABEL_INSTANCE << ZP_LABEL_SHIFT;
-const ZP_Index_t ZP_LABEL_MASK_INSTANCE_NODE = ZP_LABEL_INSTANCE_NODE << ZP_LABEL_SHIFT;
+const ZP_Index_t ZP_TAG_MASK_INT = ZP_TAG_INT << ZP_TAG_SHIFT;
+const ZP_Index_t ZP_TAG_MASK_FLOAT = ZP_TAG_FLOAT << ZP_TAG_SHIFT;
+const ZP_Index_t ZP_TAG_MASK_ARRAY = ZP_TAG_ARRAY << ZP_TAG_SHIFT;
+const ZP_Index_t ZP_TAG_MASK_BUILTIN_ENUM = ZP_TAG_BUILTIN_ENUM << ZP_TAG_SHIFT;
+const ZP_Index_t ZP_TAG_MASK_BUFFER_OWNED = ZP_TAG_BUFFER_OWNED << ZP_TAG_SHIFT;
+const ZP_Index_t ZP_TAG_MASK_BUFFER_VIEW = ZP_TAG_BUFFER_VIEW << ZP_TAG_SHIFT;
+const ZP_Index_t ZP_TAG_MASK_SYMBOL = ZP_TAG_SYMBOL << ZP_TAG_SHIFT;
+const ZP_Index_t ZP_TAG_MASK_SCALAR_IN_ARRAY = ZP_TAG_SCALAR_IN_ARRAY << ZP_TAG_SHIFT;
+const ZP_Index_t ZP_TAG_MASK_BUFFER_VIEW_WRAP = ZP_TAG_BUFFER_VIEW_WRAP << ZP_TAG_SHIFT;
+const ZP_Index_t ZP_TAG_MASK_LIST = ZP_TAG_LIST << ZP_TAG_SHIFT;
+const ZP_Index_t ZP_TAG_MASK_CLASS = ZP_TAG_CLASS << ZP_TAG_SHIFT;
+const ZP_Index_t ZP_TAG_MASK_INSTANCE = ZP_TAG_INSTANCE << ZP_TAG_SHIFT;
+const ZP_Index_t ZP_TAG_MASK_INSTANCE_NODE = ZP_TAG_INSTANCE_NODE << ZP_TAG_SHIFT;
 
-const ZP_Index_t ZP_TERMINATOR = ZP_LABEL_MASK_DATA;
+const ZP_Index_t ZP_TERMINATOR = ZP_TAG_MASK_DATA;
 
 void ZP_slice(
   ZP_Index_t* new_pointer,
@@ -83,55 +83,55 @@ void ZP_slice(
   *new_size = slice_stop - slice_start;
 }
 
-/***** Labeled ***************************************************************/
+/***** Tagged ****************************************************************/
 
 /* used internally; does not convert ZP_Index_t -> 8-bit */
-ZP_Index_t ZP_Labeled_label_mask_of(
-  ZP_Labeled_t* labeled
+ZP_Index_t ZP_Tagged_tag_mask_of(
+  ZP_Tagged_t* tagged
 ) {
-  ZP_Index_t out = labeled->data;
+  ZP_Index_t out = tagged->data;
 
-  /* special label classes need to be explicitly checked */
-  if (out & ZP_LABEL_MASK_FLOAT) {
-    return ZP_LABEL_MASK_FLOAT;
+  /* special tag classes need to be explicitly checked */
+  if (out & ZP_TAG_MASK_FLOAT) {
+    return ZP_TAG_MASK_FLOAT;
   }
-  else if (out & ZP_LABEL_MASK_INT) {
-    return ZP_LABEL_MASK_INT;
+  else if (out & ZP_TAG_MASK_INT) {
+    return ZP_TAG_MASK_INT;
   }
-  else if ((out & ZP_LABEL_MASK_ARRAY) == ZP_LABEL_MASK_ARRAY) {
-    return out & 0xf0;  /* remove dtype from label */
+  else if ((out & ZP_TAG_MASK_ARRAY) == ZP_TAG_MASK_ARRAY) {
+    return out & 0xf0;  /* remove dtype from tag */
   }
   else {
-    /* enumerated label passed through as-is */
-    return out & ZP_LABEL_MASK_LABEL;
+    /* enumerated tag passed through as-is */
+    return out & ZP_TAG_MASK_TAG;
   }
 }
 
-/* public: uses the labels defined in data.h */
-ZP_Label_t ZP_Labeled_label_of(
-  ZP_Labeled_t* labeled
+/* public: uses the tags defined in data.h */
+ZP_Tag_t ZP_Tagged_tag_of(
+  ZP_Tagged_t* tagged
 ) {
-  return ZP_Labeled_label_mask_of(labeled) >> ZP_LABEL_SHIFT;
+  return ZP_Tagged_tag_mask_of(tagged) >> ZP_TAG_SHIFT;
 }
 
-ZP_Index_t ZP_Labeled_to_raw(
-  ZP_Labeled_t* labeled
+ZP_Index_t ZP_Tagged_to_raw(
+  ZP_Tagged_t* tagged
 ) {
-  return labeled->data & ZP_LABEL_MASK_DATA;
+  return tagged->data & ZP_TAG_MASK_DATA;
 }
 
-void ZP_Labeled_copy(
-  ZP_Labeled_t* output,
-  ZP_Labeled_t* input
+void ZP_Tagged_copy(
+  ZP_Tagged_t* output,
+  ZP_Tagged_t* input
 ) {
   output->data = input->data;
 }
 
-ZP_Int_t ZP_Labeled_to_int(
-  ZP_Labeled_t* labeled
+ZP_Int_t ZP_Tagged_to_int(
+  ZP_Tagged_t* tagged
 ) {
-  /* remove the two label bits in a copy of the labeled->data */
-  ZP_Index_t hold = labeled->data & ZP_INT_MASK_DATA;
+  /* remove the two tag bits in a copy of the tagged->data */
+  ZP_Index_t hold = tagged->data & ZP_INT_MASK_DATA;
 
   /* truncating the last two bits removes the sign */
   /* so interpret the third bit as the sign and pad the rest of the integer */
@@ -139,25 +139,25 @@ ZP_Int_t ZP_Labeled_to_int(
   return *(ZP_Int_t*)(&hold);
 }
 
-ZP_Error_t ZP_Labeled_from_int(
-  ZP_Labeled_t* labeled,
+ZP_Error_t ZP_Tagged_from_int(
+  ZP_Tagged_t* tagged,
   ZP_Int_t* data
 ) {
   ZP_Int_t test = *data & ZP_INT_OVERFLOW_TEST;
   if (test != 0  &&  test != ZP_INT_OVERFLOW_TEST) {
     return "integer overflow";
   }
-  labeled->data = (*((ZP_Index_t*)data) & ZP_INT_MASK_DATA) | ZP_INT_LABEL;
+  tagged->data = (*((ZP_Index_t*)data) & ZP_INT_MASK_DATA) | ZP_INT_TAG;
   return ZP_NOERROR;
 }
 
-ZP_Float_t ZP_Labeled_to_float(
-  ZP_Labeled_t* labeled
+ZP_Float_t ZP_Tagged_to_float(
+  ZP_Tagged_t* tagged
 ) {
-  /* remove the (one) label bit in a copy of the labeled->data */
-  ZP_Index_t hold = (labeled->data & ZP_FLOAT_MASK_DATA);
+  /* remove the (one) tag bit in a copy of the tagged->data */
+  ZP_Index_t hold = (tagged->data & ZP_FLOAT_MASK_DATA);
 
-  /* the label bit overlaps IEEE floating point sign data */
+  /* the tag bit overlaps IEEE floating point sign data */
   /* so restore the missing sign from the least significant bit */
   hold |= (hold & 1) ? ZP_FLOAT_SIGN_0 : 0;
   ZP_Float_t* out = (ZP_Float_t*)(&hold);
@@ -165,34 +165,34 @@ ZP_Float_t ZP_Labeled_to_float(
   return *out;
 }
 
-void ZP_Labeled_from_float(
-  ZP_Labeled_t* labeled,
+void ZP_Tagged_from_float(
+  ZP_Tagged_t* tagged,
   ZP_Float_t* data
 ) {
-  /* copy the floating point data into labeled->data */
-  labeled->data = *((ZP_Index_t*)data);
+  /* copy the floating point data into tagged->data */
+  tagged->data = *((ZP_Index_t*)data);
 
-  /* the label bit will overlap IEEE floating point sign data */
+  /* the tag bit will overlap IEEE floating point sign data */
   /* so store the sign in the least significant bit */
-  labeled->data &= ZP_FLOAT_MASK_SIGNIFICANT;
-  labeled->data |= (labeled->data & ZP_FLOAT_SIGN_0) ? ZP_FLOAT_SIGN_1 : ZP_FLOAT_SIGN_0;
+  tagged->data &= ZP_FLOAT_MASK_SIGNIFICANT;
+  tagged->data |= (tagged->data & ZP_FLOAT_SIGN_0) ? ZP_FLOAT_SIGN_1 : ZP_FLOAT_SIGN_0;
 }
 
 /***** FixedAllocator ********************************************************/
 
-void ZP_Labeled_to_FixedLocation(
+void ZP_Tagged_to_FixedLocation(
   ZP_FixedLocation_t* location,
-  ZP_Labeled_t* labeled
+  ZP_Tagged_t* tagged
 ) {
-  location->at = labeled->data & ZP_LABEL_MASK_DATA;
+  location->at = tagged->data & ZP_TAG_MASK_DATA;
 }
 
-void ZP_Labeled_from_FixedLocation(
-  ZP_Labeled_t* labeled,
+void ZP_Tagged_from_FixedLocation(
+  ZP_Tagged_t* tagged,
   ZP_FixedLocation_t* location,
-  ZP_Index_t label_mask
+  ZP_Index_t tag_mask
 ) {
-  labeled->data = location->at | label_mask;
+  tagged->data = location->at | tag_mask;
 }
 
 void ZP_FixedAllocator_new(
@@ -484,18 +484,18 @@ ZP_Error_t ZP_Context_new(
 
 ZP_RefCnt_t ZP_Context_refcnt(
   ZP_Context_t* context,
-  ZP_Labeled_t* labeled
+  ZP_Tagged_t* tagged
 ) {
-  if (labeled->data & ZP_LABEL_MASK_NUMBER) {
+  if (tagged->data & ZP_TAG_MASK_NUMBER) {
     return 0;
   }
 
-  ZP_Index_t label = labeled->data & ZP_LABEL_MASK_LABEL;
-  if (label == ZP_LABEL_MASK_BUILTIN_ENUM) {
+  ZP_Index_t tag = tagged->data & ZP_TAG_MASK_TAG;
+  if (tag == ZP_TAG_MASK_BUILTIN_ENUM) {
     return 0;
   }
 
-  ZP_Index_t location = labeled->data & ZP_LABEL_MASK_DATA;
+  ZP_Index_t location = tagged->data & ZP_TAG_MASK_DATA;
   if (location == ZP_TERMINATOR) {
     return 0;
   }
@@ -512,53 +512,53 @@ void ZP_Context_refcnt_init(
 
 ZP_Error_t ZP_Context_incref(
   ZP_Context_t* context,
-  ZP_Labeled_t* labeled
+  ZP_Tagged_t* tagged
 ) {
-  if (labeled->data & ZP_LABEL_MASK_NUMBER) {
+  if (tagged->data & ZP_TAG_MASK_NUMBER) {
     return ZP_NOERROR;
   }
 
-  ZP_Index_t label_mask = labeled->data & ZP_LABEL_MASK_LABEL;
-  if (label_mask == ZP_LABEL_MASK_BUILTIN_ENUM) {
+  ZP_Index_t tag_mask = tagged->data & ZP_TAG_MASK_TAG;
+  if (tag_mask == ZP_TAG_MASK_BUILTIN_ENUM) {
     return ZP_NOERROR;
   }
 
   ZP_FixedLocation_t location;
-  location.at = labeled->data & ZP_LABEL_MASK_DATA;
+  location.at = tagged->data & ZP_TAG_MASK_DATA;
   if (location.at == ZP_TERMINATOR) {
     return ZP_NOERROR;
   }
 
   if (context->refcount[location.at >> 1] == ZP_REFCNT_MAX) {
-    if (label_mask == ZP_LABEL_MASK_BUFFER_OWNED) {
+    if (tag_mask == ZP_TAG_MASK_BUFFER_OWNED) {
       return "directly owned buffers cannot be referenced more than ZP_REFCNT_MAX times";
     }
 
-    else if (label_mask == ZP_LABEL_MASK_SYMBOL) {
+    else if (tag_mask == ZP_TAG_MASK_SYMBOL) {
       /* symbol references are also limited (transitively by the limitation on */
       /* owned buffers), but the symbol_data can be copied into a new symbol */
       /* with the same identifying number */
       ZP_Index_t pointer;
       ZP_Index_t symbol_size;
-      ZP_Symbol_pointer_and_size(context, &pointer, &symbol_size, labeled);
+      ZP_Symbol_pointer_and_size(context, &pointer, &symbol_size, tagged);
 
       const char* symbol_data = (const char*)ZP_RegionAllocator_at(
         &context->region_allocator,
         pointer
       );
 
-      return ZP_Symbol_new_or_get(context, labeled, symbol_data, symbol_size);
+      return ZP_Symbol_new_or_get(context, tagged, symbol_data, symbol_size);
     }
 
     else {
       /* anything else can just be copied into a new reference */
       ZP_Error_t error = ZP_Context_incref_newnode(
         context,
-        labeled,
+        tagged,
         location.at,
-        (label_mask & ZP_LABEL_MASK_AT_LEAST_ONE_REF) != 0,
-        (label_mask & ZP_LABEL_MASK_HAS_TWO_REFS) != 0,
-        label_mask
+        (tag_mask & ZP_TAG_MASK_AT_LEAST_ONE_REF) != 0,
+        (tag_mask & ZP_TAG_MASK_HAS_TWO_REFS) != 0,
+        tag_mask
       );
       if (error != ZP_NOERROR) {
         return error;
@@ -574,11 +574,11 @@ ZP_Error_t ZP_Context_incref(
 
 ZP_Error_t ZP_Context_incref_newnode(
   ZP_Context_t* context,
-  ZP_Labeled_t* labeled,
+  ZP_Tagged_t* tagged,
   ZP_Index_t location,
   bool at_least_one_ref,
   bool has_two_refs,
-  ZP_Index_t label_mask
+  ZP_Index_t tag_mask
 ) {
   ZP_FixedLocation_t new_location;
   ZP_Error_t error = ZP_FixedAllocator_alloc(&context->fixed_allocator, &new_location);
@@ -588,27 +588,27 @@ ZP_Error_t ZP_Context_incref_newnode(
 
   ZP_FixedLocation_t old_location;
   old_location.at = location;
-  ZP_Labeled_t labeled_left;
-  ZP_Labeled_t labeled_right;
+  ZP_Tagged_t tagged_left;
+  ZP_Tagged_t tagged_right;
   ZP_FixedAllocator_get(
     &context->fixed_allocator,
     &old_location,
-    &labeled_left.data,
-    &labeled_right.data
+    &tagged_left.data,
+    &tagged_right.data
   );
 
   if (at_least_one_ref) {
-    error = ZP_Context_incref(context, &labeled_left);
+    error = ZP_Context_incref(context, &tagged_left);
     if (error != ZP_NOERROR) {
       ZP_FixedAllocator_free(&context->fixed_allocator, &new_location);
       return error;
     }
   }
   if (has_two_refs) {
-    error = ZP_Context_incref(context, &labeled_right);
+    error = ZP_Context_incref(context, &tagged_right);
     if (error != ZP_NOERROR) {
       ZP_FixedAllocator_free(&context->fixed_allocator, &new_location);
-      ZP_Context_decref(context, &labeled_left);
+      ZP_Context_decref(context, &tagged_left);
       return error;
     }
   }
@@ -616,11 +616,11 @@ ZP_Error_t ZP_Context_incref_newnode(
   ZP_FixedAllocator_set(
     &context->fixed_allocator,
     &new_location,
-    labeled_left.data,
-    labeled_right.data
+    tagged_left.data,
+    tagged_right.data
   );
 
-  ZP_Labeled_from_FixedLocation(labeled, &new_location, label_mask);
+  ZP_Tagged_from_FixedLocation(tagged, &new_location, tag_mask);
   ZP_Context_refcnt_init(context, &new_location);
 
   return ZP_NOERROR;
@@ -628,23 +628,23 @@ ZP_Error_t ZP_Context_incref_newnode(
 
 void ZP_Context_decref(
   ZP_Context_t* context,
-  ZP_Labeled_t* labeled
+  ZP_Tagged_t* tagged
 ) {
-  switch (ZP_Labeled_label_mask_of(labeled)) {
-  case ZP_LABEL_MASK_BUFFER_OWNED:
-    ZP_BufferOwned_decref(context, labeled);
+  switch (ZP_Tagged_tag_mask_of(tagged)) {
+  case ZP_TAG_MASK_BUFFER_OWNED:
+    ZP_BufferOwned_decref(context, tagged);
     return;
-  case ZP_LABEL_MASK_BUFFER_VIEW:
-    ZP_BufferView_decref_node(context, labeled);
+  case ZP_TAG_MASK_BUFFER_VIEW:
+    ZP_BufferView_decref_node(context, tagged);
     return;
-  case ZP_LABEL_MASK_SYMBOL:
-    ZP_Symbol_decref(context, labeled);
+  case ZP_TAG_MASK_SYMBOL:
+    ZP_Symbol_decref(context, tagged);
     return;
-  case ZP_LABEL_MASK_BUFFER_VIEW_WRAP:
-    ZP_BufferView_decref(context, labeled);
+  case ZP_TAG_MASK_BUFFER_VIEW_WRAP:
+    ZP_BufferView_decref(context, tagged);
     return;
-  case ZP_LABEL_MASK_LIST:
-    ZP_List_decref(context, labeled);
+  case ZP_TAG_MASK_LIST:
+    ZP_List_decref(context, tagged);
     return;
   default:
     return;
@@ -657,8 +657,8 @@ void ZP_Context_decref_children(
   bool left_is_ref,
   bool right_is_ref
 ) {
-  ZP_Labeled_t left;
-  ZP_Labeled_t right;
+  ZP_Tagged_t left;
+  ZP_Tagged_t right;
   ZP_FixedAllocator_get(
     &context->fixed_allocator,
     location,
@@ -677,30 +677,30 @@ void ZP_Context_decref_children(
 
 void ZP_Symbol_decref(
   ZP_Context_t* context,
-  ZP_Labeled_t* labeled
+  ZP_Tagged_t* tagged
 ) {
   ZP_FixedLocation_t location;
-  ZP_Labeled_to_FixedLocation(&location, labeled);
+  ZP_Tagged_to_FixedLocation(&location, tagged);
   context->refcount[location.at >> 1]--;
 
   /* cleanup happens when this reaches 1 because it's in the global symbol_set */
   if (context->refcount[location.at >> 1] == 1) {
-    ZP_Labeled_t list_node;
-    ZP_Labeled_copy(&list_node, &context->symbol_set.list);
+    ZP_Tagged_t list_node;
+    ZP_Tagged_copy(&list_node, &context->symbol_set.list);
 
     ZP_FixedLocation_t prev_node_location;
     prev_node_location.at = ZP_TERMINATOR;
-    ZP_Labeled_t prev_symbol;
+    ZP_Tagged_t prev_symbol;
     prev_symbol.data = 0;  /* never accessed */
 
     /* find the symbol in the list and remove it */
     while (!ZP_List_is_empty(&list_node)) {
 
       ZP_FixedLocation_t list_node_location;
-      ZP_Labeled_to_FixedLocation(&list_node_location, &list_node);
+      ZP_Tagged_to_FixedLocation(&list_node_location, &list_node);
 
-      ZP_Labeled_t list_next;
-      ZP_Labeled_t this_symbol;
+      ZP_Tagged_t list_next;
+      ZP_Tagged_t this_symbol;
       ZP_FixedAllocator_get(
         &context->fixed_allocator,
         &list_node_location,
@@ -708,7 +708,7 @@ void ZP_Symbol_decref(
         &this_symbol.data
       );
 
-      if (this_symbol.data == labeled->data) {
+      if (this_symbol.data == tagged->data) {
         /* found the symbol; now remove it from the list */
         if (prev_node_location.at == ZP_TERMINATOR) {
           /* it's first in the list, set the list head to the next one */
@@ -749,13 +749,13 @@ void ZP_Symbol_pointer_and_size(
   ZP_Context_t* context,
   ZP_Index_t* pointer,
   ZP_Index_t* request_size,
-  ZP_Labeled_t* labeled
+  ZP_Tagged_t* tagged
 ) {
   ZP_FixedLocation_t location;
-  ZP_Labeled_to_FixedLocation(&location, labeled);
+  ZP_Tagged_to_FixedLocation(&location, tagged);
 
-  ZP_Labeled_t buffer_owned;
-  ZP_Labeled_t symbol_number;
+  ZP_Tagged_t buffer_owned;
+  ZP_Tagged_t symbol_number;
   ZP_FixedAllocator_get(
     &context->fixed_allocator,
     &location,
@@ -764,7 +764,7 @@ void ZP_Symbol_pointer_and_size(
   );
 
   ZP_FixedLocation_t buffer_owned_location;
-  ZP_Labeled_to_FixedLocation(&buffer_owned_location, &buffer_owned);
+  ZP_Tagged_to_FixedLocation(&buffer_owned_location, &buffer_owned);
 
   ZP_FixedAllocator_get(
     &context->fixed_allocator,
@@ -776,12 +776,12 @@ void ZP_Symbol_pointer_and_size(
 
 ZP_Error_t ZP_Symbol_new_or_get(
   ZP_Context_t* context,
-  ZP_Labeled_t* labeled,
+  ZP_Tagged_t* tagged,
   const char* symbol_data,
   ZP_Index_t symbol_size
 ) {
-  ZP_Labeled_t list_node;
-  ZP_Labeled_copy(&list_node, &context->symbol_set.list);
+  ZP_Tagged_t list_node;
+  ZP_Tagged_copy(&list_node, &context->symbol_set.list);
 
   ZP_Int_t number_to_use = -1;
   bool duplicate = false;
@@ -790,10 +790,10 @@ ZP_Error_t ZP_Symbol_new_or_get(
     /* extract the Symbol character data at this list_node */
 
     ZP_FixedLocation_t list_node_location;
-    ZP_Labeled_to_FixedLocation(&list_node_location, &list_node);
+    ZP_Tagged_to_FixedLocation(&list_node_location, &list_node);
 
-    ZP_Labeled_t list_next;
-    ZP_Labeled_t this_symbol;
+    ZP_Tagged_t list_next;
+    ZP_Tagged_t this_symbol;
     ZP_FixedAllocator_get(
       &context->fixed_allocator,
       &list_node_location,
@@ -823,28 +823,28 @@ ZP_Error_t ZP_Symbol_new_or_get(
 
       if (same) {
         ZP_FixedLocation_t this_symbol_location;
-        ZP_Labeled_to_FixedLocation(&this_symbol_location, &this_symbol);
+        ZP_Tagged_to_FixedLocation(&this_symbol_location, &this_symbol);
 
         if (context->refcount[this_symbol_location.at >> 1] == ZP_REFCNT_MAX) {
           /* if it's the same and the reference count has been exceeded, */
           /* stop searching and add a new symbol node to the list */
-          ZP_Labeled_t buffer_owned;
-          ZP_Labeled_t symbol_number;
+          ZP_Tagged_t buffer_owned;
+          ZP_Tagged_t symbol_number;
           ZP_FixedAllocator_get(
             &context->fixed_allocator,
             &this_symbol_location,
             &buffer_owned.data,
             &symbol_number.data
           );
-          number_to_use = ZP_Labeled_to_int(&symbol_number);
+          number_to_use = ZP_Tagged_to_int(&symbol_number);
           duplicate = true;
           break;
         }
         else {
           /* if it's the same and the reference count has not been exceeded, */
           /* return a new reference to it */
-          ZP_Labeled_copy(labeled, &this_symbol);
-          return ZP_Context_incref(context, labeled);
+          ZP_Tagged_copy(tagged, &this_symbol);
+          return ZP_Context_incref(context, tagged);
         }
       }
     }
@@ -867,7 +867,7 @@ ZP_Error_t ZP_Symbol_new_or_get(
   }
 
   /* first, make the buffer_owned */
-  ZP_Labeled_t buffer_owned;
+  ZP_Tagged_t buffer_owned;
   ZP_Error_t error = ZP_BufferOwned_new(context, &buffer_owned, symbol_size);
   if (error != ZP_NOERROR) {
     return error;
@@ -883,8 +883,8 @@ ZP_Error_t ZP_Symbol_new_or_get(
     return error;
   }
 
-  ZP_Labeled_t symbol_number;
-  error = ZP_Labeled_from_int(&symbol_number, &number_to_use);
+  ZP_Tagged_t symbol_number;
+  error = ZP_Tagged_from_int(&symbol_number, &number_to_use);
   if (error != ZP_NOERROR) {
     ZP_BufferOwned_decref(context, &buffer_owned);
     ZP_FixedAllocator_free(&context->fixed_allocator, &new_symbol_location);
@@ -898,11 +898,11 @@ ZP_Error_t ZP_Symbol_new_or_get(
     symbol_number.data
   );
 
-  ZP_Labeled_t new_symbol;
-  ZP_Labeled_from_FixedLocation(
+  ZP_Tagged_t new_symbol;
+  ZP_Tagged_from_FixedLocation(
     &new_symbol,
     &new_symbol_location,
-    ZP_LABEL_MASK_SYMBOL
+    ZP_TAG_MASK_SYMBOL
   );
 
   error = ZP_Context_incref(context, &new_symbol);
@@ -913,10 +913,10 @@ ZP_Error_t ZP_Symbol_new_or_get(
   }
 
   /* finally, push it to the end of the symbol_set list */
-  ZP_Labeled_t current_list_end;
-  ZP_Labeled_copy(&current_list_end, &context->symbol_set.list);
+  ZP_Tagged_t current_list_end;
+  ZP_Tagged_copy(&current_list_end, &context->symbol_set.list);
 
-  ZP_Labeled_t new_list_end;
+  ZP_Tagged_t new_list_end;
   error = ZP_List_push(context, &new_list_end, &current_list_end, &new_symbol);
   if (error != ZP_NOERROR) {
     ZP_BufferOwned_decref(context, &buffer_owned);
@@ -928,12 +928,12 @@ ZP_Error_t ZP_Symbol_new_or_get(
   /* this is an unusual list, inaccessible from outside, so it should not be incref'ed */
   if (!ZP_List_is_empty(&current_list_end)) {
     ZP_FixedLocation_t old_list_end_location;
-    ZP_Labeled_to_FixedLocation(&old_list_end_location, &current_list_end);
+    ZP_Tagged_to_FixedLocation(&old_list_end_location, &current_list_end);
     context->refcount[old_list_end_location.at >> 1]--;
   }
 
-  ZP_Labeled_copy(labeled, &new_symbol);
-  ZP_Labeled_copy(&context->symbol_set.list, &new_list_end);
+  ZP_Tagged_copy(tagged, &new_symbol);
+  ZP_Tagged_copy(&context->symbol_set.list, &new_list_end);
 
   if (!duplicate) {
     /* this symbol used up one integer value (non-renewable) */
@@ -947,10 +947,10 @@ ZP_Error_t ZP_Symbol_new_or_get(
 
 void ZP_BufferOwned_decref(
   ZP_Context_t* context,
-  ZP_Labeled_t* labeled
+  ZP_Tagged_t* tagged
 ) {
   ZP_FixedLocation_t location;
-  ZP_Labeled_to_FixedLocation(&location, labeled);
+  ZP_Tagged_to_FixedLocation(&location, tagged);
   context->refcount[location.at >> 1]--;
 
   if (context->refcount[location.at >> 1] == 0) {
@@ -969,7 +969,7 @@ void ZP_BufferOwned_decref(
 
 ZP_Error_t ZP_BufferOwned_new(
   ZP_Context_t* context,
-  ZP_Labeled_t* labeled,
+  ZP_Tagged_t* tagged,
   ZP_Index_t request_size
 ) {
   if (request_size < 0) {
@@ -991,9 +991,9 @@ ZP_Error_t ZP_BufferOwned_new(
 
   ZP_FixedAllocator_set(&context->fixed_allocator, &fixed_location, pointer, request_size);
 
-  ZP_Labeled_from_FixedLocation(labeled, &fixed_location, ZP_LABEL_MASK_BUFFER_OWNED);
+  ZP_Tagged_from_FixedLocation(tagged, &fixed_location, ZP_TAG_MASK_BUFFER_OWNED);
 
-  error = ZP_Context_incref(context, labeled);
+  error = ZP_Context_incref(context, tagged);
   if (error != ZP_NOERROR) {
     ZP_FixedAllocator_free(&context->fixed_allocator, &fixed_location);
     ZP_RegionAllocator_free(&context->region_allocator, pointer, request_size);
@@ -1005,11 +1005,11 @@ ZP_Error_t ZP_BufferOwned_new(
 
 void ZP_BufferOwned_copy_data(
   ZP_Context_t* context,
-  ZP_Labeled_t* buffer,
+  ZP_Tagged_t* buffer,
   const char* data
 ) {
   ZP_FixedLocation_t buffer_location;
-  buffer_location.at = ZP_Labeled_to_raw(buffer);
+  buffer_location.at = ZP_Tagged_to_raw(buffer);
 
   ZP_Index_t pointer;
   ZP_Index_t request_size;
@@ -1022,20 +1022,20 @@ void ZP_BufferOwned_copy_data(
 
 void ZP_BufferView_decref_node(
   ZP_Context_t* context,
-  ZP_Labeled_t* labeled
+  ZP_Tagged_t* tagged
 ) {
   ZP_FixedLocation_t location;
-  ZP_Labeled_to_FixedLocation(&location, labeled);
+  ZP_Tagged_to_FixedLocation(&location, tagged);
   context->refcount[location.at >> 1]--;
   /* children are neither FixedAllocator-tracked nor RegionAllocator-tracked */
 }
 
 void ZP_BufferView_decref(
   ZP_Context_t* context,
-  ZP_Labeled_t* labeled
+  ZP_Tagged_t* tagged
 ) {
   ZP_FixedLocation_t location;
-  ZP_Labeled_to_FixedLocation(&location, labeled);
+  ZP_Tagged_to_FixedLocation(&location, tagged);
   context->refcount[location.at >> 1]--;
   if (context->refcount[location.at >> 1] == 0) {
     ZP_Context_decref_children(context, &location, true, true);
@@ -1044,21 +1044,21 @@ void ZP_BufferView_decref(
 
 ZP_Error_t ZP_BufferView_new(
   ZP_Context_t* context,
-  ZP_Labeled_t* output,
-  ZP_Labeled_t* base,
+  ZP_Tagged_t* output,
+  ZP_Tagged_t* base,
   ZP_Index_t start,
   ZP_Index_t stop
 ) {
-  ZP_Index_t base_label = ZP_Labeled_label_mask_of(base);
+  ZP_Index_t base_tag = ZP_Tagged_tag_mask_of(base);
   if (
-    base_label != ZP_LABEL_MASK_BUFFER_OWNED
-    &&  base_label != ZP_LABEL_MASK_BUFFER_VIEW_WRAP
+    base_tag != ZP_TAG_MASK_BUFFER_OWNED
+    &&  base_tag != ZP_TAG_MASK_BUFFER_VIEW_WRAP
   ) {
     return "ZP_BufferView_new(_, _, base, _, _) must be a buffer or symbol";
   }
 
-  ZP_Labeled_t base_increfed;
-  ZP_Labeled_copy(&base_increfed, base);
+  ZP_Tagged_t base_increfed;
+  ZP_Tagged_copy(&base_increfed, base);
   ZP_Error_t error = ZP_Context_incref(context, &base_increfed);
   if (error != ZP_NOERROR) {
     return error;
@@ -1070,25 +1070,25 @@ ZP_Error_t ZP_BufferView_new(
     ZP_List_decref(context, &base_increfed);
     return error;
   }
-  ZP_Labeled_t labeled_buffer_view;
-  ZP_Labeled_from_FixedLocation(
-    &labeled_buffer_view,
+  ZP_Tagged_t tagged_buffer_view;
+  ZP_Tagged_from_FixedLocation(
+    &tagged_buffer_view,
     &buffer_view_location,
-    ZP_LABEL_MASK_BUFFER_VIEW
+    ZP_TAG_MASK_BUFFER_VIEW
   );
 
-  error = ZP_Context_incref(context, &labeled_buffer_view);
+  error = ZP_Context_incref(context, &tagged_buffer_view);
   if (error != ZP_NOERROR) {
     ZP_List_decref(context, &base_increfed);
-    ZP_List_decref(context, &labeled_buffer_view);
+    ZP_List_decref(context, &tagged_buffer_view);
     return error;
   }
 
   ZP_Index_t base_pointer;
   ZP_Index_t base_size;
-  if (base_label == ZP_LABEL_BUFFER_OWNED) {
+  if (base_tag == ZP_TAG_BUFFER_OWNED) {
     ZP_FixedLocation_t base_location;
-    base_location.at = ZP_Labeled_to_raw(base);
+    base_location.at = ZP_Tagged_to_raw(base);
     ZP_FixedAllocator_get(
       &context->fixed_allocator,
       &base_location,
@@ -1098,9 +1098,9 @@ ZP_Error_t ZP_BufferView_new(
   }
   else {
     ZP_FixedLocation_t base_location;
-    base_location.at = ZP_Labeled_to_raw(base);
-    ZP_Labeled_t base_base;
-    ZP_Labeled_t base_node;
+    base_location.at = ZP_Tagged_to_raw(base);
+    ZP_Tagged_t base_base;
+    ZP_Tagged_t base_node;
     ZP_FixedAllocator_get(
       &context->fixed_allocator,
       &base_location,
@@ -1108,7 +1108,7 @@ ZP_Error_t ZP_BufferView_new(
       &base_node.data
     );
     ZP_FixedLocation_t base_node_location;
-    base_node_location.at = ZP_Labeled_to_raw(&base_node);
+    base_node_location.at = ZP_Tagged_to_raw(&base_node);
     ZP_FixedAllocator_get(
       &context->fixed_allocator,
       &base_node_location,
@@ -1131,7 +1131,7 @@ ZP_Error_t ZP_BufferView_new(
   error = ZP_FixedAllocator_alloc(&context->fixed_allocator, &buffer_wrap_location);
   if (error != ZP_NOERROR) {
     ZP_List_decref(context, &base_increfed);
-    ZP_List_decref(context, &labeled_buffer_view);
+    ZP_List_decref(context, &tagged_buffer_view);
     ZP_FixedAllocator_free(&context->fixed_allocator, &buffer_view_location);
     return error;
   }
@@ -1140,19 +1140,19 @@ ZP_Error_t ZP_BufferView_new(
     &context->fixed_allocator,
     &buffer_wrap_location,
     base_increfed.data,
-    labeled_buffer_view.data
+    tagged_buffer_view.data
   );
 
-  ZP_Labeled_from_FixedLocation(
+  ZP_Tagged_from_FixedLocation(
     output,
     &buffer_wrap_location,
-    ZP_LABEL_MASK_BUFFER_VIEW_WRAP
+    ZP_TAG_MASK_BUFFER_VIEW_WRAP
   );
 
   error = ZP_Context_incref(context, output);
   if (error != ZP_NOERROR) {
     ZP_List_decref(context, &base_increfed);
-    ZP_List_decref(context, &labeled_buffer_view);
+    ZP_List_decref(context, &tagged_buffer_view);
     ZP_FixedAllocator_free(&context->fixed_allocator, &buffer_view_location);
     ZP_List_decref(context, output);
     return error;
@@ -1165,10 +1165,10 @@ ZP_Error_t ZP_BufferView_new(
 
 void ZP_List_decref(
   ZP_Context_t* context,
-  ZP_Labeled_t* labeled
+  ZP_Tagged_t* tagged
 ) {
   ZP_FixedLocation_t location;
-  ZP_Labeled_to_FixedLocation(&location, labeled);
+  ZP_Tagged_to_FixedLocation(&location, tagged);
   if (location.at != ZP_TERMINATOR) {
     context->refcount[location.at >> 1]--;
     if (context->refcount[location.at >> 1] == 0) {
@@ -1178,36 +1178,36 @@ void ZP_List_decref(
 }
 
 void ZP_List_new_empty(
-  ZP_Labeled_t* list
+  ZP_Tagged_t* list
 ) {
-  list->data = ZP_TERMINATOR | ZP_LABEL_MASK_LIST;
+  list->data = ZP_TERMINATOR | ZP_TAG_MASK_LIST;
 }
 
 bool ZP_List_is_empty(
-  ZP_Labeled_t* list
+  ZP_Tagged_t* list
 ) {
-  return list->data == (ZP_TERMINATOR | ZP_LABEL_MASK_LIST);
+  return list->data == (ZP_TERMINATOR | ZP_TAG_MASK_LIST);
 }
 
 ZP_Error_t ZP_List_push(
   ZP_Context_t* context,
-  ZP_Labeled_t* output_list,
-  ZP_Labeled_t* input_list,
-  ZP_Labeled_t* item
+  ZP_Tagged_t* output_list,
+  ZP_Tagged_t* input_list,
+  ZP_Tagged_t* item
 ) {
-  if (ZP_Labeled_label_mask_of(input_list) != ZP_LABEL_MASK_LIST) {
+  if (ZP_Tagged_tag_mask_of(input_list) != ZP_TAG_MASK_LIST) {
     return "ZP_List_push(_, _, input_list, _) must be a list";
   }
 
-  ZP_Labeled_t input_list_increfed;
-  ZP_Labeled_copy(&input_list_increfed, input_list);
+  ZP_Tagged_t input_list_increfed;
+  ZP_Tagged_copy(&input_list_increfed, input_list);
   ZP_Error_t error = ZP_Context_incref(context, &input_list_increfed);
   if (error != ZP_NOERROR) {
     return error;
   }
 
-  ZP_Labeled_t item_increfed;
-  ZP_Labeled_copy(&item_increfed, item);
+  ZP_Tagged_t item_increfed;
+  ZP_Tagged_copy(&item_increfed, item);
   error = ZP_Context_incref(context, &item_increfed);
   if (error != ZP_NOERROR) {
     ZP_List_decref(context, &input_list_increfed);
@@ -1229,7 +1229,7 @@ ZP_Error_t ZP_List_push(
     item_increfed.data
   );
 
-  ZP_Labeled_from_FixedLocation(output_list, &fixed_location, ZP_LABEL_MASK_LIST);
+  ZP_Tagged_from_FixedLocation(output_list, &fixed_location, ZP_TAG_MASK_LIST);
   ZP_Context_refcnt_init(context, &fixed_location);
 
   return ZP_NOERROR;
@@ -1237,16 +1237,16 @@ ZP_Error_t ZP_List_push(
 
 ZP_Error_t ZP_List_pop(
   ZP_Context_t* context,
-  ZP_Labeled_t* output_list,
-  ZP_Labeled_t* output_item,
-  ZP_Labeled_t* input_list
+  ZP_Tagged_t* output_list,
+  ZP_Tagged_t* output_item,
+  ZP_Tagged_t* input_list
 ) {
-  if (ZP_Labeled_label_mask_of(input_list) != ZP_LABEL_MASK_LIST) {
+  if (ZP_Tagged_tag_mask_of(input_list) != ZP_TAG_MASK_LIST) {
     return "ZP_List_pop(_, _, _, input_list) must be a list";
   }
 
   ZP_FixedLocation_t input_list_location;
-  input_list_location.at = ZP_Labeled_to_raw(input_list);
+  input_list_location.at = ZP_Tagged_to_raw(input_list);
   if (input_list_location.at == ZP_TERMINATOR) {
     return "cannot pop empty list";
   }

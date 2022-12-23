@@ -281,8 +281,8 @@ int test_FixedAllocator() {
   return 0;
 }
 
-int test_int_labeling() {
-  printf("BEGIN test_int_labeling\n");
+int test_int_tagging() {
+  printf("BEGIN test_int_tagging\n");
 
   const ZP_Index_t SHIFT = (8 * sizeof(ZP_Index_t)) - 3;
   const ZP_Index_t MAXINT = (1 << SHIFT) - 1;
@@ -304,116 +304,116 @@ int test_int_labeling() {
   ZP_Int_t myint_low_2 = MININT + 1;
   ZP_Int_t myint_low_3 = MININT + 2;
 
-  ZP_Labeled_t labeled;
+  ZP_Tagged_t tagged;
   ZP_Error_t error;
   ZP_Int_t integer_copy;
-  ZP_Index_t labeled_data_copy;
+  ZP_Index_t tagged_data_copy;
 
   integer_copy = myint_m2;
-  error = ZP_Labeled_from_int(&labeled, &myint_m2);
+  error = ZP_Tagged_from_int(&tagged, &myint_m2);
   handle_error(error);
   assert(integer_copy, myint_m2);  /* didn't change the original */
-  labeled_data_copy = labeled.data;
-  assert(ZP_Labeled_to_int(&labeled), myint_m2);
-  assert(labeled.data, labeled_data_copy);  /* didn't change the original */
+  tagged_data_copy = tagged.data;
+  assert(ZP_Tagged_to_int(&tagged), myint_m2);
+  assert(tagged.data, tagged_data_copy);  /* didn't change the original */
 
   integer_copy = myint_m1;
-  error = ZP_Labeled_from_int(&labeled, &myint_m1);
+  error = ZP_Tagged_from_int(&tagged, &myint_m1);
   handle_error(error);
   assert(integer_copy, myint_m1);  /* didn't change the original */
-  labeled_data_copy = labeled.data;
-  assert(ZP_Labeled_to_int(&labeled), myint_m1);
-  assert(labeled.data, labeled_data_copy);  /* didn't change the original */
+  tagged_data_copy = tagged.data;
+  assert(ZP_Tagged_to_int(&tagged), myint_m1);
+  assert(tagged.data, tagged_data_copy);  /* didn't change the original */
 
   integer_copy = myint_ze;
-  error = ZP_Labeled_from_int(&labeled, &myint_ze);
+  error = ZP_Tagged_from_int(&tagged, &myint_ze);
   handle_error(error);
   assert(integer_copy, myint_ze);  /* didn't change the original */
-  labeled_data_copy = labeled.data;
-  assert(ZP_Labeled_to_int(&labeled), myint_ze);
-  assert(labeled.data, labeled_data_copy);  /* didn't change the original */
+  tagged_data_copy = tagged.data;
+  assert(ZP_Tagged_to_int(&tagged), myint_ze);
+  assert(tagged.data, tagged_data_copy);  /* didn't change the original */
 
   integer_copy = myint_p1;
-  error = ZP_Labeled_from_int(&labeled, &myint_p1);
+  error = ZP_Tagged_from_int(&tagged, &myint_p1);
   handle_error(error);
   assert(integer_copy, myint_p1);  /* didn't change the original */
-  labeled_data_copy = labeled.data;
-  assert(ZP_Labeled_to_int(&labeled), myint_p1);
-  assert(labeled.data, labeled_data_copy);  /* didn't change the original */
+  tagged_data_copy = tagged.data;
+  assert(ZP_Tagged_to_int(&tagged), myint_p1);
+  assert(tagged.data, tagged_data_copy);  /* didn't change the original */
 
   integer_copy = myint_p2;
-  error = ZP_Labeled_from_int(&labeled, &myint_p2);
+  error = ZP_Tagged_from_int(&tagged, &myint_p2);
   handle_error(error);
   assert(integer_copy, myint_p2);  /* didn't change the original */
-  labeled_data_copy = labeled.data;
-  assert(ZP_Labeled_to_int(&labeled), myint_p2);
-  assert(labeled.data, labeled_data_copy);  /* didn't change the original */
+  tagged_data_copy = tagged.data;
+  assert(ZP_Tagged_to_int(&tagged), myint_p2);
+  assert(tagged.data, tagged_data_copy);  /* didn't change the original */
 
   integer_copy = myint_high_1;
-  error = ZP_Labeled_from_int(&labeled, &myint_high_1);
+  error = ZP_Tagged_from_int(&tagged, &myint_high_1);
   handle_error(error);
   assert(integer_copy, myint_high_1);  /* didn't change the original */
-  labeled_data_copy = labeled.data;
-  assert(ZP_Labeled_to_int(&labeled), myint_high_1);
-  assert(labeled.data, labeled_data_copy);  /* didn't change the original */
+  tagged_data_copy = tagged.data;
+  assert(ZP_Tagged_to_int(&tagged), myint_high_1);
+  assert(tagged.data, tagged_data_copy);  /* didn't change the original */
 
   integer_copy = myint_high_2;
-  error = ZP_Labeled_from_int(&labeled, &myint_high_2);
+  error = ZP_Tagged_from_int(&tagged, &myint_high_2);
   handle_error(error);
   assert(integer_copy, myint_high_2);  /* didn't change the original */
-  labeled_data_copy = labeled.data;
-  assert(ZP_Labeled_to_int(&labeled), myint_high_2);
-  assert(labeled.data, labeled_data_copy);  /* didn't change the original */
+  tagged_data_copy = tagged.data;
+  assert(ZP_Tagged_to_int(&tagged), myint_high_2);
+  assert(tagged.data, tagged_data_copy);  /* didn't change the original */
 
   integer_copy = myint_high_3;
-  error = ZP_Labeled_from_int(&labeled, &myint_high_3);
+  error = ZP_Tagged_from_int(&tagged, &myint_high_3);
   handle_error(error);
   assert(integer_copy, myint_high_3);  /* didn't change the original */
-  labeled_data_copy = labeled.data;
-  assert(ZP_Labeled_to_int(&labeled), myint_high_3);
-  assert(labeled.data, labeled_data_copy);  /* didn't change the original */
+  tagged_data_copy = tagged.data;
+  assert(ZP_Tagged_to_int(&tagged), myint_high_3);
+  assert(tagged.data, tagged_data_copy);  /* didn't change the original */
 
   integer_copy = myint_high_err;
-  error = ZP_Labeled_from_int(&labeled, &myint_high_err);
+  error = ZP_Tagged_from_int(&tagged, &myint_high_err);
   handle_not_error(error);
   assert(integer_copy, myint_high_err);  /* didn't change the original */
 
   integer_copy = myint_low_1;
-  error = ZP_Labeled_from_int(&labeled, &myint_low_1);
+  error = ZP_Tagged_from_int(&tagged, &myint_low_1);
   handle_error(error);
   assert(integer_copy, myint_low_1);  /* didn't change the original */
-  labeled_data_copy = labeled.data;
-  assert(ZP_Labeled_to_int(&labeled), myint_low_1);
-  assert(labeled.data, labeled_data_copy);  /* didn't change the original */
+  tagged_data_copy = tagged.data;
+  assert(ZP_Tagged_to_int(&tagged), myint_low_1);
+  assert(tagged.data, tagged_data_copy);  /* didn't change the original */
 
   integer_copy = myint_low_2;
-  error = ZP_Labeled_from_int(&labeled, &myint_low_2);
+  error = ZP_Tagged_from_int(&tagged, &myint_low_2);
   handle_error(error);
   assert(integer_copy, myint_low_2);  /* didn't change the original */
-  labeled_data_copy = labeled.data;
-  assert(ZP_Labeled_to_int(&labeled), myint_low_2);
-  assert(labeled.data, labeled_data_copy);  /* didn't change the original */
+  tagged_data_copy = tagged.data;
+  assert(ZP_Tagged_to_int(&tagged), myint_low_2);
+  assert(tagged.data, tagged_data_copy);  /* didn't change the original */
 
   integer_copy = myint_low_3;
-  error = ZP_Labeled_from_int(&labeled, &myint_low_3);
+  error = ZP_Tagged_from_int(&tagged, &myint_low_3);
   handle_error(error);
   assert(integer_copy, myint_low_3);  /* didn't change the original */
-  labeled_data_copy = labeled.data;
-  assert(ZP_Labeled_to_int(&labeled), myint_low_3);
-  assert(labeled.data, labeled_data_copy);  /* didn't change the original */
+  tagged_data_copy = tagged.data;
+  assert(ZP_Tagged_to_int(&tagged), myint_low_3);
+  assert(tagged.data, tagged_data_copy);  /* didn't change the original */
 
   integer_copy = myint_low_err;
-  error = ZP_Labeled_from_int(&labeled, &myint_low_err);
+  error = ZP_Tagged_from_int(&tagged, &myint_low_err);
   handle_not_error(error);
   assert(integer_copy, myint_low_err);  /* didn't change the original */
 
-  printf("END test_int_labeling\n");
+  printf("END test_int_tagging\n");
 
   return 0;
 }
 
-int test_float_labeling() {
-  printf("BEGIN test_float_labeling\n");
+int test_float_tagging() {
+  printf("BEGIN test_float_tagging\n");
 
   ZP_Float_t myfloat1 = 3.14f;
   ZP_Float_t myfloat2 = 3.14f;
@@ -436,47 +436,47 @@ int test_float_labeling() {
   assert(myfloat1 != myfloat3, true);
   assert(myfloat1 != myfloat4, true);
 
-  ZP_Labeled_t labeled;
+  ZP_Tagged_t tagged;
   ZP_Float_t float_copy;
-  ZP_Index_t labeled_data_copy;
+  ZP_Index_t tagged_data_copy;
 
   float_copy = myfloat1;
   assert(myfloat1 == float_copy, true);
-  ZP_Labeled_from_float(&labeled, &myfloat1);
+  ZP_Tagged_from_float(&tagged, &myfloat1);
   assert(myfloat1 == float_copy, true);  /* didn't change the original */
 
-  labeled_data_copy = labeled.data;
-  assert(fabs(myfloat1 - ZP_Labeled_to_float(&labeled)) < 1e8, true);
-  assert(labeled_data_copy, labeled.data);  /* didn't change the original */
+  tagged_data_copy = tagged.data;
+  assert(fabs(myfloat1 - ZP_Tagged_to_float(&tagged)) < 1e8, true);
+  assert(tagged_data_copy, tagged.data);  /* didn't change the original */
 
   float_copy = myfloat2;
   assert(myfloat2 == float_copy, true);
-  ZP_Labeled_from_float(&labeled, &myfloat2);
+  ZP_Tagged_from_float(&tagged, &myfloat2);
   assert(myfloat2 == float_copy, true);  /* didn't change the original */
 
-  labeled_data_copy = labeled.data;
-  assert(fabs(myfloat2 - ZP_Labeled_to_float(&labeled)) < 1e8, true);
-  assert(labeled_data_copy, labeled.data);  /* didn't change the original */
+  tagged_data_copy = tagged.data;
+  assert(fabs(myfloat2 - ZP_Tagged_to_float(&tagged)) < 1e8, true);
+  assert(tagged_data_copy, tagged.data);  /* didn't change the original */
 
   float_copy = myfloat3;
   assert(myfloat3 == float_copy, true);
-  ZP_Labeled_from_float(&labeled, &myfloat3);
+  ZP_Tagged_from_float(&tagged, &myfloat3);
   assert(myfloat3 == float_copy, true);  /* didn't change the original */
 
-  labeled_data_copy = labeled.data;
-  assert(fabs(myfloat3 - ZP_Labeled_to_float(&labeled)) < 1e8, true);
-  assert(labeled_data_copy, labeled.data);  /* didn't change the original */
+  tagged_data_copy = tagged.data;
+  assert(fabs(myfloat3 - ZP_Tagged_to_float(&tagged)) < 1e8, true);
+  assert(tagged_data_copy, tagged.data);  /* didn't change the original */
 
   float_copy = myfloat4;
   assert(myfloat4 == float_copy, true);
-  ZP_Labeled_from_float(&labeled, &myfloat4);
+  ZP_Tagged_from_float(&tagged, &myfloat4);
   assert(myfloat4 == float_copy, true);  /* didn't change the original */
 
-  labeled_data_copy = labeled.data;
-  assert(fabs(myfloat4 - ZP_Labeled_to_float(&labeled)) < 1e8, true);
-  assert(labeled_data_copy, labeled.data);  /* didn't change the original */
+  tagged_data_copy = tagged.data;
+  assert(fabs(myfloat4 - ZP_Tagged_to_float(&tagged)) < 1e8, true);
+  assert(tagged_data_copy, tagged.data);  /* didn't change the original */
 
-  printf("END test_float_labeling\n");
+  printf("END test_float_tagging\n");
 
   return 0;
 }
@@ -493,12 +493,12 @@ int test_buffer() {
   view_region(&context);
   printf("\n");
 
-  ZP_Labeled_t buffer1;
+  ZP_Tagged_t buffer1;
   const char* payload1 = "hello there";
   ZP_Index_t payload1_size = 11;
   error = ZP_BufferOwned_new(&context, &buffer1, payload1_size);
   handle_error(error);
-  assert(ZP_Labeled_label_of(&buffer1), ZP_LABEL_BUFFER_OWNED);
+  assert(ZP_Tagged_tag_of(&buffer1), ZP_TAG_BUFFER_OWNED);
   printf("hello there: 0x%08x\n", buffer1.data);
 
   ZP_BufferOwned_copy_data(&context, &buffer1, payload1);
@@ -508,12 +508,12 @@ int test_buffer() {
   view_region(&context);
   printf("\n");
 
-  ZP_Labeled_t buffer2;
+  ZP_Tagged_t buffer2;
   const char* payload2 = "you guys";
   ZP_Index_t payload2_size = 8;
   error = ZP_BufferOwned_new(&context, &buffer2, payload2_size);
   handle_error(error);
-  assert(ZP_Labeled_label_of(&buffer2), ZP_LABEL_BUFFER_OWNED);
+  assert(ZP_Tagged_tag_of(&buffer2), ZP_TAG_BUFFER_OWNED);
   printf("you guys: 0x%08x\n", buffer2.data);
 
   ZP_BufferOwned_copy_data(&context, &buffer2, payload2);
@@ -523,30 +523,30 @@ int test_buffer() {
   view_region(&context);
   printf("\n");
 
-  ZP_Labeled_t buffer3;
+  ZP_Tagged_t buffer3;
   error = ZP_BufferView_new(&context, &buffer3, &buffer1, 3, 7);
   handle_error(error);
-  assert(ZP_Labeled_label_of(&buffer3), ZP_LABEL_BUFFER_VIEW_WRAP);
+  assert(ZP_Tagged_tag_of(&buffer3), ZP_TAG_BUFFER_VIEW_WRAP);
 
   view_fixed(&context);
   view_refcount(&context);
   view_region(&context);
   printf("\n");
 
-  ZP_Labeled_t buffer4;
+  ZP_Tagged_t buffer4;
   error = ZP_BufferView_new(&context, &buffer4, &buffer2, 3, 5);
   handle_error(error);
-  assert(ZP_Labeled_label_of(&buffer4), ZP_LABEL_BUFFER_VIEW_WRAP);
+  assert(ZP_Tagged_tag_of(&buffer4), ZP_TAG_BUFFER_VIEW_WRAP);
 
   view_fixed(&context);
   view_refcount(&context);
   view_region(&context);
   printf("\n");
 
-  ZP_Labeled_t buffer5;
+  ZP_Tagged_t buffer5;
   error = ZP_BufferView_new(&context, &buffer5, &buffer4, 0, 100);
   handle_error(error);
-  assert(ZP_Labeled_label_of(&buffer5), ZP_LABEL_BUFFER_VIEW_WRAP);
+  assert(ZP_Tagged_tag_of(&buffer5), ZP_TAG_BUFFER_VIEW_WRAP);
 
   view_fixed(&context);
   view_refcount(&context);
@@ -594,30 +594,30 @@ int test_list() {
   view_refcount(&context);
   printf("\n");
 
-  ZP_Labeled_t list1;
+  ZP_Tagged_t list1;
   ZP_List_new_empty(&list1);
-  assert(ZP_Labeled_label_of(&list1), ZP_LABEL_LIST);
+  assert(ZP_Tagged_tag_of(&list1), ZP_TAG_LIST);
 
-  ZP_Labeled_t labeled_int1;
+  ZP_Tagged_t tagged_int1;
   ZP_Int_t int1 = 5;
-  error = ZP_Labeled_from_int(&labeled_int1, &int1);
+  error = ZP_Tagged_from_int(&tagged_int1, &int1);
   handle_error(error);
 
-  ZP_Labeled_t list2;
-  error = ZP_List_push(&context, &list2, &list1, &labeled_int1);
+  ZP_Tagged_t list2;
+  error = ZP_List_push(&context, &list2, &list1, &tagged_int1);
   handle_error(error);
   view_fixed(&context);
   view_refcount(&context);
   printf("\n");
   assert(ZP_Context_refcnt(&context, &list2), 1);
 
-  ZP_Labeled_t labeled_int2;
+  ZP_Tagged_t tagged_int2;
   ZP_Int_t int2 = 6;
-  error = ZP_Labeled_from_int(&labeled_int2, &int2);
+  error = ZP_Tagged_from_int(&tagged_int2, &int2);
   handle_error(error);
 
-  ZP_Labeled_t list3;
-  error = ZP_List_push(&context, &list3, &list2, &labeled_int2);
+  ZP_Tagged_t list3;
+  error = ZP_List_push(&context, &list3, &list2, &tagged_int2);
   handle_error(error);
   view_fixed(&context);
   view_refcount(&context);
@@ -625,13 +625,13 @@ int test_list() {
   assert(ZP_Context_refcnt(&context, &list2), 2);
   assert(ZP_Context_refcnt(&context, &list3), 1);
 
-  ZP_Labeled_t labeled_int3;
+  ZP_Tagged_t tagged_int3;
   ZP_Int_t int3 = 7;
-  error = ZP_Labeled_from_int(&labeled_int3, &int3);
+  error = ZP_Tagged_from_int(&tagged_int3, &int3);
   handle_error(error);
 
-  ZP_Labeled_t list4;
-  error = ZP_List_push(&context, &list4, &list3, &labeled_int3);
+  ZP_Tagged_t list4;
+  error = ZP_List_push(&context, &list4, &list3, &tagged_int3);
   handle_error(error);
   view_fixed(&context);
   view_refcount(&context);
@@ -640,40 +640,40 @@ int test_list() {
   assert(ZP_Context_refcnt(&context, &list3), 2);
   assert(ZP_Context_refcnt(&context, &list4), 1);
 
-  ZP_Labeled_t obj1;
-  ZP_Labeled_t obj2;
+  ZP_Tagged_t obj1;
+  ZP_Tagged_t obj2;
   error = ZP_List_pop(&context, &obj1, &obj2, &list4);
   handle_error(error);
-  assert(ZP_Labeled_label_of(&obj1), ZP_LABEL_LIST);
-  assert(ZP_Labeled_label_of(&obj2), ZP_LABEL_INT);
-  assert(ZP_Labeled_to_int(&obj2), 7);
+  assert(ZP_Tagged_tag_of(&obj1), ZP_TAG_LIST);
+  assert(ZP_Tagged_tag_of(&obj2), ZP_TAG_INT);
+  assert(ZP_Tagged_to_int(&obj2), 7);
   view_refcount(&context);
   printf("\n");
   assert(ZP_Context_refcnt(&context, &list2), 2);
   assert(ZP_Context_refcnt(&context, &list3), 3);
   assert(ZP_Context_refcnt(&context, &list4), 1);
 
-  ZP_Labeled_t obj3;
-  ZP_Labeled_t obj4;
+  ZP_Tagged_t obj3;
+  ZP_Tagged_t obj4;
   error = ZP_List_pop(&context, &obj3, &obj4, &obj1);
   handle_error(error);
-  assert(ZP_Labeled_label_of(&obj3), ZP_LABEL_LIST);
-  assert(ZP_Labeled_label_of(&obj4), ZP_LABEL_INT);
-  assert(ZP_Labeled_to_int(&obj4), 6);
+  assert(ZP_Tagged_tag_of(&obj3), ZP_TAG_LIST);
+  assert(ZP_Tagged_tag_of(&obj4), ZP_TAG_INT);
+  assert(ZP_Tagged_to_int(&obj4), 6);
   view_refcount(&context);
   printf("\n");
   assert(ZP_Context_refcnt(&context, &list2), 3);
   assert(ZP_Context_refcnt(&context, &list3), 3);
   assert(ZP_Context_refcnt(&context, &list4), 1);
 
-  ZP_Labeled_t obj5;
-  ZP_Labeled_t obj6;
+  ZP_Tagged_t obj5;
+  ZP_Tagged_t obj6;
   error = ZP_List_pop(&context, &obj5, &obj6, &obj3);
   handle_error(error);
-  assert(ZP_Labeled_label_of(&obj5), ZP_LABEL_LIST);
-  assert(ZP_Labeled_label_of(&obj6), ZP_LABEL_INT);
-  assert(ZP_Labeled_to_raw(&obj5), 0x00ffffff);  /* list terminator */
-  assert(ZP_Labeled_to_int(&obj6), 5);
+  assert(ZP_Tagged_tag_of(&obj5), ZP_TAG_LIST);
+  assert(ZP_Tagged_tag_of(&obj6), ZP_TAG_INT);
+  assert(ZP_Tagged_to_raw(&obj5), 0x00ffffff);  /* list terminator */
+  assert(ZP_Tagged_to_int(&obj6), 5);
   view_refcount(&context);
   printf("\n");
   assert(ZP_Context_refcnt(&context, &list2), 3);
@@ -691,8 +691,8 @@ int test_list() {
   printf("\n");
   assert(ZP_Context_refcnt(&context, &list4), 255);
 
-  ZP_Labeled_t new_list4;
-  ZP_Labeled_copy(&new_list4, &list4);
+  ZP_Tagged_t new_list4;
+  ZP_Tagged_copy(&new_list4, &list4);
   error = ZP_Context_incref(&context, &new_list4);
   handle_error(error);
   view_fixed(&context);
@@ -770,10 +770,10 @@ int test_symbols() {
 
   const char* symbol1_data = "someSymbol";
   ZP_Index_t symbol1_size = 10;
-  ZP_Labeled_t symbol1;
+  ZP_Tagged_t symbol1;
   error = ZP_Symbol_new_or_get(&context, &symbol1, symbol1_data, symbol1_size);
   handle_error(error);
-  assert(ZP_Labeled_label_of(&symbol1), ZP_LABEL_SYMBOL);
+  assert(ZP_Tagged_tag_of(&symbol1), ZP_TAG_SYMBOL);
 
   view_fixed(&context);
   view_refcount(&context);
@@ -782,10 +782,10 @@ int test_symbols() {
 
   const char* symbol2_data = "anotherSymbol";
   ZP_Index_t symbol2_size = 13;
-  ZP_Labeled_t symbol2;
+  ZP_Tagged_t symbol2;
   error = ZP_Symbol_new_or_get(&context, &symbol2, symbol2_data, symbol2_size);
   handle_error(error);
-  assert(ZP_Labeled_label_of(&symbol2), ZP_LABEL_SYMBOL);
+  assert(ZP_Tagged_tag_of(&symbol2), ZP_TAG_SYMBOL);
 
   view_fixed(&context);
   view_refcount(&context);
@@ -793,10 +793,10 @@ int test_symbols() {
   printf("\n");
 
   printf("incref symbol2 many times\n");
-  ZP_Labeled_t tmp_symbol;
+  ZP_Tagged_t tmp_symbol;
   ZP_Index_t i;
   for (i = 0;  i < 253;  i++) {
-    ZP_Labeled_copy(&tmp_symbol, &symbol2);
+    ZP_Tagged_copy(&tmp_symbol, &symbol2);
     ZP_Context_incref(&context, &tmp_symbol);
   }
 
@@ -806,7 +806,7 @@ int test_symbols() {
   printf("\n");
 
   printf("incref symbol2 once more, should create a new symbol, not in the list\n");
-  ZP_Labeled_copy(&tmp_symbol, &symbol2);
+  ZP_Tagged_copy(&tmp_symbol, &symbol2);
   error = ZP_Context_incref(&context, &tmp_symbol);
   handle_error(error);
 
@@ -817,10 +817,10 @@ int test_symbols() {
 
   const char* symbol3_data = "anotherSymbol";
   ZP_Index_t symbol3_size = 13;
-  ZP_Labeled_t symbol3;
+  ZP_Tagged_t symbol3;
   error = ZP_Symbol_new_or_get(&context, &symbol3, symbol3_data, symbol3_size);
   handle_error(error);
-  assert(ZP_Labeled_label_of(&symbol3), ZP_LABEL_SYMBOL);
+  assert(ZP_Tagged_tag_of(&symbol3), ZP_TAG_SYMBOL);
 
   view_fixed(&context);
   view_refcount(&context);
@@ -837,10 +837,10 @@ int test_symbols() {
 
   const char* symbol4_data = "newOne";
   ZP_Index_t symbol4_size = 6;
-  ZP_Labeled_t symbol4;
+  ZP_Tagged_t symbol4;
   error = ZP_Symbol_new_or_get(&context, &symbol4, symbol4_data, symbol4_size);
   handle_error(error);
-  assert(ZP_Labeled_label_of(&symbol4), ZP_LABEL_SYMBOL);
+  assert(ZP_Tagged_tag_of(&symbol4), ZP_TAG_SYMBOL);
 
   view_fixed(&context);
   view_refcount(&context);
@@ -894,12 +894,12 @@ int main(int argc, char** argv) {
     return result;
   }
 
-  result = test_int_labeling();
+  result = test_int_tagging();
   if (result != 0) {
     return result;
   }
 
-  result = test_float_labeling();
+  result = test_float_tagging();
   if (result != 0) {
     return result;
   }
