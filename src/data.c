@@ -630,6 +630,9 @@ void ZP_Context_decref(
   case ZP_LABEL_MASK_BUFFER_VIEW:
     ZP_BufferView_decref_node(context, labeled);
     return;
+  case ZP_LABEL_MASK_SYMBOL:
+    ZP_Symbol_decref(context, labeled);
+    return;
   case ZP_LABEL_MASK_BUFFER_VIEW_WRAP:
     ZP_BufferView_decref(context, labeled);
     return;
@@ -665,11 +668,74 @@ void ZP_Context_decref_children(
 
 /***** Symbol ****************************************************************/
 
-ZP_Error_t ZP_Symbol_decref(
+void ZP_Symbol_decref(
   ZP_Context_t* context,
   ZP_Labeled_t* labeled
 ) {
-  return ZP_NOERROR;
+  ZP_FixedLocation_t location;
+  ZP_Labeled_to_FixedLocation(&location, labeled);
+  context->refcount[location.at >> 1]--;
+
+  /* cleanup happens when this reaches 1 because it's in the global symbol_set */
+  if (context->refcount[location.at >> 1] == 1) {
+    ZP_Labeled_t list_node;
+    ZP_Labeled_copy(&list_node, &context->symbol_set.list);
+
+    ZP_FixedLocation_t prev_node_location;
+    prev_node_location.at = ZP_TERMINATOR;
+    ZP_Labeled_t prev_symbol;
+    prev_symbol.data = 0;  /* never accessed */
+
+    /* find the symbol in the list and remove it */
+    while (!ZP_List_is_empty(&list_node)) {
+
+      ZP_FixedLocation_t list_node_location;
+      ZP_Labeled_to_FixedLocation(&list_node_location, &list_node);
+
+      ZP_Labeled_t list_next;
+      ZP_Labeled_t this_symbol;
+      ZP_FixedAllocator_get(
+        &context->fixed_allocator,
+        &list_node_location,
+        &list_next.data,
+        &this_symbol.data
+      );
+
+      if (this_symbol.data == labeled->data) {
+        /* found the symbol; now remove it from the list */
+        if (prev_node_location.at == ZP_TERMINATOR) {
+          /* it's first in the list, set the list head to the next one */
+          context->symbol_set.list = list_next;
+        }
+        else {
+          /* it's not first in the list, make the previous point past this */
+          ZP_FixedAllocator_set(
+            &context->fixed_allocator,
+            &prev_node_location,
+            list_next.data,
+            prev_symbol.data
+          );
+        }
+
+        /* in both cases, the removed list node must be decrefed */
+        context->refcount[list_node_location.at >> 1]--;
+
+        break;
+      }
+
+      /* otherwise, keep walking the list */
+      prev_node_location = list_node_location;
+      prev_symbol = this_symbol;
+
+      list_node = list_next;
+    }
+
+    /* get rid of the last reference (it's no longer in the list) */
+    context->refcount[location.at >> 1]--;
+
+    /* decref the buffer_owned */
+    ZP_Context_decref_children(context, &location, true, false);
+  }
 }
 
 void ZP_Symbol_pointer_and_size(
@@ -802,27 +868,18 @@ ZP_Error_t ZP_Symbol_new_or_get(
 
   ZP_BufferOwned_copy_data(context, &buffer_owned, symbol_data);
 
-  /* this newly created buffer_owned will not reach MAXREFCNT, don't need to copy it */
-  error = ZP_Context_incref(context, &buffer_owned);
-  if (error != ZP_NOERROR) {
-    ZP_BufferOwned_decref(context, &buffer_owned);  /* decref the BufferOwned_new */
-    return error;
-  }
-
   /* next, make the symbol object itself */
   ZP_FixedLocation_t new_symbol_location;
   error = ZP_FixedAllocator_alloc(&context->fixed_allocator, &new_symbol_location);
   if (error != ZP_NOERROR) {
-    ZP_BufferOwned_decref(context, &buffer_owned);  /* decref the BufferOwned_new */
-    ZP_BufferOwned_decref(context, &buffer_owned);  /* decref the incref */
+    ZP_BufferOwned_decref(context, &buffer_owned);
     return error;
   }
 
   ZP_Labeled_t symbol_number;
   error = ZP_Labeled_from_int(&symbol_number, &number_to_use);
   if (error != ZP_NOERROR) {
-    ZP_BufferOwned_decref(context, &buffer_owned);  /* decref the BufferOwned_new */
-    ZP_BufferOwned_decref(context, &buffer_owned);  /* decref the incref */
+    ZP_BufferOwned_decref(context, &buffer_owned);
     ZP_FixedAllocator_free(&context->fixed_allocator, &new_symbol_location);
     return error;
   }
@@ -834,16 +891,16 @@ ZP_Error_t ZP_Symbol_new_or_get(
     symbol_number.data
   );
 
+  ZP_Labeled_t new_symbol;
   ZP_Labeled_from_FixedLocation(
-    labeled,
+    &new_symbol,
     &new_symbol_location,
     ZP_LABEL_MASK_SYMBOL
   );
 
-  error = ZP_Context_incref(context, labeled); /* this will create a chained ref */
+  error = ZP_Context_incref(context, &new_symbol);
   if (error != ZP_NOERROR) {
-    ZP_BufferOwned_decref(context, &buffer_owned);  /* decref the BufferOwned_new */
-    ZP_BufferOwned_decref(context, &buffer_owned);  /* decref the incref */
+    ZP_BufferOwned_decref(context, &buffer_owned);
     ZP_FixedAllocator_free(&context->fixed_allocator, &new_symbol_location);
     return error;
   }
@@ -853,15 +910,22 @@ ZP_Error_t ZP_Symbol_new_or_get(
   ZP_Labeled_copy(&current_list_end, &context->symbol_set.list);
 
   ZP_Labeled_t new_list_end;
-  error = ZP_List_push(context, &new_list_end, &current_list_end, labeled);
+  error = ZP_List_push(context, &new_list_end, &current_list_end, &new_symbol);
   if (error != ZP_NOERROR) {
-    ZP_BufferOwned_decref(context, &buffer_owned);  /* decref the BufferOwned_new */
-    ZP_BufferOwned_decref(context, &buffer_owned);  /* decref the incref */
+    ZP_BufferOwned_decref(context, &buffer_owned);
     ZP_FixedAllocator_free(&context->fixed_allocator, &new_symbol_location);
-    ZP_Context_decref(context, labeled);
+    ZP_Context_decref(context, &new_symbol);
     return error;
   }
 
+  /* this is an unusual list, inaccessible from outside, so it should not be incref'ed */
+  if (!ZP_List_is_empty(&current_list_end)) {
+    ZP_FixedLocation_t old_list_end_location;
+    ZP_Labeled_to_FixedLocation(&old_list_end_location, &current_list_end);
+    context->refcount[old_list_end_location.at >> 1]--;
+  }
+
+  ZP_Labeled_copy(labeled, &new_symbol);
   ZP_Labeled_copy(&context->symbol_set.list, &new_list_end);
 
   if (!duplicate) {

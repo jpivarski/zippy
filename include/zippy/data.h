@@ -271,7 +271,7 @@ void ZP_Context_decref_children(
 
 /***** Symbol ****************************************************************/
 
-ZP_Error_t ZP_Symbol_decref(
+void ZP_Symbol_decref(
   ZP_Context_t* context,
   ZP_Labeled_t* labeled
 );

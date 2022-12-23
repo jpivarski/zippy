@@ -7,7 +7,7 @@
 #define handle_error(error)   \
   if (error != ZP_NOERROR) {  \
     printf("error: %s\n", error);    \
-    return -1;                \
+    /* return -1; */                \
   }                           \
 
 #define handle_not_error(error)  \
@@ -79,7 +79,7 @@ void view_refcount(ZP_Context_t* context) {
 }
 
 ZP_Error_t new_context(ZP_Context_t* context) {
-  size_t fixed_size = 96;
+  size_t fixed_size = 128;
   void* fixed_arena = malloc(fixed_size);
   init(fixed_arena, fixed_size);
 
@@ -87,7 +87,7 @@ ZP_Error_t new_context(ZP_Context_t* context) {
   void* region_arena = malloc(region_size);
   init(region_arena, region_size);
 
-  size_t refcount_size = 12;
+  size_t refcount_size = 16;
   void* refcount_arena = malloc(refcount_size);
 
   return ZP_Context_new(
@@ -793,9 +793,11 @@ int test_symbols() {
   printf("\n");
 
   printf("incref symbol2 many times\n");
+  ZP_Labeled_t tmp_symbol;
   ZP_Index_t i;
   for (i = 0;  i < 253;  i++) {
-    ZP_Context_incref(&context, &symbol2);
+    ZP_Labeled_copy(&tmp_symbol, &symbol2);
+    ZP_Context_incref(&context, &tmp_symbol);
   }
 
   view_fixed(&context);
@@ -804,7 +806,8 @@ int test_symbols() {
   printf("\n");
 
   printf("incref symbol2 once more, should create a new symbol, not in the list\n");
-  error = ZP_Context_incref(&context, &symbol2);
+  ZP_Labeled_copy(&tmp_symbol, &symbol2);
+  error = ZP_Context_incref(&context, &tmp_symbol);
   handle_error(error);
 
   view_fixed(&context);
@@ -824,10 +827,54 @@ int test_symbols() {
   view_region(&context);
   printf("\n");
 
+  printf("decref symbol1\n");
+  ZP_Context_decref(&context, &symbol1);
 
+  view_fixed(&context);
+  view_refcount(&context);
+  view_region(&context);
+  printf("\n");
 
+  const char* symbol4_data = "newOne";
+  ZP_Index_t symbol4_size = 6;
+  ZP_Labeled_t symbol4;
+  error = ZP_Symbol_new_or_get(&context, &symbol4, symbol4_data, symbol4_size);
+  handle_error(error);
+  assert(ZP_Labeled_label_of(&symbol4), ZP_LABEL_SYMBOL);
 
+  view_fixed(&context);
+  view_refcount(&context);
+  view_region(&context);
+  printf("\n");
 
+  printf("decref symbol2 to zero\n");
+  for (i = 0;  i < 254;  i++) {
+    ZP_Context_decref(&context, &symbol2);
+  }
+
+  view_fixed(&context);
+  view_refcount(&context);
+  view_region(&context);
+  printf("\n");
+
+  printf("decref symbol3 to zero\n");
+  ZP_Context_decref(&context, &symbol3);  /* one of these is the duplicated symbol2 */
+  ZP_Context_decref(&context, &symbol3);
+
+  view_fixed(&context);
+  view_refcount(&context);
+  view_region(&context);
+  printf("\n");
+
+  printf("decref symbol4 to zero\n");
+  ZP_Context_decref(&context, &symbol4);
+
+  view_fixed(&context);
+  view_refcount(&context);
+  view_region(&context);
+  printf("\n");
+
+  printf("all refcounts should now be zero\n");
 
   printf("END test_symbols\n");
 
