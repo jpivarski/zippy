@@ -138,7 +138,103 @@ void view_Context(ZP_Context_t* context, bool view_slab, bool view_region) {
   }
 }
 
+void state_Context_refcnt(ZP_Context_t* context) {
+  ZP_Index_t size = context->slab_allocator.num_slabs * sizeof(ZP_RefCnt_t);
+  printf("  error = assert_Context_refcnt(&context, %d, \"", size);
+  ZP_Index_t i;
+  for (i = 0;  i < size;  i++) {
+    printf("\\x%02x", ((unsigned char*)context->refcnt)[i]);
+  }
+  printf("\");\n  handle_error(error);\n");
+}
 
+void state_Context_slab(ZP_Context_t* context) {
+  ZP_Index_t size = 2 * context->slab_allocator.num_slabs * sizeof(ZP_Index_t);
+  printf("  error = assert_Context_slab(&context, %d, \"", size);
+  ZP_Index_t i;
+  for (i = 0;  i < size;  i++) {
+    printf("\\x%02x", ((unsigned char*)context->slab_allocator.arena)[i]);
+  }
+  printf("\");\n  handle_error(error);\n");
+}
 
+void state_Context_region(ZP_Context_t* context) {
+  ZP_Index_t size = context->region_allocator.arena_size;
+  printf("  error = assert_Context_region(&context, %d, \"", size);
+  ZP_Index_t i;
+  for (i = 0;  i < size;  i++) {
+    printf("\\x%02x", ((unsigned char*)context->region_allocator.arena)[i]);
+  }
+  printf("\");\n  handle_error(error);\n");
+}
+
+ZP_Error_t assert_Context_refcnt(ZP_Context_t* context, ZP_Index_t size, const char* expected) {
+  ZP_Index_t i;
+  ZP_Index_t j;
+  for (i = 0;  i < size;  i++) {
+    if (((unsigned char*)expected)[i] != ((unsigned char*)context->refcnt)[i]) {
+      printf("expected:\n");
+      for (j = 0;  j < size;  j++) {
+        printf("\\x%02x", ((unsigned char*)expected)[j]);
+      }
+      printf("\nobtained:\n");
+      for (j = 0;  j < i;  j++) {
+        printf("....");
+      }
+      for (j = i;  j < size;  j++) {
+        printf("\\x%02x", ((unsigned char*)context->refcnt)[j]);
+      }
+      printf("\n");
+      return "mismatch in refcnt";
+    }
+  }
+  return ZP_NO_ERROR;
+}
+
+ZP_Error_t assert_Context_slab(ZP_Context_t* context, ZP_Index_t size, const char* expected) {
+  ZP_Index_t i;
+  ZP_Index_t j;
+  for (i = 0;  i < size;  i++) {
+    if (((unsigned char*)expected)[i] != ((unsigned char*)context->slab_allocator.arena)[i]) {
+      printf("expected:\n");
+      for (j = 0;  j < size;  j++) {
+        printf("\\x%02x", ((unsigned char*)expected)[j]);
+      }
+      printf("\nobtained:\n");
+      for (j = 0;  j < i;  j++) {
+        printf("....");
+      }
+      for (j = i;  j < size;  j++) {
+        printf("\\x%02x", ((unsigned char*)context->slab_allocator.arena)[j]);
+      }
+      printf("\n");
+      return "mismatch in slab";
+    }
+  }
+  return ZP_NO_ERROR;
+}
+
+ZP_Error_t assert_Context_region(ZP_Context_t* context, ZP_Index_t size, const char* expected) {
+  ZP_Index_t i;
+  ZP_Index_t j;
+  for (i = 0;  i < size;  i++) {
+    if (((unsigned char*)expected)[i] != ((unsigned char*)context->region_allocator.arena)[i]) {
+      printf("expected:\n");
+      for (j = 0;  j < size;  j++) {
+        printf("\\x%02x", ((unsigned char*)expected)[j]);
+      }
+      printf("\nobtained:\n");
+      for (j = 0;  j < i;  j++) {
+        printf("....");
+      }
+      for (j = i;  j < size;  j++) {
+        printf("\\x%02x", ((unsigned char*)context->region_allocator.arena)[j]);
+      }
+      printf("\n");
+      return "mismatch in region";
+    }
+  }
+  return ZP_NO_ERROR;
+}
 
 #endif /* ZIPPY_TEST_UTIL_H */
