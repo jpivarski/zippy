@@ -69,14 +69,14 @@ ZP_Index_t ZP_Context_get_left(
   ZP_Context_t* slab_allocator,
   ZP_SlabPointer_t* pointer
 ) {
-
+  return 0;
 }
 
 ZP_Index_t ZP_Context_get_right(
   ZP_Context_t* slab_allocator,
   ZP_SlabPointer_t* pointer
 ) {
-
+  return 0;
 }
 
 void ZP_Context_get(
