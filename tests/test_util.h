@@ -59,8 +59,11 @@ void init_Context(ZP_Context_t* context) {
 void view_Context(ZP_Context_t* context, bool view_slab, bool view_region) {
   ZP_Index_t i = 0;
   ZP_Index_t j = 0;
+  ZP_Index_t k = 0;
 
   if (view_slab) {
+    char tmp[36];
+
     printf("refcnt + slab\n");
     while (i < context->slab_allocator.num_slabs) {
 #if ZIPPY_POINTER_SIZE == 16
@@ -74,7 +77,13 @@ void view_Context(ZP_Context_t* context, bool view_slab, bool view_region) {
       i -= 8;
       for (j = 0;  j < 8;  j++) {
         if (i < context->slab_allocator.num_slabs) {
-          printf("%04x,%04x ", context->slab_allocator.arena[2 * i], context->slab_allocator.arena[2 * i + 1]);
+          sprintf("%04x,%04x ", context->slab_allocator.arena[2 * i], context->slab_allocator.arena[2 * i + 1]);
+          for (k = 0;  k < 36;  k++) {
+            if (tmp[k] == '0') {
+              tmp[k] = '_';
+            }
+          }
+          printf("%s", tmp);
         }
         i++;
       }
@@ -90,7 +99,13 @@ void view_Context(ZP_Context_t* context, bool view_slab, bool view_region) {
       i -= 4;
       for (j = 0;  j < 4;  j++) {
         if (i < context->slab_allocator.num_slabs) {
-          printf("%08x,%08x ", context->slab_allocator.arena[2 * i], context->slab_allocator.arena[2 * i + 1]);
+          sprintf(tmp, "%08x,%08x ", context->slab_allocator.arena[2 * i], context->slab_allocator.arena[2 * i + 1]);
+          for (k = 0;  k < 36;  k++) {
+            if (tmp[k] == '0') {
+              tmp[k] = '_';
+            }
+          }
+          printf("%s", tmp);
         }
         i++;
       }
@@ -106,7 +121,13 @@ void view_Context(ZP_Context_t* context, bool view_slab, bool view_region) {
       i -= 2;
       for (j = 0;  j < 2;  j++) {
         if (i < context->slab_allocator.num_slabs) {
-          printf("%08x,%08x ", context->slab_allocator.arena[2 * i], context->slab_allocator.arena[2 * i + 1]);
+          sprintf("%08x,%08x ", context->slab_allocator.arena[2 * i], context->slab_allocator.arena[2 * i + 1]);
+          for (k = 0;  k < 36;  k++) {
+            if (tmp[k] == '0') {
+              tmp[k] = '_';
+            }
+          }
+          printf("%s", tmp);
         }
         i++;
       }
