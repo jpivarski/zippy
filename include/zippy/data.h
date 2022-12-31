@@ -146,9 +146,9 @@ ZP_Error_t ZP_Tagged_from_float(
 
 struct ZP_SlabAllocator {
   ZP_Index_t* arena;
-  ZP_Index_t num_pairs;
-  ZP_Index_t first_pointer;
-  ZP_Index_t bump_pointer;
+  ZP_Index_t num_slabs;
+  ZP_Index_t first_free;
+  ZP_Index_t bump_free;
 };
 typedef struct ZP_SlabAllocator ZP_SlabAllocator_t;
 
@@ -193,18 +193,23 @@ ZP_Index_t ZP_SlabAllocator_get_left(
   ZP_SlabPointer_t* pointer
 );
 
+ZP_Index_t ZP_SlabAllocator_get_right(
+  ZP_SlabAllocator_t* slab_allocator,
+  ZP_SlabPointer_t* pointer
+);
+
 void ZP_SlabAllocator_get(
   ZP_SlabAllocator_t* slab_allocator,
   ZP_SlabPointer_t* pointer,
-  ZP_Tagged_t* left,
-  ZP_Tagged_t* right
+  ZP_Index_t* left,
+  ZP_Index_t* right
 );
 
 void ZP_SlabAllocator_set(
   ZP_SlabAllocator_t* slab_allocator,
   ZP_SlabPointer_t* pointer,
-  ZP_Tagged_t* left,
-  ZP_Tagged_t* right
+  ZP_Index_t left,
+  ZP_Index_t right
 );
 
 /***** RegionAllocator *******************************************************/
@@ -305,23 +310,48 @@ ZP_Error_t ZP_Context_new_slab(
   ZP_SlabPointer_t* pointer
 );
 
+ZP_Index_t ZP_Context_get_left(
+  ZP_Context_t* slab_allocator,
+  ZP_SlabPointer_t* pointer
+);
+
+ZP_Index_t ZP_Context_get_right(
+  ZP_Context_t* slab_allocator,
+  ZP_SlabPointer_t* pointer
+);
+
 void ZP_Context_get(
   ZP_Context_t* context,
   ZP_SlabPointer_t* pointer,
-  ZP_Tagged_t* left,
-  ZP_Tagged_t* right
+  ZP_Index_t* left,
+  ZP_Index_t* right
 );
 
 void ZP_Context_set(
   ZP_Context_t* context,
   ZP_SlabPointer_t* pointer,
-  ZP_Tagged_t left,
-  ZP_Tagged_t right
+  ZP_Index_t left,
+  ZP_Index_t right
 );
 
 ZP_Error_t ZP_Context_slab_incref(
   ZP_Context_t* context,
   ZP_Tagged_t* tagged
+);
+
+ZP_Error_t ZP_Context_slab_incref_left(
+  ZP_Context_t* context,
+  ZP_SlabPointer_t* pointer
+);
+
+ZP_Error_t ZP_Context_slab_incref_right(
+  ZP_Context_t* context,
+  ZP_SlabPointer_t* pointer
+);
+
+ZP_Error_t ZP_Context_slab_incref_both(
+  ZP_Context_t* context,
+  ZP_SlabPointer_t* pointer
 );
 
 void ZP_Context_slab_decref(
