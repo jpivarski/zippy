@@ -2,7 +2,6 @@
 
 /***** helper (private) functions ********************************************/
 
-
 /***** public functions ******************************************************/
 
 void ZP_Tagged_to_SlabPointer(
