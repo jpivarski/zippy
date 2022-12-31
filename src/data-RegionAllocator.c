@@ -10,6 +10,97 @@ ZP_Index_t ZP_RegionAllocator_actual_size(
   return (quot + (rem != 0) + 2) * sizeof(ZP_Index_t);
 }
 
+/***** public functions ******************************************************/
+
+void ZP_Tagged_to_RegionPointer(
+  ZP_RegionPointer_t* pointer,
+  ZP_Tagged_t* tagged
+) {
+  pointer->at = tagged->data;
+}
+
+void ZP_Tagged_from_RegionPointer(
+  ZP_Tagged_t* tagged,
+  ZP_RegionPointer_t* pointer
+) {
+  tagged->data = pointer->at;
+}
+
+void ZP_RegionAllocator_new(
+  ZP_RegionAllocator_t* region_allocator,
+  void* arena,
+  size_t arena_size
+) {
+  region_allocator->arena = arena;
+  region_allocator->arena_size = arena_size;
+  region_allocator->first_free = 0;
+  *(ZP_Index_t*)region_allocator->arena = arena_size;
+  *(ZP_Index_t*)(region_allocator->arena + sizeof(ZP_Index_t)) = ZP_END_OF_FREE;
+}
+
+bool ZP_RegionAllocator_is_full(
+  ZP_RegionAllocator_t* region_allocator
+) {
+  return region_allocator->first_free == ZP_END_OF_FREE;
+}
+
+ZP_Error_t ZP_RegionAllocator_alloc(
+  ZP_RegionAllocator_t* region_allocator,
+  ZP_RegionPointer_t* pointer,
+  ZP_Index_t size
+) {
+  ZP_Index_t actual_size = ZP_RegionAllocator_actual_size(size);
+  ZP_Index_t prev = ZP_END_OF_FREE;
+  ZP_Index_t at = region_allocator->first_free;
+
+  while (true) {
+    if (at == ZP_END_OF_FREE) {
+      return "not enough memory in RegionAllocator to allocate region";
+    }
+
+    ZP_Index_t next_free = *(ZP_Index_t*)(region_allocator->arena + at + sizeof(ZP_Index_t));
+    ZP_Index_t this_free_size = *(ZP_Index_t*)(region_allocator->arena + at);
+
+    if (actual_size < this_free_size) {
+      /* split the region */
+      pointer->at = at;
+      at += actual_size;
+      this_free_size -= actual_size;
+      *(ZP_Index_t*)(region_allocator->arena + at) = this_free_size;
+      *(ZP_Index_t*)(region_allocator->arena + at + sizeof(ZP_Index_t)) = next_free;
+      break;
+    }
+
+    else if (actual_size == this_free_size) {
+      /* take the entire region */
+      pointer->at = at;
+      at = next_free;
+      break;
+    }
+
+    else {
+      /* try the next free region */
+      prev = at;
+      at = next_free;
+    }
+  }
+
+  if (prev == ZP_END_OF_FREE) {
+    /* update linked list head to point here */
+    region_allocator->first_free = at;
+  }
+  else {
+    /* update previous linked list node to point here */
+    *(ZP_Index_t*)(region_allocator->arena + prev + sizeof(ZP_Index_t)) = at;
+  }
+
+  /* data header: (1) reference count, (2) number of meaningful bytes */
+  *(ZP_Index_t*)(region_allocator->arena + pointer->at) = 1;
+  *(ZP_Index_t*)(region_allocator->arena + pointer->at + sizeof(ZP_Index_t)) = size;
+
+  return ZP_NO_ERROR;
+}
+
 void ZP_RegionAllocator_free(
   ZP_RegionAllocator_t* region_allocator,
   ZP_RegionPointer_t* pointer
@@ -76,91 +167,6 @@ void ZP_RegionAllocator_free(
   }
 }
 
-/***** public functions ******************************************************/
-
-void ZP_RegionAllocator_new(
-  ZP_RegionAllocator_t* region_allocator,
-  void* arena,
-  size_t arena_size
-) {
-  region_allocator->arena = arena;
-  region_allocator->arena_size = arena_size;
-  region_allocator->first_free = 0;
-  *(ZP_Index_t*)region_allocator->arena = arena_size;
-  *(ZP_Index_t*)(region_allocator->arena + sizeof(ZP_Index_t)) = ZP_END_OF_FREE;
-}
-
-bool ZP_RegionAllocator_is_full(
-  ZP_RegionAllocator_t* region_allocator
-) {
-  return region_allocator->first_free == ZP_END_OF_FREE;
-}
-
-void* ZP_RegionAllocator_at(
-  ZP_RegionAllocator_t* region_allocator,
-  ZP_RegionPointer_t* pointer
-) {
-  /* access data just beyond the reference count */
-  return (void*)(region_allocator->arena + pointer->at + sizeof(ZP_Index_t));
-}
-
-ZP_Error_t ZP_RegionAllocator_alloc(
-  ZP_RegionAllocator_t* region_allocator,
-  ZP_RegionPointer_t* pointer,
-  ZP_Index_t size
-) {
-  ZP_Index_t actual_size = ZP_RegionAllocator_actual_size(size);
-  ZP_Index_t prev = ZP_END_OF_FREE;
-  ZP_Index_t at = region_allocator->first_free;
-
-  while (true) {
-    if (at == ZP_END_OF_FREE) {
-      return "not enough memory in RegionAllocator to allocate region";
-    }
-
-    ZP_Index_t next_free = *(ZP_Index_t*)(region_allocator->arena + at + sizeof(ZP_Index_t));
-    ZP_Index_t this_free_size = *(ZP_Index_t*)(region_allocator->arena + at);
-
-    if (actual_size < this_free_size) {
-      /* split the region */
-      pointer->at = at;
-      at += actual_size;
-      this_free_size -= actual_size;
-      *(ZP_Index_t*)(region_allocator->arena + at) = this_free_size;
-      *(ZP_Index_t*)(region_allocator->arena + at + sizeof(ZP_Index_t)) = next_free;
-      break;
-    }
-
-    else if (actual_size == this_free_size) {
-      /* take the entire region */
-      pointer->at = at;
-      at = next_free;
-      break;
-    }
-
-    else {
-      /* try the next free region */
-      prev = at;
-      at = next_free;
-    }
-  }
-
-  if (prev == ZP_END_OF_FREE) {
-    /* update linked list head to point here */
-    region_allocator->first_free = at;
-  }
-  else {
-    /* update previous linked list node to point here */
-    *(ZP_Index_t*)(region_allocator->arena + prev + sizeof(ZP_Index_t)) = at;
-  }
-
-  /* data header: (1) reference count, (2) number of meaningful bytes */
-  *(ZP_Index_t*)(region_allocator->arena + pointer->at) = 1;
-  *(ZP_Index_t*)(region_allocator->arena + pointer->at + sizeof(ZP_Index_t)) = size;
-
-  return ZP_NO_ERROR;
-}
-
 ZP_Error_t ZP_RegionAllocator_incref(
   ZP_RegionAllocator_t* region_allocator,
   ZP_RegionPointer_t* pointer
@@ -188,5 +194,32 @@ void ZP_RegionAllocator_decref(
 
   if (*refcnt == 0) {
     ZP_RegionAllocator_free(region_allocator, pointer);
+  }
+}
+
+void* ZP_RegionAllocator_at(
+  ZP_RegionAllocator_t* region_allocator,
+  ZP_RegionPointer_t* pointer
+) {
+  /* meaningful data starts just beyond the reference count and size */
+  return (void*)(region_allocator->arena + pointer->at + 2 * sizeof(ZP_Index_t));
+}
+
+void ZP_RegionAllocator_copy_data(
+  ZP_RegionAllocator_t* region_allocator,
+  ZP_RegionPointer_t* pointer,
+  const char* data
+) {
+  /* get the size from the data header (second item) */
+  ZP_Index_t* size = (ZP_Index_t*)(region_allocator->arena + pointer->at + sizeof(ZP_Index_t));
+
+  /* meaningful data starts just beyond the reference count and size */
+  ZP_Index_t* put_here = (ZP_Index_t*)(region_allocator->arena + pointer->at + 2 * sizeof(ZP_Index_t));
+
+  ZP_Index_t* get_from_here = (ZP_Index_t*)data;
+
+  ZP_Index_t i;
+  for (i = 0;  i < *size;  i++) {
+    put_here[i] = get_from_here[i];
   }
 }
