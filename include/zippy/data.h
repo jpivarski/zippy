@@ -2,6 +2,10 @@
 
 #include <zippy/util.h>
 
+/* FIXME: temporary! */
+#include <stdio.h>
+/* ***************** */
+
 /* SlabAllocator pointers and int/float numbers packed into the same index */
 #ifndef ZIPPY_POINTER_SIZE
   #define ZIPPY_POINTER_SIZE 32

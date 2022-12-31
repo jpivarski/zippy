@@ -215,11 +215,15 @@ void ZP_RegionAllocator_copy_data(
 
   /* meaningful data starts just beyond the reference count and size */
   ZP_Index_t* put_here = (ZP_Index_t*)(region_allocator->arena + pointer->at + 2 * sizeof(ZP_Index_t));
-
   ZP_Index_t* get_from_here = (ZP_Index_t*)data;
 
+  /* like actual_size, but without "+ 2" (header) or "* sizeof(ZP_Index_t)" */
+  ZP_Index_t quot = *size / sizeof(ZP_Index_t);
+  ZP_Index_t rem = *size % sizeof(ZP_Index_t);
+  ZP_Index_t actual_size = (quot + (rem != 0));
+
   ZP_Index_t i;
-  for (i = 0;  i < *size;  i++) {
+  for (i = 0;  i < actual_size;  i++) {
     put_here[i] = get_from_here[i];
   }
 }

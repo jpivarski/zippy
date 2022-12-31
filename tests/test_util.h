@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 
 #include <zippy/data.h>
@@ -119,16 +120,22 @@ void view_Context(ZP_Context_t* context, bool view_slab, bool view_region) {
     for (i = 0;  i < context->region_allocator.arena_size;  i++) {
       unsigned char x = ((unsigned char*)context->region_allocator.arena)[i];
       if (x == 0) {
-        printf("__ ");
+        printf("__");
       }
       else if (('A' <= x  &&  x <= 'Z')  ||  ('a' <= x  &&  x <= 'z')) {
-        printf("'%c ", x);
+        printf("'%c", x);
       }
       else {
-        printf("%02x ", x);
+        printf("%02x", x);
       }
       if ((i + 1) % 24 == 0) {
         printf("\n");
+      }
+      else if ((i + 1) % sizeof(ZP_Index_t) == 0) {
+        printf("|");
+      }
+      else {
+        printf(" ");
       }
     }
 
