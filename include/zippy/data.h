@@ -58,45 +58,33 @@ typedef const char* ZP_Error_t;
 #if ZIPPY_POINTER_SIZE == 16
   #define ZP_TAG_FLOAT              0x8000   /* 1............... 15-bit int */
   #define ZP_TAG_INT                0x8000   /* 1............... 15-bit int */
-  #define ZP_TAG_OBJECT_MASK        0xf000   /* 1111............ 8 tags, 4095 addresses * 4-byte pairs = 16 kB */
-  #define ZP_TAG_OBJECT_ANTIMASK    0x8000   /* 1000............ */
-  #define ZP_TAG_OBJECT_ENUM        0x0000   /* 0000............ tag 0 */
-  #define ZP_TAG_OBJECT_LIST        0x1000   /* 0001............ tag 1 */
-  #define ZP_TAG_OBJECT_INSTANCE    0x2000   /* 0010............ tag 2 */
-  #define ZP_TAG_OBJECT_RESERVED1   0x3000   /* 0011............ tag 3 */
-  #define ZP_TAG_OBJECT_RESERVED2   0x4000   /* 0100............ tag 4 */
-  #define ZP_TAG_OBJECT_RESERVED3   0x5000   /* 0101............ tag 5 */
-  #define ZP_TAG_OBJECT_RESERVED4   0x6000   /* 0110............ tag 6 */
-  #define ZP_TAG_OBJECT_OTHER       0x7000   /* 0111............ tag 7 */
-  #define ZP_TERMINATOR             0x0fff   /* ends lists and trees, maximum number of pairs in SlabAllocator */
+  #define ZP_TAG_OBJECT_MASK        0xe000   /* 111............. 4 tags, 8191 addresses * 4-byte pairs = 32 kB */
+  #define ZP_TAG_OBJECT_ANTIMASK    0x8000   /* 100............. */
+  #define ZP_TAG_OBJECT_ENUM        0x0000   /* 000............. tag 0 */
+  #define ZP_TAG_OBJECT_LIST        0x2000   /* 001............. tag 1 */
+  #define ZP_TAG_OBJECT_INSTANCE    0x4000   /* 010............. tag 2 */
+  #define ZP_TAG_OBJECT_OTHER       0x6000   /* 011............. tag 7 */
+  #define ZP_TERMINATOR             0x1fff   /* ends lists and trees, maximum number of pairs in SlabAllocator */
 #elif ZIPPY_POINTER_SIZE == 32
   #define ZP_TAG_FLOAT              0x80000000   /* 1............................... 31-bit float */
   #define ZP_TAG_INT                0x40000000   /* 01.............................. 30-bit int */
-  #define ZP_TAG_OBJECT_MASK        0xf8000000   /* 11111........................... (2**(32 - 5) - 1) * 8 byte = 1 GB */
-  #define ZP_TAG_OBJECT_ANTIMASK    0xc0000000   /* 11000........................... */
-  #define ZP_TAG_OBJECT_ENUM        0x00000000   /* 00000........................... */
-  #define ZP_TAG_OBJECT_LIST        0x08000000   /* 00001........................... */
-  #define ZP_TAG_OBJECT_INSTANCE    0x10000000   /* 00010........................... */
-  #define ZP_TAG_OBJECT_RESERVED1   0x18000000   /* 00011........................... */
-  #define ZP_TAG_OBJECT_RESERVED2   0x20000000   /* 00100........................... */
-  #define ZP_TAG_OBJECT_RESERVED3   0x28000000   /* 00101........................... */
-  #define ZP_TAG_OBJECT_RESERVED4   0x30000000   /* 00110........................... */
-  #define ZP_TAG_OBJECT_OTHER       0x38000000   /* 00111........................... */
-  #define ZP_TERMINATOR             0x07ffffff
+  #define ZP_TAG_OBJECT_MASK        0xf0000000   /* 1111............................ (2**(32 - 4) - 1) * 8 byte = 2 GB */
+  #define ZP_TAG_OBJECT_ANTIMASK    0xc0000000   /* 1100............................ */
+  #define ZP_TAG_OBJECT_ENUM        0x00000000   /* 0000............................ */
+  #define ZP_TAG_OBJECT_LIST        0x10000000   /* 0001............................ */
+  #define ZP_TAG_OBJECT_INSTANCE    0x20000000   /* 0010............................ */
+  #define ZP_TAG_OBJECT_OTHER       0x30000000   /* 0011............................ */
+  #define ZP_TERMINATOR             0x0fffffff
 #else /* ZIPPY_POINTER_SIZE == 64 */
   #define ZP_TAG_FLOAT              0x8000000000000000   /* 1....... 63-bit float */
   #define ZP_TAG_INT                0x4000000000000000   /* 01...... 62-bit int */
-  #define ZP_TAG_OBJECT_MASK        0xf800000000000000   /* 11111... (2**(64 - 5) - 1) * 16 byte = 8 EB */
-  #define ZP_TAG_OBJECT_ANTIMASK    0xc000000000000000   /* 11000... */
-  #define ZP_TAG_OBJECT_ENUM        0x0000000000000000   /* 00000... */
-  #define ZP_TAG_OBJECT_LIST        0x0800000000000000   /* 00001... */
-  #define ZP_TAG_OBJECT_INSTANCE    0x1000000000000000   /* 00010... */
-  #define ZP_TAG_OBJECT_RESERVED1   0x1800000000000000   /* 00011... */
-  #define ZP_TAG_OBJECT_RESERVED2   0x2000000000000000   /* 00100... */
-  #define ZP_TAG_OBJECT_RESERVED3   0x2800000000000000   /* 00101... */
-  #define ZP_TAG_OBJECT_RESERVED4   0x3000000000000000   /* 00110... */
-  #define ZP_TAG_OBJECT_OTHER       0x3800000000000000   /* 00111... */
-  #define ZP_TERMINATOR             0x07ffffffffffffff
+  #define ZP_TAG_OBJECT_MASK        0xf000000000000000   /* 1111... (2**(64 - 4) - 1) * 16 byte = 16 EB */
+  #define ZP_TAG_OBJECT_ANTIMASK    0xc000000000000000   /* 1100... */
+  #define ZP_TAG_OBJECT_ENUM        0x0000000000000000   /* 0000... */
+  #define ZP_TAG_OBJECT_LIST        0x1000000000000000   /* 0001... */
+  #define ZP_TAG_OBJECT_INSTANCE    0x2000000000000000   /* 0010... */
+  #define ZP_TAG_OBJECT_OTHER       0x3000000000000000   /* 0011... */
+  #define ZP_TERMINATOR             0x0fffffffffffffff
 #endif
 
 /* can have at most 4095 built-in enumerations */
