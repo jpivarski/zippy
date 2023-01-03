@@ -128,11 +128,15 @@ void ZP_Tagged_copy(
   ZP_Tagged_t* input
 );
 
+bool ZP_Tagged_int_overflow(
+  ZP_Int_t data
+);
+
 ZP_Int_t ZP_Tagged_to_int(
   ZP_Tagged_t* tagged
 );
 
-ZP_Error_t ZP_Tagged_from_int(
+void ZP_Tagged_from_int(
   ZP_Tagged_t* tagged,
   ZP_Int_t* data
 );
@@ -141,7 +145,7 @@ ZP_Float_t ZP_Tagged_to_float(
   ZP_Tagged_t* tagged
 );
 
-ZP_Error_t ZP_Tagged_from_float(
+void ZP_Tagged_from_float(
   ZP_Tagged_t* tagged,
   ZP_Float_t* data
 );
