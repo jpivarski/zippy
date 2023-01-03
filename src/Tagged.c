@@ -2,18 +2,29 @@
 
 /***** helper (private) functions ********************************************/
 
-const ZP_Index_t ZP_TAG_SHIFT = 8 * (sizeof(ZP_Index_t) - 1);
+#if ZIPPY_POINTER_SIZE == 16
+  #define ZP_INT_MASK_SIGN       0x8000  /* 10000000,0x00 */
+  #define ZP_INT_MASK_DATA       0x7fff  /* 01111111,0xff */
+  #define ZP_INT_SIGN_TEST       0x4000  /* 01000000,0x00 */
+  #define ZP_INT_OVERFLOW_TEST   0xc000  /* 11000000,0x00 */
+#elif ZIPPY_POINTER_SIZE == 32
+  #define ZP_INT_MASK_SIGN       0xc0000000  /* 11000000,0x000000 */
+  #define ZP_INT_MASK_DATA       0x3fffffff  /* 00111111,0xffffff */
+  #define ZP_INT_SIGN_TEST       0x20000000  /* 00100000,0x000000 */
+  #define ZP_INT_OVERFLOW_TEST   0xe0000000  /* 11100000,0x000000 */
+#else  /* ZIPPY_POINTER_SIZE == 64 */
+  #define ZP_INT_MASK_SIGN       0xc000000000000000  /* 11000000,0x00000000000000 */
+  #define ZP_INT_MASK_DATA       0x3fffffffffffffff  /* 00111111,0xffffffffffffff */
+  #define ZP_INT_SIGN_TEST       0x2000000000000000  /* 00100000,0x00000000000000 */
+  #define ZP_INT_OVERFLOW_TEST   0xe000000000000000  /* 11100000,0x00000000000000 */
+#endif
 
-const ZP_Index_t ZP_INT_TAG = ZP_TAG_INT;
-const ZP_Index_t ZP_INT_MASK_SIGN = 0xc0 << ZP_TAG_SHIFT;
-const ZP_Index_t ZP_INT_MASK_DATA = ~ZP_INT_MASK_SIGN;
-const ZP_Index_t ZP_INT_SIGN_TEST = 0x20 << ZP_TAG_SHIFT;
-const ZP_Index_t ZP_INT_OVERFLOW_TEST = 0xe0 << ZP_TAG_SHIFT;
-
-const ZP_Index_t ZP_FLOAT_SIGN_0 = ZP_TAG_FLOAT;
-const ZP_Index_t ZP_FLOAT_SIGN_1 = ZP_FLOAT_SIGN_0 | 1;
-const ZP_Index_t ZP_FLOAT_MASK_DATA = ~ZP_FLOAT_SIGN_0;
-const ZP_Index_t ZP_FLOAT_MASK_SIGNIFICANT = ~(ZP_Index_t)1;
+#if ZIPPY_POINTER_SIZE != 16
+  const ZP_Index_t ZP_FLOAT_SIGN_0 = ZP_TAG_FLOAT;
+  const ZP_Index_t ZP_FLOAT_SIGN_1 = ZP_FLOAT_SIGN_0 | 1;
+  const ZP_Index_t ZP_FLOAT_MASK_DATA = (ZP_Index_t)(~ZP_FLOAT_SIGN_0);
+  const ZP_Index_t ZP_FLOAT_MASK_SIGNIFICANT = ~(ZP_Index_t)1;
+#endif  /* ZIPPY_POINTER_SIZE != 16 */
 
 /***** public functions ******************************************************/
 
@@ -40,6 +51,7 @@ ZP_Int_t ZP_Tagged_to_int(
   /* truncating the last two bits removes the sign */
   /* so interpret the third bit as the sign and pad the rest of the integer */
   hold |= (hold & ZP_INT_SIGN_TEST) ? ZP_INT_MASK_SIGN : 0;
+
   return *(ZP_Int_t*)(&hold);
 }
 
@@ -52,7 +64,7 @@ void ZP_Tagged_from_int(
 
   /* wipe out any overflow bits (check with ZP_Tagged_int_overflow!) and add the tag */
   tagged->data &= ZP_INT_MASK_DATA;
-  tagged->data |= ZP_INT_TAG;
+  tagged->data |= ZP_TAG_INT;
 }
 
 ZP_Float_t ZP_Tagged_to_float(
@@ -88,7 +100,7 @@ void ZP_Tagged_from_float(
 #if ZIPPY_POINTER_SIZE == 16
 
   /* no floating-point in 16-bit mode; included only for C's type-check */
-  ZP_Int_t hold = (ZP_Int_t)data;
+  ZP_Int_t hold = (ZP_Int_t)(*data);
   ZP_Tagged_from_int(tagged, &hold);
 
 #else

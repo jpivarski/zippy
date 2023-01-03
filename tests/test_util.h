@@ -21,7 +21,7 @@
 
 #define assert(obtained, expected)                                       \
   if ((obtained) != (expected)) {                                        \
-    printf("line %d: expected %x but obtained %x\n", __LINE__, expected, obtained); \
+    printf("line %d: unexpected value\n", __LINE__); \
     return -1;                                                           \
   }                                                                      \
 
@@ -42,6 +42,7 @@
     printf("line %d: region state differs from expected\n", __LINE__);   \
     return -1;                                                           \
   }                                                                      \
+
 
 ZP_Error_t new_context(ZP_Context_t* context, size_t slab_size, size_t region_size) {
   size_t refcnt_size = slab_size * sizeof(ZP_RefCnt_t) / (2 * sizeof(ZP_Index_t));
@@ -95,7 +96,7 @@ void view_Context(ZP_Context_t* context, bool view_slab, bool view_region) {
       i -= 8;
       for (j = 0;  j < 8;  j++) {
         if (i < context->slab_allocator.num_slabs) {
-          sprintf("%04x,%04x ", context->slab_allocator.arena[2 * i], context->slab_allocator.arena[2 * i + 1]);
+          sprintf(tmp, "%04x,%04x ", context->slab_allocator.arena[2 * i], context->slab_allocator.arena[2 * i + 1]);
           for (k = 0;  k < 36;  k++) {
             if (tmp[k] == '0') {
               tmp[k] = '_';
@@ -139,7 +140,7 @@ void view_Context(ZP_Context_t* context, bool view_slab, bool view_region) {
       i -= 2;
       for (j = 0;  j < 2;  j++) {
         if (i < context->slab_allocator.num_slabs) {
-          sprintf("%08x,%08x ", context->slab_allocator.arena[2 * i], context->slab_allocator.arena[2 * i + 1]);
+          sprintf(tmp, "%016lx,%016lx ", context->slab_allocator.arena[2 * i], context->slab_allocator.arena[2 * i + 1]);
           for (k = 0;  k < 36;  k++) {
             if (tmp[k] == '0') {
               tmp[k] = '_';
@@ -186,7 +187,13 @@ void view_Context(ZP_Context_t* context, bool view_slab, bool view_region) {
 
 void state_Context_refcnt(ZP_Context_t* context) {
   ZP_Index_t size = context->slab_allocator.num_slabs * sizeof(ZP_RefCnt_t);
+#if ZIPPY_POINTER_SIZE == 16
   printf("  error = assert_Context_refcnt(&context, %d, \"", size);
+#elif ZIPPY_POINTER_SIZE == 32
+  printf("  error = assert_Context_refcnt(&context, %d, \"", size);
+#else
+  printf("  error = assert_Context_refcnt(&context, %ld, \"", size);
+#endif
   ZP_Index_t i;
   for (i = 0;  i < size;  i++) {
     printf("\\x%02x", ((unsigned char*)context->refcnt)[i]);
@@ -196,7 +203,13 @@ void state_Context_refcnt(ZP_Context_t* context) {
 
 void state_Context_slab(ZP_Context_t* context) {
   ZP_Index_t size = 2 * context->slab_allocator.num_slabs * sizeof(ZP_Index_t);
+#if ZIPPY_POINTER_SIZE == 16
   printf("  error = assert_Context_slab(&context, %d, \"", size);
+#elif ZIPPY_POINTER_SIZE == 32
+  printf("  error = assert_Context_slab(&context, %d, \"", size);
+#else
+  printf("  error = assert_Context_slab(&context, %ld, \"", size);
+#endif
   ZP_Index_t i;
   for (i = 0;  i < size;  i++) {
     printf("\\x%02x", ((unsigned char*)context->slab_allocator.arena)[i]);
@@ -206,7 +219,13 @@ void state_Context_slab(ZP_Context_t* context) {
 
 void state_Context_region(ZP_Context_t* context) {
   ZP_Index_t size = context->region_allocator.arena_size;
+#if ZIPPY_POINTER_SIZE == 16
   printf("  error = assert_Context_region(&context, %d, \"", size);
+#elif ZIPPY_POINTER_SIZE == 32
+  printf("  error = assert_Context_region(&context, %d, \"", size);
+#else
+  printf("  error = assert_Context_region(&context, %ld, \"", size);
+#endif
   ZP_Index_t i;
   for (i = 0;  i < size;  i++) {
     printf("\\x%02x", ((unsigned char*)context->region_allocator.arena)[i]);
