@@ -4,7 +4,14 @@
 
 /***** public functions ******************************************************/
 
-void ZP_List_decref(
+ZP_Error_t ZP_List_copy(
+  ZP_Context_t* context,
+  ZP_Tagged_t* list
+) {
+  return "not implemented List 1";
+}
+
+void ZP_List_del(
   ZP_Context_t* context,
   ZP_Tagged_t* list
 ) {
@@ -58,5 +65,5 @@ ZP_Error_t ZP_List_push(
   ZP_Tagged_t* input_list,
   ZP_Tagged_t* item
 ) {
-  return "not implemented List 1";
+  return "not implemented List 2";
 }

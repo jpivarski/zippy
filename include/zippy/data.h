@@ -387,7 +387,12 @@ void ZP_Context_region_decref(
 
 /***** List ******************************************************************/
 
-void ZP_List_decref(
+ZP_Error_t ZP_List_copy(
+  ZP_Context_t* context,
+  ZP_Tagged_t* list
+);
+
+void ZP_List_del(
   ZP_Context_t* context,
   ZP_Tagged_t* list
 );
@@ -420,6 +425,11 @@ ZP_Error_t ZP_List_push(
 );
 
 /***** SimpleClass ***********************************************************/
+
+ZP_Error_t ZP_SimpleClass_copy(
+  ZP_Context_t* context,
+  ZP_Tagged_t* simple_class
+);
 
 void ZP_SimpleClass_decref(
   ZP_Context_t* context,

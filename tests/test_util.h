@@ -7,23 +7,41 @@
 
 #include <zippy/data.h>
 
-#define handle_error(error)        \
-  if (error != ZP_NO_ERROR) {      \
-    printf("error: %s\n", error);  \
-    return -1;                     \
-  }                                \
+#define handle_error(error)                                              \
+  if (error != ZP_NO_ERROR) {                                            \
+    printf("line %d: error: %s\n", __LINE__, error);                     \
+    return -1;                                                           \
+  }                                                                      \
 
-#define handle_not_error(error)    \
-  if (error == ZP_NO_ERROR) {      \
-    printf("didn't encounter expected error\n"); \
-    return -1;                     \
-  }                                \
+#define handle_not_error(error)                                          \
+  if (error == ZP_NO_ERROR) {                                            \
+    printf("line %d: didn't encounter expected error\n", __LINE__);      \
+    return -1;                                                           \
+  }                                                                      \
 
-#define assert(obtained, expected) \
-  if ((obtained) != (expected)) {  \
+#define assert(obtained, expected)                                       \
+  if ((obtained) != (expected)) {                                        \
     printf("line %d: expected %x but obtained %x\n", __LINE__, expected, obtained); \
-    return -1;                     \
-  }                                \
+    return -1;                                                           \
+  }                                                                      \
+
+#define assert_Context_refcnt(context, size, expected)                   \
+  if (!is_good_Context_refcnt(context, size, expected)) {                \
+    printf("line %d: refcnt state differs from expected\n", __LINE__);   \
+    return -1;                                                           \
+  }                                                                      \
+
+#define assert_Context_slab(context, size, expected)                     \
+  if (!is_good_Context_slab(context, size, expected)) {                  \
+    printf("line %d: slab state differs from expected\n", __LINE__);     \
+    return -1;                                                           \
+  }                                                                      \
+
+#define assert_Context_region(context, size, expected)                   \
+  if (!is_good_Context_region(context, size, expected)) {                \
+    printf("line %d: region state differs from expected\n", __LINE__);   \
+    return -1;                                                           \
+  }                                                                      \
 
 ZP_Error_t new_context(ZP_Context_t* context, size_t slab_size, size_t region_size) {
   size_t refcnt_size = slab_size * sizeof(ZP_RefCnt_t) / (2 * sizeof(ZP_Index_t));
@@ -173,7 +191,7 @@ void state_Context_refcnt(ZP_Context_t* context) {
   for (i = 0;  i < size;  i++) {
     printf("\\x%02x", ((unsigned char*)context->refcnt)[i]);
   }
-  printf("\");\n  handle_error(error);\n");
+  printf("\");\n");
 }
 
 void state_Context_slab(ZP_Context_t* context) {
@@ -183,7 +201,7 @@ void state_Context_slab(ZP_Context_t* context) {
   for (i = 0;  i < size;  i++) {
     printf("\\x%02x", ((unsigned char*)context->slab_allocator.arena)[i]);
   }
-  printf("\");\n  handle_error(error);\n");
+  printf("\");\n");
 }
 
 void state_Context_region(ZP_Context_t* context) {
@@ -193,10 +211,10 @@ void state_Context_region(ZP_Context_t* context) {
   for (i = 0;  i < size;  i++) {
     printf("\\x%02x", ((unsigned char*)context->region_allocator.arena)[i]);
   }
-  printf("\");\n  handle_error(error);\n");
+  printf("\");\n");
 }
 
-ZP_Error_t assert_Context_refcnt(ZP_Context_t* context, ZP_Index_t size, const char* expected) {
+bool is_good_Context_refcnt(ZP_Context_t* context, ZP_Index_t size, const char* expected) {
   ZP_Index_t i;
   ZP_Index_t j;
   for (i = 0;  i < size;  i++) {
@@ -213,13 +231,13 @@ ZP_Error_t assert_Context_refcnt(ZP_Context_t* context, ZP_Index_t size, const c
         printf("\\x%02x", ((unsigned char*)context->refcnt)[j]);
       }
       printf("\n");
-      return "mismatch in refcnt";
+      return false;
     }
   }
-  return ZP_NO_ERROR;
+  return true;
 }
 
-ZP_Error_t assert_Context_slab(ZP_Context_t* context, ZP_Index_t size, const char* expected) {
+bool is_good_Context_slab(ZP_Context_t* context, ZP_Index_t size, const char* expected) {
   ZP_Index_t i;
   ZP_Index_t j;
   for (i = 0;  i < size;  i++) {
@@ -236,13 +254,13 @@ ZP_Error_t assert_Context_slab(ZP_Context_t* context, ZP_Index_t size, const cha
         printf("\\x%02x", ((unsigned char*)context->slab_allocator.arena)[j]);
       }
       printf("\n");
-      return "mismatch in slab";
+      return false;
     }
   }
-  return ZP_NO_ERROR;
+  return true;
 }
 
-ZP_Error_t assert_Context_region(ZP_Context_t* context, ZP_Index_t size, const char* expected) {
+bool is_good_Context_region(ZP_Context_t* context, ZP_Index_t size, const char* expected) {
   ZP_Index_t i;
   ZP_Index_t j;
   for (i = 0;  i < size;  i++) {
@@ -259,10 +277,10 @@ ZP_Error_t assert_Context_region(ZP_Context_t* context, ZP_Index_t size, const c
         printf("\\x%02x", ((unsigned char*)context->region_allocator.arena)[j]);
       }
       printf("\n");
-      return "mismatch in region";
+      return false;
     }
   }
-  return ZP_NO_ERROR;
+  return true;
 }
 
 #endif /* ZIPPY_TEST_UTIL_H */
