@@ -314,6 +314,7 @@ void ZP_Context_slab_decref(
     pointer = tagged->data & (~ZP_TAG_OBJECT_MASK);
     if (pointer != ZP_TERMINATOR) {
       context->refcnt[pointer]--;
+
       if (context->refcnt[pointer] == 0) {
         ZP_List_del(context, tagged);
       }
@@ -322,12 +323,14 @@ void ZP_Context_slab_decref(
 
   case ZP_TAG_OBJECT_INSTANCE:
     pointer = tagged->data & (~ZP_TAG_OBJECT_MASK);
+
     /* FIXME: handle the instance type, after it gets defined */
     break;
 
   case ZP_TAG_OBJECT_OTHER:
     pointer = tagged->data & (~ZP_TAG_OBJECT_MASK);
     context->refcnt[pointer]--;
+
     if (context->refcnt[pointer] == 0) {
       ZP_SlabPointer_t slab_pointer;
       slab_pointer.at = pointer;
