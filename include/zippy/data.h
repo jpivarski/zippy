@@ -91,30 +91,31 @@ typedef const char* ZP_Error_t;
   #define ZP_TERMINATOR             0x0fffffffffffffff
 #endif
 
-/* built-in enumerations must all be less than ZP_TERMINATOR */
+#define ZP_ENUM_DTYPE_ARRAY_ANTIMASK    0xffc0
+
 enum {
-  /* singleton objects */
+  /* array dtypes, up to 0x003f */
+  ZP_ENUM_DTYPE_ARRAY_BOOL            = 0x0000,
+  ZP_ENUM_DTYPE_ARRAY_UINT8           = 0x0001,
+  ZP_ENUM_DTYPE_ARRAY_UINT16          = 0x0002,
+  ZP_ENUM_DTYPE_ARRAY_UINT32          = 0x0003,
+  ZP_ENUM_DTYPE_ARRAY_UINT64          = 0x0004,
+  ZP_ENUM_DTYPE_ARRAY_INT8            = 0x0005,
+  ZP_ENUM_DTYPE_ARRAY_INT16           = 0x0006,
+  ZP_ENUM_DTYPE_ARRAY_INT32           = 0x0007,
+  ZP_ENUM_DTYPE_ARRAY_INT64           = 0x0008,
+  ZP_ENUM_DTYPE_ARRAY_FLOAT32         = 0x0009,
+  ZP_ENUM_DTYPE_ARRAY_FLOAT64         = 0x000a,
 
-  ZP_ENUM_NONE = 0,
-  ZP_ENUM_FALSE,
-  ZP_ENUM_TRUE,
+  /* singleton objects, up to 0x00ff */
+  ZP_ENUM_NONE                        = 0x0040,
+  ZP_ENUM_FALSE                       = 0x0041,
+  ZP_ENUM_TRUE                        = 0x0042,
 
-  /* built-in type designators */
-
-  ZP_ENUM_OTHER_RANDOM_ACCESS_LIST,
-  ZP_ENUM_OTHER_SIMPLE_CLASS,
-
-  ZP_ENUM_OTHER_ARRAY_BOOL,
-  ZP_ENUM_OTHER_ARRAY_UINT8,
-  ZP_ENUM_OTHER_ARRAY_UINT16,
-  ZP_ENUM_OTHER_ARRAY_UINT32,
-  ZP_ENUM_OTHER_ARRAY_UINT64,
-  ZP_ENUM_OTHER_ARRAY_INT8,
-  ZP_ENUM_OTHER_ARRAY_INT16,
-  ZP_ENUM_OTHER_ARRAY_INT32,
-  ZP_ENUM_OTHER_ARRAY_INT64,
-  ZP_ENUM_OTHER_ARRAY_FLOAT32,
-  ZP_ENUM_OTHER_ARRAY_FLOAT64
+  /* type designators for ZP_TAG_OBJECT_OTHER, up to 0x1fff */
+  ZP_ENUM_OTHER_SYMBOL                = 0x0100,
+  ZP_ENUM_OTHER_RANDOM_ACCESS_LIST    = 0x0101,
+  ZP_ENUM_OTHER_SIMPLE_CLASS          = 0x0102
 };
 
 /***** Tagged ****************************************************************/
@@ -345,9 +346,9 @@ ZP_Error_t ZP_Context_new(
   size_t refcnt_size
 );
 
-ZP_Error_t ZP_Context_new_or_get_symbol(
+ZP_Error_t ZP_Context_get_symbol(
   ZP_Context_t* context,
-  ZP_RegionPointer_t pointer,
+  ZP_Tagged_t* symbol,
   const char* symbol_data,
   ZP_Index_t symbol_size
 );
@@ -487,6 +488,25 @@ ZP_Error_t ZP_List_push(
   ZP_Tagged_t* output_list,
   ZP_Tagged_t* input_list,
   ZP_Tagged_t* item
+);
+
+/***** Symbol ****************************************************************/
+
+ZP_Error_t ZP_Symbol_copy(
+  ZP_Context_t* context,
+  ZP_Tagged_t* new_symbol,
+  ZP_Tagged_t* old_symbol
+);
+
+void ZP_Symbol_del(
+  ZP_Context_t* context,
+  ZP_Tagged_t* symbol
+);
+
+ZP_Error_t ZP_Symbol_new(
+  ZP_Context_t* context,
+  ZP_Tagged_t* symbol,
+  ZP_RegionPointer_t* region_pointer
 );
 
 /***** RandomAccessList ******************************************************/

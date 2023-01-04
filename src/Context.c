@@ -44,18 +44,85 @@ ZP_Error_t ZP_Context_new(
     context->refcnt[i] = 0;
   }
 
-  /* FIXME: initialize symbol_set */
+  /* not an ordinary list: mutable, references managed globally, items are RegionPointers */
+  ZP_List_new_empty(&context->symbol_set);
 
   return ZP_NO_ERROR;
 }
 
-ZP_Error_t ZP_Context_new_or_get_symbol(
+ZP_Error_t ZP_Context_get_symbol(
   ZP_Context_t* context,
-  ZP_RegionPointer_t pointer,
+  ZP_Tagged_t* symbol,
   const char* symbol_data,
   ZP_Index_t symbol_size
 ) {
-  return "not implemented 2";
+  ZP_Tagged_t this_list;
+  ZP_Tagged_copy(&this_list, &context->symbol_set);
+
+  ZP_Error_t error;
+  ZP_Tagged_t next_list;
+  ZP_Tagged_t this_symbol;
+
+  while (!ZP_List_is_empty(&this_list)) {
+    ZP_List_peek_reverse_iterate_step(context, &next_list, &this_symbol, &this_list);
+
+    ZP_SlabPointer_t this_symbol_pointer;
+    ZP_Tagged_to_SlabPointer(&this_symbol_pointer, &this_symbol);
+
+    ZP_RegionPointer_t this_pointer;
+    this_pointer.at = ZP_Context_get_right(context, &this_symbol_pointer);
+
+    /* check to see if the symbol at this position in the list is the desired one */
+    ZP_Index_t this_size = ZP_Context_region_size(context, &this_pointer);
+    if (this_size == symbol_size) {
+      const char* this_data = (const char*)ZP_Context_region_at(context, &this_pointer);
+      bool same = true;
+      ZP_Index_t i;
+      for (i = 0;  i < this_size;  i++) {
+        if (this_data[i] != symbol_data[i]) {
+          same = false;
+          break;
+        }
+      }
+      if (same) {
+        /* it is! return it */
+        return ZP_Context_slab_incref(context, symbol, &this_symbol);
+      }
+    }
+
+    this_list.data = next_list.data;
+  }
+
+  /* the desired symbol was not found in the list; create it and push it into the list */
+
+  ZP_RegionPointer_t region_pointer;
+  error = ZP_Context_new_region(context, &region_pointer, symbol_size);
+  if (error != ZP_NO_ERROR) {
+    return error;
+  }
+
+  ZP_Context_region_copy_data(context, &region_pointer, symbol_data);
+
+  error = ZP_Symbol_new(context, symbol, &region_pointer);
+  if (error != ZP_NO_ERROR) {
+    ZP_Context_region_decref(context, &region_pointer);
+    return error;
+  }
+
+  ZP_Tagged_t new_list;
+  error = ZP_List_push(context, &new_list, &context->symbol_set, symbol);
+  if (error != ZP_NO_ERROR) {
+    ZP_Context_region_decref(context, &region_pointer);
+    ZP_Symbol_del(context, symbol);
+    return error;
+  }
+
+  ZP_Context_slab_decref(context, symbol);
+  ZP_Context_slab_decref(context, &context->symbol_set);
+
+  context->symbol_set.data = new_list.data;
+
+  return ZP_NO_ERROR;
 }
 
 ZP_Error_t ZP_Context_new_slab(
@@ -223,6 +290,8 @@ ZP_Error_t ZP_Context_slab_incref(
       ZP_Tagged_t other_type;
       other_type.data = ZP_Context_get_left(context, &slab_pointer);
       switch (ZP_Tagged_to_enum(&other_type)) {
+      case ZP_ENUM_OTHER_SYMBOL:
+        return ZP_Symbol_copy(context, new_tagged, old_tagged);
       case ZP_ENUM_OTHER_RANDOM_ACCESS_LIST:
         return ZP_RandomAccessList_copy(context, new_tagged, old_tagged);
       /* FIXME: handle more types, as they get defined */
@@ -265,9 +334,12 @@ void ZP_Context_slab_decref(
       ZP_Tagged_t other_type;
       other_type.data = ZP_Context_get_left(context, &slab_pointer);
       switch (ZP_Tagged_to_enum(&other_type)) {
-        case ZP_ENUM_OTHER_RANDOM_ACCESS_LIST:
-          ZP_RandomAccessList_del(context, tagged);
-          break;
+      case ZP_ENUM_OTHER_SYMBOL:
+        ZP_Symbol_del(context, tagged);
+        break;
+      case ZP_ENUM_OTHER_RANDOM_ACCESS_LIST:
+        ZP_RandomAccessList_del(context, tagged);
+        break;
       /* FIXME: handle more types, as they get defined */
       }
     }
