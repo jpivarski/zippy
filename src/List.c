@@ -33,7 +33,7 @@ void ZP_List_del(
     ZP_Context_slab_decref(context, &this_item);
 
     /* free the slab associated with the OLD this_list (pointer) */
-    ZP_SlabAllocator_free(&context->slab_allocator, &pointer);
+    ZP_Context_free_slab(context, &pointer);
 
     /* if we're looking at a ZP_TERMINATOR, bail before trying to get its address */
     if (ZP_List_is_empty(&this_list)) {
@@ -80,7 +80,7 @@ ZP_Index_t ZP_List_size(
   return size;
 }
 
-void ZP_List_peek_iterate(
+void ZP_List_peek_reverse_iterate_step(
   ZP_Context_t* context,
   ZP_Tagged_t* next_list,
   ZP_Tagged_t* this_item,

@@ -64,10 +64,10 @@ typedef const char* ZP_Error_t;
   #define ZP_TAG_INT                0x8000   /* 1............... 15-bit int */
   #define ZP_TAG_OBJECT_MASK        0xe000   /* 111............. 4 tags, 8191 addresses * 4-byte pairs = 32 kB */
   #define ZP_TAG_OBJECT_ANTIMASK    0x8000   /* 100............. */
-  #define ZP_TAG_OBJECT_ENUM        0x0000   /* 000............. tag 0 */
-  #define ZP_TAG_OBJECT_LIST        0x2000   /* 001............. tag 1 */
-  #define ZP_TAG_OBJECT_INSTANCE    0x4000   /* 010............. tag 2 */
-  #define ZP_TAG_OBJECT_OTHER       0x6000   /* 011............. tag 7 */
+  #define ZP_TAG_OBJECT_ENUM        0x0000   /* 000............. tag #1 */
+  #define ZP_TAG_OBJECT_LIST        0x2000   /* 001............. tag #2 */
+  #define ZP_TAG_OBJECT_INSTANCE    0x4000   /* 010............. tag #3 */
+  #define ZP_TAG_OBJECT_OTHER       0x6000   /* 011............. tag #4 */
   #define ZP_TERMINATOR             0x1fff   /* ends lists and trees, maximum number of pairs in SlabAllocator */
 #elif ZIPPY_POINTER_SIZE == 32
   #define ZP_TAG_FLOAT              0x80000000   /* 1............................... 31-bit float */
@@ -101,6 +101,7 @@ enum {
 
   /* built-in type designators */
 
+  ZP_ENUM_OTHER_RANDOM_ACCESS_LIST,
   ZP_ENUM_OTHER_SIMPLE_CLASS,
 
   ZP_ENUM_OTHER_ARRAY_BOOL,
@@ -140,8 +141,13 @@ bool ZP_Tagged_is_refcntable(
   ZP_Tagged_t* tagged
 );
 
-ZP_Index_t ZP_Tagged_enum(
+ZP_Index_t ZP_Tagged_to_enum(
   ZP_Tagged_t* tagged
+);
+
+void ZP_Tagged_from_enum(
+  ZP_Tagged_t* tagged,
+  ZP_Index_t enum_value
 );
 
 ZP_Float_t ZP_Tagged_to_float(
@@ -303,6 +309,11 @@ void ZP_RegionAllocator_decref(
   ZP_RegionPointer_t* pointer
 );
 
+ZP_Index_t ZP_RegionAllocator_size(
+  ZP_RegionAllocator_t* region_allocator,
+  ZP_RegionPointer_t* pointer
+);
+
 void* ZP_RegionAllocator_at(
   ZP_RegionAllocator_t* region_allocator,
   ZP_RegionPointer_t* pointer
@@ -342,6 +353,11 @@ ZP_Error_t ZP_Context_new_or_get_symbol(
 );
 
 ZP_Error_t ZP_Context_new_slab(
+  ZP_Context_t* context,
+  ZP_SlabPointer_t* pointer
+);
+
+void ZP_Context_free_slab(
   ZP_Context_t* context,
   ZP_SlabPointer_t* pointer
 );
@@ -417,6 +433,11 @@ void ZP_Context_region_decref(
   ZP_RegionPointer_t* pointer
 );
 
+ZP_Index_t ZP_Context_region_size(
+  ZP_Context_t* context,
+  ZP_RegionPointer_t* pointer
+);
+
 void* ZP_Context_region_at(
   ZP_Context_t* context,
   ZP_RegionPointer_t* pointer
@@ -454,7 +475,7 @@ ZP_Index_t ZP_List_size(
   ZP_Tagged_t* list
 );
 
-void ZP_List_peek_iterate(
+void ZP_List_peek_reverse_iterate_step(
   ZP_Context_t* context,
   ZP_Tagged_t* next_list,
   ZP_Tagged_t* this_item,
@@ -466,6 +487,31 @@ ZP_Error_t ZP_List_push(
   ZP_Tagged_t* output_list,
   ZP_Tagged_t* input_list,
   ZP_Tagged_t* item
+);
+
+/***** RandomAccessList ******************************************************/
+
+ZP_Error_t ZP_RandomAccessList_copy(
+  ZP_Context_t* context,
+  ZP_Tagged_t* new_random_access_list,
+  ZP_Tagged_t* old_random_access_list
+);
+
+void ZP_RandomAccessList_del(
+  ZP_Context_t* context,
+  ZP_Tagged_t* random_access_list
+);
+
+ZP_Error_t ZP_RandomAccessList_from_List(
+  ZP_Context_t* context,
+  ZP_Tagged_t* random_access_list,
+  ZP_Tagged_t* list
+);
+
+ZP_Error_t ZP_RandomAccessList_to_List(
+  ZP_Context_t* context,
+  ZP_Tagged_t* list,
+  ZP_Tagged_t* random_access_list
 );
 
 /***** SimpleClass ***********************************************************/

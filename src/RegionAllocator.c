@@ -197,6 +197,13 @@ void ZP_RegionAllocator_decref(
   }
 }
 
+ZP_Index_t ZP_RegionAllocator_size(
+  ZP_RegionAllocator_t* region_allocator,
+  ZP_RegionPointer_t* pointer
+) {
+  return *((ZP_Index_t*)(region_allocator->arena + pointer->at + sizeof(ZP_Index_t)));
+}
+
 void* ZP_RegionAllocator_at(
   ZP_RegionAllocator_t* region_allocator,
   ZP_RegionPointer_t* pointer

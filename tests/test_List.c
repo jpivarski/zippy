@@ -46,6 +46,9 @@ int test_push() {
   /* list4 is the only reference; deleting it cascades down the whole list */
   ZP_Context_slab_decref(&context, &list4);
 
+  assert_Context_refcnt(&context, 4, "\x00\x00\x00\x00");
+  assert_Context_slab(&context, 32, "\x01\x00\x00\x00\x11\x00\x00\x40\x02\x00\x00\x00\x22\x00\x00\x40\xff\xff\xff\xff\x33\x00\x00\x40\x00\x00\x00\x00\x00\x00\x00\x00");
+
   /* build it up again */
   ZP_List_new_empty(&list1);
 

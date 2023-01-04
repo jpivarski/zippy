@@ -70,6 +70,14 @@ ZP_Error_t ZP_Context_new_slab(
   return ZP_NO_ERROR;
 }
 
+void ZP_Context_free_slab(
+  ZP_Context_t* context,
+  ZP_SlabPointer_t* pointer
+) {
+  ZP_SlabAllocator_free(&context->slab_allocator, pointer);
+  context->refcnt[pointer->at] = 0;
+}
+
 ZP_Index_t ZP_Context_get_left(
   ZP_Context_t* context,
   ZP_SlabPointer_t* pointer
@@ -187,9 +195,11 @@ ZP_Error_t ZP_Context_slab_incref(
     pointer = old_tagged->data & (~ZP_TAG_OBJECT_MASK);
     if (pointer != ZP_TERMINATOR) {
       if (context->refcnt[pointer] != ZP_REFCNT_MAX) {
+        /* fast path: just increment the refcnt */
         context->refcnt[pointer]++;
       }
       else {
+        /* slow path: need to copy (rarely) */
         return ZP_List_copy(context, new_tagged, old_tagged);
       }
     }
@@ -197,12 +207,27 @@ ZP_Error_t ZP_Context_slab_incref(
 
   case ZP_TAG_OBJECT_INSTANCE:
     pointer = old_tagged->data & (~ZP_TAG_OBJECT_MASK);
-    /* FIXME */
+    /* FIXME: handle the instance type, after it gets defined */
     break;
 
   case ZP_TAG_OBJECT_OTHER:
     pointer = old_tagged->data & (~ZP_TAG_OBJECT_MASK);
-    /* FIXME */
+    if (context->refcnt[pointer] != ZP_REFCNT_MAX) {
+      /* fast path: just increment the refcnt */
+      context->refcnt[pointer]++;
+    }
+    else {
+      /* slow path: need to copy (rarely) */
+      ZP_SlabPointer_t slab_pointer;
+      slab_pointer.at = pointer;
+      ZP_Tagged_t other_type;
+      other_type.data = ZP_Context_get_left(context, &slab_pointer);
+      switch (ZP_Tagged_to_enum(&other_type)) {
+      case ZP_ENUM_OTHER_RANDOM_ACCESS_LIST:
+        return ZP_RandomAccessList_copy(context, new_tagged, old_tagged);
+      /* FIXME: handle more types, as they get defined */
+      }
+    }
     break;
   }
 
@@ -228,12 +253,24 @@ void ZP_Context_slab_decref(
 
   case ZP_TAG_OBJECT_INSTANCE:
     pointer = tagged->data & (~ZP_TAG_OBJECT_MASK);
-    /* FIXME */
+    /* FIXME: handle the instance type, after it gets defined */
     break;
 
   case ZP_TAG_OBJECT_OTHER:
     pointer = tagged->data & (~ZP_TAG_OBJECT_MASK);
-    /* FIXME */
+    context->refcnt[pointer]--;
+    if (context->refcnt[pointer] == 0) {
+      ZP_SlabPointer_t slab_pointer;
+      slab_pointer.at = pointer;
+      ZP_Tagged_t other_type;
+      other_type.data = ZP_Context_get_left(context, &slab_pointer);
+      switch (ZP_Tagged_to_enum(&other_type)) {
+        case ZP_ENUM_OTHER_RANDOM_ACCESS_LIST:
+          ZP_RandomAccessList_del(context, tagged);
+          break;
+      /* FIXME: handle more types, as they get defined */
+      }
+    }
     break;
   }
 }
@@ -258,6 +295,13 @@ void ZP_Context_region_decref(
   ZP_RegionPointer_t* pointer
 ) {
   ZP_RegionAllocator_decref(&context->region_allocator, pointer);
+}
+
+ZP_Index_t ZP_Context_region_size(
+  ZP_Context_t* context,
+  ZP_RegionPointer_t* pointer
+) {
+  return ZP_RegionAllocator_size(&context->region_allocator, pointer);
 }
 
 void* ZP_Context_region_at(
