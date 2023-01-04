@@ -1,6 +1,6 @@
 #include <test_util.h>
 
-int test_add_symbols() {
+int test_symbol_set() {
   ZP_Context_t context;
   ZP_Error_t error;
   error = new_context(&context, 64, 48);
@@ -74,13 +74,68 @@ int test_add_symbols() {
   return 0;
 }
 
+int test_symbol_duplication() {
+  ZP_Context_t context;
+  ZP_Error_t error;
+  error = new_context(&context, 64, 48);
+  handle_error(error);
+
+  ZP_Tagged_t symbol1;
+  const char* symbol1_data = "one";
+  error = ZP_Context_get_symbol(&context, &symbol1, symbol1_data, strlen(symbol1_data));
+  handle_error(error);
+
+  ZP_Tagged_t symbol2;
+  const char* symbol2_data = "two";
+  error = ZP_Context_get_symbol(&context, &symbol2, symbol2_data, strlen(symbol2_data));
+  handle_error(error);
+
+  ZP_Tagged_t symbol3;
+  const char* symbol3_data = "three";
+  error = ZP_Context_get_symbol(&context, &symbol3, symbol3_data, strlen(symbol3_data));
+  handle_error(error);
+
+  assert_Context_refcnt(&context, 8, "\x01\x01\x01\x01\x01\x01\x00\x00");
+  assert_Context_slab(&context, 64, "\x00\x01\x00\x00\x00\x00\x00\x00\xff\xff\xff\x1f\x00\x00\x00\x30\x00\x01\x00\x00\x0c\x00\x00\x00\x01\x00\x00\x10\x02\x00\x00\x30\x00\x01\x00\x00\x18\x00\x00\x00\x03\x00\x00\x10\x04\x00\x00\x30\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00");
+  assert_Context_region(&context, 48, "\x01\x00\x00\x00\x03\x00\x00\x00\x6f\x6e\x65\x00\x01\x00\x00\x00\x03\x00\x00\x00\x74\x77\x6f\x00\x01\x00\x00\x00\x05\x00\x00\x00\x74\x68\x72\x65\x65\x00\x6c\x69\x08\x00\x00\x00\xff\xff\xff\xff");
+
+  ZP_Tagged_t symbol2_again;
+  ZP_Index_t i;
+  for (i = 0;  i < 254;  i++) {
+    error = ZP_Context_get_symbol(&context, &symbol2_again, symbol2_data, strlen(symbol2_data));
+    handle_error(error);
+  }
+
+  assert_Context_refcnt(&context, 8, "\x01\x01\xff\x01\x01\x01\x00\x00");
+  assert_Context_slab(&context, 64, "\x00\x01\x00\x00\x00\x00\x00\x00\xff\xff\xff\x1f\x00\x00\x00\x30\x00\x01\x00\x00\x0c\x00\x00\x00\x01\x00\x00\x10\x02\x00\x00\x30\x00\x01\x00\x00\x18\x00\x00\x00\x03\x00\x00\x10\x04\x00\x00\x30\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00");
+  assert_Context_region(&context, 48, "\x01\x00\x00\x00\x03\x00\x00\x00\x6f\x6e\x65\x00\x01\x00\x00\x00\x03\x00\x00\x00\x74\x77\x6f\x00\x01\x00\x00\x00\x05\x00\x00\x00\x74\x68\x72\x65\x65\x00\x6c\x69\x08\x00\x00\x00\xff\xff\xff\xff");
+
+  error = ZP_Context_get_symbol(&context, &symbol2_again, symbol2_data, strlen(symbol2_data));
+  handle_error(error);
+
+  assert_Context_refcnt(&context, 8, "\x01\x01\xff\x01\x01\x01\x01\x00");
+  assert_Context_slab(&context, 64, "\x00\x01\x00\x00\x00\x00\x00\x00\xff\xff\xff\x1f\x00\x00\x00\x30\x00\x01\x00\x00\x0c\x00\x00\x00\x01\x00\x00\x10\x02\x00\x00\x30\x00\x01\x00\x00\x18\x00\x00\x00\x03\x00\x00\x10\x04\x00\x00\x30\x00\x01\x00\x00\x0c\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00");
+  assert_Context_region(&context, 48, "\x01\x00\x00\x00\x03\x00\x00\x00\x6f\x6e\x65\x00\x02\x00\x00\x00\x03\x00\x00\x00\x74\x77\x6f\x00\x01\x00\x00\x00\x05\x00\x00\x00\x74\x68\x72\x65\x65\x00\x6c\x69\x08\x00\x00\x00\xff\xff\xff\xff");
+
+  /* FIXME: it would be better (fewer duplications) if it incremented the newest, */
+  /* equivalent symbol, rather than the given symbol, but this is not wrong. */
+  /* See src/Symbol.c, ZP_Symbol_copy */
+
+  return 0;
+}
+
 int main(int argc, char** argv) {
   int result = 0;
 
 #if ZIPPY_POINTER_SIZE == 32
 #if ZIPPY_REFCNT_SIZE == 8
 
-  result = test_add_symbols();
+  result = test_symbol_set();
+  if (result != 0) {
+    return result;
+  }
+
+  result = test_symbol_duplication();
   if (result != 0) {
     return result;
   }

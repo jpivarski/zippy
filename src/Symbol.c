@@ -9,7 +9,32 @@ ZP_Error_t ZP_Symbol_copy(
   ZP_Tagged_t* new_symbol,
   ZP_Tagged_t* old_symbol
 ) {
-  return "not implemented Symbol 1";
+  /* FIXME: it would be better (fewer duplications) if it incremented the newest, */
+  /* equivalent symbol, rather than the given symbol, but this is not wrong. */
+  /* See tests/test_Context.c, test_symbol_duplication */
+
+  ZP_SlabPointer_t new_pointer;
+  ZP_Error_t error = ZP_Context_new_slab(context, &new_pointer);
+  if (error != ZP_NO_ERROR) {
+    return error;
+  }
+
+  ZP_SlabPointer_t old_pointer;
+  ZP_Tagged_to_SlabPointer(&old_pointer, old_symbol);
+
+  ZP_Tagged_t tag;
+  ZP_RegionPointer_t region_pointer;
+  ZP_Context_get(context, &old_pointer, &tag.data, &region_pointer.at);
+
+  error = ZP_Context_region_incref(context, &region_pointer);
+  if (error != ZP_NO_ERROR) {
+    ZP_Context_free_slab(context, &new_pointer);
+    return error;
+  }
+
+  ZP_Context_set(context, &new_pointer, tag.data, region_pointer.at);
+
+  return ZP_NO_ERROR;
 }
 
 void ZP_Symbol_del(

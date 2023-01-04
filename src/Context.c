@@ -217,7 +217,7 @@ ZP_Error_t ZP_Context_slab_copy(
   if (incref_left) {
     error = ZP_Context_slab_incref(context, &new_left, &left);
     if (error != ZP_NO_ERROR) {
-      ZP_SlabAllocator_free(&context->slab_allocator, &new_pointer);
+      ZP_Context_free_slab(context, &new_pointer);
       return error;
     }
   }
@@ -229,7 +229,7 @@ ZP_Error_t ZP_Context_slab_copy(
   if (incref_right) {
     error = ZP_Context_slab_incref(context, &new_right, &right);
     if (error != ZP_NO_ERROR) {
-      ZP_SlabAllocator_free(&context->slab_allocator, &new_pointer);
+      ZP_Context_free_slab(context, &new_pointer);
       if (incref_left) {
         ZP_Context_slab_decref(context, &new_left);
       }
