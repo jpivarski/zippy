@@ -6,10 +6,10 @@
 
 ZP_Error_t ZP_List_copy(
   ZP_Context_t* context,
-  ZP_Tagged_t* old_list,
-  ZP_Tagged_t* new_list
+  ZP_Tagged_t* new_list,
+  ZP_Tagged_t* old_list
 ) {
-  return ZP_Context_slab_copy(context, old_list, new_list, true, true);
+  return ZP_Context_slab_copy(context, new_list, old_list, true, true);
 }
 
 void ZP_List_del(
