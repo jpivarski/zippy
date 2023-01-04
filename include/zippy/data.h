@@ -91,7 +91,7 @@ typedef const char* ZP_Error_t;
   #define ZP_TERMINATOR             0x0fffffffffffffff
 #endif
 
-/* can have at most 4095 built-in enumerations */
+/* built-in enumerations must all be less than ZP_TERMINATOR */
 enum {
   /* singleton objects */
 
@@ -128,7 +128,32 @@ void ZP_Tagged_copy(
   ZP_Tagged_t* input
 );
 
-bool ZP_Tagged_int_overflow(
+bool ZP_Tagged_is_float(
+  ZP_Tagged_t* tagged
+);
+
+bool ZP_Tagged_is_int(
+  ZP_Tagged_t* tagged
+);
+
+bool ZP_Tagged_is_refcntable(
+  ZP_Tagged_t* tagged
+);
+
+ZP_Index_t ZP_Tagged_enum(
+  ZP_Tagged_t* tagged
+);
+
+ZP_Float_t ZP_Tagged_to_float(
+  ZP_Tagged_t* tagged
+);
+
+void ZP_Tagged_from_float(
+  ZP_Tagged_t* tagged,
+  ZP_Float_t* data
+);
+
+bool ZP_Tagged_int_is_overflow(
   ZP_Int_t data
 );
 
@@ -139,15 +164,6 @@ ZP_Int_t ZP_Tagged_to_int(
 void ZP_Tagged_from_int(
   ZP_Tagged_t* tagged,
   ZP_Int_t* data
-);
-
-ZP_Float_t ZP_Tagged_to_float(
-  ZP_Tagged_t* tagged
-);
-
-void ZP_Tagged_from_float(
-  ZP_Tagged_t* tagged,
-  ZP_Float_t* data
 );
 
 /***** SlabAllocator *********************************************************/
@@ -319,12 +335,12 @@ ZP_Error_t ZP_Context_new_slab(
 );
 
 ZP_Index_t ZP_Context_get_left(
-  ZP_Context_t* slab_allocator,
+  ZP_Context_t* context,
   ZP_SlabPointer_t* pointer
 );
 
 ZP_Index_t ZP_Context_get_right(
-  ZP_Context_t* slab_allocator,
+  ZP_Context_t* context,
   ZP_SlabPointer_t* pointer
 );
 
@@ -344,7 +360,8 @@ void ZP_Context_set(
 
 ZP_Error_t ZP_Context_slab_incref(
   ZP_Context_t* context,
-  ZP_Tagged_t* tagged
+  ZP_Tagged_t* new_tagged,
+  ZP_Tagged_t* old_tagged
 );
 
 ZP_Error_t ZP_Context_slab_incref_left(
@@ -393,7 +410,8 @@ void ZP_Context_region_decref(
 
 ZP_Error_t ZP_List_copy(
   ZP_Context_t* context,
-  ZP_Tagged_t* list
+  ZP_Tagged_t* new_list,
+  ZP_Tagged_t* old_list
 );
 
 void ZP_List_del(
@@ -432,7 +450,8 @@ ZP_Error_t ZP_List_push(
 
 ZP_Error_t ZP_SimpleClass_copy(
   ZP_Context_t* context,
-  ZP_Tagged_t* simple_class
+  ZP_Tagged_t* new_simple_class,
+  ZP_Tagged_t* old_simple_class
 );
 
 void ZP_SimpleClass_decref(

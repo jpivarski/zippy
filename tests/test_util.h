@@ -188,11 +188,11 @@ void view_Context(ZP_Context_t* context, bool view_slab, bool view_region) {
 void state_Context_refcnt(ZP_Context_t* context) {
   ZP_Index_t size = context->slab_allocator.num_slabs * sizeof(ZP_RefCnt_t);
 #if ZIPPY_POINTER_SIZE == 16
-  printf("  error = assert_Context_refcnt(&context, %d, \"", size);
+  printf("  assert_Context_refcnt(&context, %d, \"", size);
 #elif ZIPPY_POINTER_SIZE == 32
-  printf("  error = assert_Context_refcnt(&context, %d, \"", size);
+  printf("  assert_Context_refcnt(&context, %d, \"", size);
 #else
-  printf("  error = assert_Context_refcnt(&context, %ld, \"", size);
+  printf("  assert_Context_refcnt(&context, %ld, \"", size);
 #endif
   ZP_Index_t i;
   for (i = 0;  i < size;  i++) {
@@ -204,11 +204,11 @@ void state_Context_refcnt(ZP_Context_t* context) {
 void state_Context_slab(ZP_Context_t* context) {
   ZP_Index_t size = 2 * context->slab_allocator.num_slabs * sizeof(ZP_Index_t);
 #if ZIPPY_POINTER_SIZE == 16
-  printf("  error = assert_Context_slab(&context, %d, \"", size);
+  printf("  assert_Context_slab(&context, %d, \"", size);
 #elif ZIPPY_POINTER_SIZE == 32
-  printf("  error = assert_Context_slab(&context, %d, \"", size);
+  printf("  assert_Context_slab(&context, %d, \"", size);
 #else
-  printf("  error = assert_Context_slab(&context, %ld, \"", size);
+  printf("  assert_Context_slab(&context, %ld, \"", size);
 #endif
   ZP_Index_t i;
   for (i = 0;  i < size;  i++) {
@@ -220,11 +220,11 @@ void state_Context_slab(ZP_Context_t* context) {
 void state_Context_region(ZP_Context_t* context) {
   ZP_Index_t size = context->region_allocator.arena_size;
 #if ZIPPY_POINTER_SIZE == 16
-  printf("  error = assert_Context_region(&context, %d, \"", size);
+  printf("  assert_Context_region(&context, %d, \"", size);
 #elif ZIPPY_POINTER_SIZE == 32
-  printf("  error = assert_Context_region(&context, %d, \"", size);
+  printf("  assert_Context_region(&context, %d, \"", size);
 #else
-  printf("  error = assert_Context_region(&context, %ld, \"", size);
+  printf("  assert_Context_region(&context, %ld, \"", size);
 #endif
   ZP_Index_t i;
   for (i = 0;  i < size;  i++) {

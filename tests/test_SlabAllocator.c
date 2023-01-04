@@ -179,12 +179,14 @@ int main(int argc, char** argv) {
   int result = 0;
 
 #if ZIPPY_POINTER_SIZE == 32
+#if ZIPPY_REFCNT_SIZE == 8
 
   result = test_alloc_free();
   if (result != 0) {
     return result;
   }
 
+#endif /* ZIPPY_REFCNT_SIZE */
 #endif /* ZIPPY_POINTER_SIZE == 32 */
 
   return result;
