@@ -102,6 +102,61 @@ void ZP_Context_set(
   ZP_SlabAllocator_set(&context->slab_allocator, pointer, left, right);
 }
 
+ZP_Error_t ZP_Context_slab_copy(
+  ZP_Context_t* context,
+  ZP_Tagged_t* new_tagged,
+  ZP_Tagged_t* old_tagged,
+  bool incref_left,
+  bool incref_right,
+  ZP_Index_t tag
+) {
+  ZP_SlabPointer_t new_pointer;
+  ZP_Error_t error = ZP_Context_new_slab(context, &new_pointer);
+  if (error != ZP_NO_ERROR) {
+    return error;
+  }
+
+  ZP_SlabPointer_t old_pointer;
+  ZP_Tagged_to_SlabPointer(&old_pointer, old_tagged);
+
+  ZP_Tagged_t left;
+  ZP_Tagged_t right;
+  ZP_Context_get(context, &old_pointer, &left.data, &right.data);
+
+  ZP_Tagged_t new_left;
+  if (incref_left) {
+    error = ZP_Context_slab_incref(context, &new_left, &left);
+    if (error != ZP_NO_ERROR) {
+      ZP_SlabAllocator_free(&context->slab_allocator, &new_pointer);
+      return error;
+    }
+  }
+  else {
+    ZP_Tagged_copy(&new_left, &left);
+  }
+
+  ZP_Tagged_t new_right;
+  if (incref_right) {
+    error = ZP_Context_slab_incref(context, &new_right, &right);
+    if (error != ZP_NO_ERROR) {
+      ZP_SlabAllocator_free(&context->slab_allocator, &new_pointer);
+      if (incref_left) {
+        ZP_Context_slab_decref(context, &new_left);
+      }
+      return error;
+    }
+  }
+  else {
+    ZP_Tagged_copy(&new_right, &right);
+  }
+
+  ZP_Context_set(context, &new_pointer, new_left.data, new_right.data);
+
+  ZP_Tagged_from_SlabPointer(new_tagged, &new_pointer, tag);
+
+  return ZP_NO_ERROR;
+}
+
 ZP_Error_t ZP_Context_slab_incref(
   ZP_Context_t* context,
   ZP_Tagged_t* new_tagged,
@@ -116,7 +171,7 @@ ZP_Error_t ZP_Context_slab_incref(
         context->refcnt[pointer]++;
       }
       else {
-        ZP_List_copy(context, new_tagged, old_tagged);
+        return ZP_List_copy(context, new_tagged, old_tagged);
       }
     }
     break;
@@ -134,27 +189,6 @@ ZP_Error_t ZP_Context_slab_incref(
 
   new_tagged->data = old_tagged->data;
   return ZP_NO_ERROR;
-}
-
-ZP_Error_t ZP_Context_slab_incref_left(
-  ZP_Context_t* context,
-  ZP_SlabPointer_t* pointer
-) {
-  return "not implemented 5";
-}
-
-ZP_Error_t ZP_Context_slab_incref_right(
-  ZP_Context_t* context,
-  ZP_SlabPointer_t* pointer
-) {
-  return "not implemented 6";
-}
-
-ZP_Error_t ZP_Context_slab_incref_both(
-  ZP_Context_t* context,
-  ZP_SlabPointer_t* pointer
-) {
-  return "not implemented 7";
 }
 
 void ZP_Context_slab_decref(
@@ -193,7 +227,7 @@ ZP_Error_t ZP_Context_new_region(
   return "not implemented 8";
 }
 
-void ZP_Context_copy_data(
+void ZP_Context_region_copy_data(
   ZP_Context_t* context,
   ZP_RegionPointer_t* pointer,
   const char* data

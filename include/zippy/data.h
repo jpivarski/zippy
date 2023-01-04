@@ -358,25 +358,19 @@ void ZP_Context_set(
   ZP_Index_t right
 );
 
+ZP_Error_t ZP_Context_slab_copy(
+  ZP_Context_t* context,
+  ZP_Tagged_t* new_tagged,
+  ZP_Tagged_t* old_tagged,
+  bool incref_left,
+  bool incref_right,
+  ZP_Index_t tag
+);
+
 ZP_Error_t ZP_Context_slab_incref(
   ZP_Context_t* context,
   ZP_Tagged_t* new_tagged,
   ZP_Tagged_t* old_tagged
-);
-
-ZP_Error_t ZP_Context_slab_incref_left(
-  ZP_Context_t* context,
-  ZP_SlabPointer_t* pointer
-);
-
-ZP_Error_t ZP_Context_slab_incref_right(
-  ZP_Context_t* context,
-  ZP_SlabPointer_t* pointer
-);
-
-ZP_Error_t ZP_Context_slab_incref_both(
-  ZP_Context_t* context,
-  ZP_SlabPointer_t* pointer
 );
 
 void ZP_Context_slab_decref(
@@ -390,7 +384,7 @@ ZP_Error_t ZP_Context_new_region(
   ZP_Index_t size
 );
 
-void ZP_Context_copy_data(
+void ZP_Context_region_copy_data(
   ZP_Context_t* context,
   ZP_RegionPointer_t* pointer,
   const char* data
