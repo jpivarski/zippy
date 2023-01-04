@@ -188,7 +188,37 @@ ZP_Error_t ZP_RandomAccessList_from_List(
 ZP_Error_t ZP_RandomAccessList_to_List(
   ZP_Context_t* context,
   ZP_Tagged_t* list,
-  ZP_Tagged_t* fixed_list
+  ZP_Tagged_t* random_access_list
 ) {
-  return "not implemented RandomAccessList 2";
+  ZP_SlabPointer_t slab_pointer;
+  ZP_Tagged_to_SlabPointer(&slab_pointer, random_access_list);
+
+  ZP_RegionPointer_t region_pointer;
+  region_pointer.at = ZP_Context_get_right(context, &slab_pointer);
+
+  ZP_Index_t size = ZP_Context_region_size(context, &region_pointer) / sizeof(ZP_Index_t);
+  ZP_Index_t* region_data = (ZP_Index_t*)ZP_Context_region_at(context, &region_pointer);
+
+  ZP_Error_t error;
+  ZP_List_new_empty(list);
+
+  ZP_Index_t i;
+  ZP_Tagged_t this_item;
+  for (i = 0;  i < size;  i++) {
+    this_item.data = region_data[size - 1 - i];
+
+    ZP_Tagged_t new_list;
+    error = ZP_List_push(context, &new_list, list, &this_item);
+    if (error != ZP_NO_ERROR) {
+      ZP_List_del(context, list);
+      return error;
+    }
+
+   /* no longer need a reference to the node that new_list now contains */
+    ZP_Context_slab_decref(context, list);
+
+    list->data = new_list.data;
+  }
+
+  return ZP_NO_ERROR;
 }
