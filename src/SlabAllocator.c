@@ -82,6 +82,22 @@ ZP_Index_t ZP_SlabAllocator_get_right(
   return slab_allocator->arena[2 * pointer->at + 1];
 }
 
+void ZP_SlabAllocator_set_left(
+  ZP_SlabAllocator_t* slab_allocator,
+  ZP_SlabPointer_t* pointer,
+  ZP_Index_t left
+) {
+  slab_allocator->arena[2 * pointer->at] = left;
+}
+
+void ZP_SlabAllocator_set_right(
+  ZP_SlabAllocator_t* slab_allocator,
+  ZP_SlabPointer_t* pointer,
+  ZP_Index_t right
+) {
+  slab_allocator->arena[2 * pointer->at + 1] = right;
+}
+
 void ZP_SlabAllocator_get(
   ZP_SlabAllocator_t* slab_allocator,
   ZP_SlabPointer_t* pointer,

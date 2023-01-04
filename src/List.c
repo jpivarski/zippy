@@ -9,7 +9,7 @@ ZP_Error_t ZP_List_copy(
   ZP_Tagged_t* old_list,
   ZP_Tagged_t* new_list
 ) {
-  return ZP_Context_slab_copy(context, old_list, new_list, true, true, ZP_TAG_OBJECT_LIST);
+  return ZP_Context_slab_copy(context, old_list, new_list, true, true);
 }
 
 void ZP_List_del(

@@ -84,6 +84,22 @@ ZP_Index_t ZP_Context_get_right(
   return ZP_SlabAllocator_get_right(&context->slab_allocator, pointer);
 }
 
+void ZP_Context_set_left(
+  ZP_Context_t* context,
+  ZP_SlabPointer_t* pointer,
+  ZP_Index_t left
+) {
+  ZP_SlabAllocator_set_left(&context->slab_allocator, pointer, left);
+}
+
+void ZP_Context_set_right(
+  ZP_Context_t* context,
+  ZP_SlabPointer_t* pointer,
+  ZP_Index_t right
+) {
+  ZP_SlabAllocator_set_right(&context->slab_allocator, pointer, right);
+}
+
 void ZP_Context_get(
   ZP_Context_t* context,
   ZP_SlabPointer_t* pointer,
@@ -107,8 +123,7 @@ ZP_Error_t ZP_Context_slab_copy(
   ZP_Tagged_t* new_tagged,
   ZP_Tagged_t* old_tagged,
   bool incref_left,
-  bool incref_right,
-  ZP_Index_t tag
+  bool incref_right
 ) {
   ZP_SlabPointer_t new_pointer;
   ZP_Error_t error = ZP_Context_new_slab(context, &new_pointer);
@@ -152,7 +167,11 @@ ZP_Error_t ZP_Context_slab_copy(
 
   ZP_Context_set(context, &new_pointer, new_left.data, new_right.data);
 
-  ZP_Tagged_from_SlabPointer(new_tagged, &new_pointer, tag);
+  ZP_Tagged_from_SlabPointer(
+    new_tagged,
+    &new_pointer,
+    old_tagged->data & ZP_TAG_OBJECT_MASK
+  );
 
   return ZP_NO_ERROR;
 }
@@ -224,7 +243,28 @@ ZP_Error_t ZP_Context_new_region(
   ZP_RegionPointer_t* pointer,
   ZP_Index_t size
 ) {
-  return "not implemented 8";
+  return ZP_RegionAllocator_alloc(&context->region_allocator, pointer, size);
+}
+
+ZP_Error_t ZP_Context_region_incref(
+  ZP_Context_t* context,
+  ZP_RegionPointer_t* pointer
+) {
+  return ZP_RegionAllocator_incref(&context->region_allocator, pointer);
+}
+
+void ZP_Context_region_decref(
+  ZP_Context_t* context,
+  ZP_RegionPointer_t* pointer
+) {
+  ZP_RegionAllocator_decref(&context->region_allocator, pointer);
+}
+
+void* ZP_Context_region_at(
+  ZP_Context_t* context,
+  ZP_RegionPointer_t* pointer
+) {
+  return ZP_RegionAllocator_at(&context->region_allocator, pointer);
 }
 
 void ZP_Context_region_copy_data(
@@ -232,19 +272,5 @@ void ZP_Context_region_copy_data(
   ZP_RegionPointer_t* pointer,
   const char* data
 ) {
-
-}
-
-ZP_Error_t ZP_Context_region_incref(
-  ZP_Context_t* context,
-  ZP_RegionPointer_t* pointer
-) {
-  return "not implemented 9";
-}
-
-void ZP_Context_region_decref(
-  ZP_Context_t* context,
-  ZP_RegionPointer_t* pointer
-) {
-
+  ZP_RegionAllocator_copy_data(&context->region_allocator, pointer, data);
 }
