@@ -9,22 +9,47 @@ ZP_Error_t ZP_Symbol_copy(
   ZP_Tagged_t* new_symbol,
   ZP_Tagged_t* old_symbol
 ) {
-  /* FIXME: it would be better (fewer duplications) if it incremented the newest, */
-  /* equivalent symbol, rather than the given symbol, but this is not wrong. */
-  /* See tests/test_Context.c, test_symbol_duplication */
-
-  ZP_SlabPointer_t new_pointer;
-  ZP_Error_t error = ZP_Context_new_slab(context, &new_pointer);
-  if (error != ZP_NO_ERROR) {
-    return error;
-  }
-
   ZP_SlabPointer_t old_pointer;
   ZP_Tagged_to_SlabPointer(&old_pointer, old_symbol);
 
   ZP_Tagged_t tag;
   ZP_RegionPointer_t region_pointer;
   ZP_Context_get(context, &old_pointer, &tag.data, &region_pointer.at);
+
+  /* As a first pass, see if you can find this Symbol in the symbol_set and just */
+  /* increment that (returning it as new_symbol) instead of actually making a new one. */
+
+  ZP_Tagged_t this_list;
+  ZP_Tagged_copy(&this_list, &context->symbol_set);
+  ZP_Tagged_t next_list;
+  ZP_Tagged_t this_symbol;
+  while (!ZP_List_is_empty(&this_list)) {
+    ZP_List_peek_reverse_iterate_step(context, &next_list, &this_symbol, &this_list);
+
+    ZP_SlabPointer_t this_pointer;
+    ZP_Tagged_to_SlabPointer(&this_pointer, &this_symbol);
+
+    ZP_RegionPointer_t this_region_pointer;
+    this_region_pointer.at = ZP_Context_get_right(context, &this_pointer);
+
+    if (region_pointer.at == this_region_pointer.at) {
+      if (context->refcnt[this_pointer.at] != ZP_REFCNT_MAX) {
+        context->refcnt[this_pointer.at]++;
+        new_symbol->data = this_symbol.data;
+        return ZP_NO_ERROR;
+      }
+    }
+
+    this_list.data = next_list.data;
+  }
+
+  /* Otherwise (the Symbol exists, but it's at ZP_REFCNT_MAX), make a new Symbol. */
+
+  ZP_SlabPointer_t new_pointer;
+  ZP_Error_t error = ZP_Context_new_slab(context, &new_pointer);
+  if (error != ZP_NO_ERROR) {
+    return error;
+  }
 
   error = ZP_Context_region_incref(context, &region_pointer);
   if (error != ZP_NO_ERROR) {
@@ -33,6 +58,23 @@ ZP_Error_t ZP_Symbol_copy(
   }
 
   ZP_Context_set(context, &new_pointer, tag.data, region_pointer.at);
+
+  ZP_Tagged_from_SlabPointer(new_symbol, &new_pointer, ZP_TAG_OBJECT_OTHER);
+
+  ZP_Tagged_t new_list;
+  error = ZP_List_push(context, &new_list, &context->symbol_set, new_symbol);
+  if (error != ZP_NO_ERROR) {
+    ZP_Context_free_slab(context, &new_pointer);
+    ZP_Context_region_decref(context, &region_pointer);
+    return error;
+  }
+
+  /* "internal" symbol_set list nodes and Symbol references don't count */
+  /* only the (single, remaining) reference to the Symbol this function returns */
+  ZP_Context_slab_decref(context, new_symbol);
+  ZP_Context_slab_decref(context, &context->symbol_set);
+
+  context->symbol_set.data = new_list.data;
 
   return ZP_NO_ERROR;
 }

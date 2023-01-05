@@ -117,6 +117,8 @@ ZP_Error_t ZP_Context_get_symbol(
     return error;
   }
 
+  /* "internal" symbol_set list nodes and Symbol references don't count */
+  /* only the (single, remaining) reference to the Symbol this function returns */
   ZP_Context_slab_decref(context, symbol);
   ZP_Context_slab_decref(context, &context->symbol_set);
 
