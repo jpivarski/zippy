@@ -84,10 +84,11 @@ ZP_Error_t ZP_SimpleClass_new(
 
   /* the third batch has an argsort array, to sort arguments of an instance constructor */
   ZP_Index_t* argsort_index = &region_data[2 * num_members];
-  ZP_util_argsort(argsort_index, symbol_identifiers);
 
   /* the fourth batch is a temporary scratch space for instance constructors */
   ZP_Index_t* scratch_space = &region_data[3 * num_members];
+
+  ZP_util_argsort(scratch_space, argsort_index, symbol_identifiers, num_members);
 
   /* the second batch must be sorted according to that argsort array (use scratch space) */
   for (i = 0;  i < num_members;  i++) {

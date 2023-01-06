@@ -6,6 +6,7 @@
 #include <math.h>
 
 #include <zippy/data.h>
+#include <zippy/util.h>
 
 #define handle_error(error)                                              \
   if (error != ZP_NO_ERROR) {                                            \
