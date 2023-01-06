@@ -185,6 +185,11 @@ void ZP_RegionAllocator_free(
   ZP_RegionPointer_t* pointer
 );
 
+ZP_Index_t ZP_RegionAllocator_refcnt(
+  ZP_RegionAllocator_t* region_allocator,
+  ZP_RegionPointer_t* pointer
+);
+
 ZP_Error_t ZP_RegionAllocator_incref(
   ZP_RegionAllocator_t* region_allocator,
   ZP_RegionPointer_t* pointer
@@ -292,6 +297,11 @@ ZP_Error_t ZP_Context_slab_copy(
   bool incref_right
 );
 
+ZP_RefCnt_t ZP_Context_slab_refcnt(
+  ZP_Context_t* context,
+  ZP_RegionPointer_t* pointer
+);
+
 ZP_Error_t ZP_Context_slab_incref(
   ZP_Context_t* context,
   ZP_Tagged_t* new_tagged,
@@ -307,6 +317,11 @@ ZP_Error_t ZP_Context_new_region(
   ZP_Context_t* context,
   ZP_RegionPointer_t* pointer,
   ZP_Index_t size
+);
+
+ZP_Index_t ZP_Context_region_refcnt(
+  ZP_Context_t* context,
+  ZP_RegionPointer_t* pointer
 );
 
 ZP_Error_t ZP_Context_region_incref(
@@ -432,7 +447,7 @@ ZP_Error_t ZP_SimpleClass_copy(
   ZP_Tagged_t* old_simple_class
 );
 
-void ZP_SimpleClass_decref(
+void ZP_SimpleClass_del(
   ZP_Context_t* context,
   ZP_Tagged_t* simple_class
 );

@@ -84,17 +84,9 @@ void view_Context(ZP_Context_t* context, bool view_slab, bool view_region) {
   if (view_slab) {
     char tmp[36];
 
-    printf("refcnt + slab\n");
+    printf("\nrefcnt + slab\n");
     while (i < context->slab_allocator.num_slabs) {
 #if ZIPPY_POINTER_SIZE == 16
-      for (j = 0;  j < 8;  j++) {
-        if (i < context->slab_allocator.num_slabs) {
-          printf("%9d ", context->refcnt[i]);
-        }
-        i++;
-      }
-      printf("\n");
-      i -= 8;
       for (j = 0;  j < 8;  j++) {
         if (i < context->slab_allocator.num_slabs) {
           sprintf(tmp, "%04x,%04x ", context->slab_allocator.arena[2 * i], context->slab_allocator.arena[2 * i + 1]);
@@ -108,15 +100,15 @@ void view_Context(ZP_Context_t* context, bool view_slab, bool view_region) {
         i++;
       }
       printf("\n");
-#elif ZIPPY_POINTER_SIZE == 32
-      for (j = 0;  j < 4;  j++) {
+      i -= 8;
+      for (j = 0;  j < 8;  j++) {
         if (i < context->slab_allocator.num_slabs) {
-          printf("%17d ", context->refcnt[i]);
+          printf(" %4d^    ", context->refcnt[i]);
         }
         i++;
       }
       printf("\n");
-      i -= 4;
+#elif ZIPPY_POINTER_SIZE == 32
       for (j = 0;  j < 4;  j++) {
         if (i < context->slab_allocator.num_slabs) {
           sprintf(tmp, "%08x,%08x ", context->slab_allocator.arena[2 * i], context->slab_allocator.arena[2 * i + 1]);
@@ -130,15 +122,15 @@ void view_Context(ZP_Context_t* context, bool view_slab, bool view_region) {
         i++;
       }
       printf("\n");
-#elif ZIPPY_POINTER_SIZE == 64
-      for (j = 0;  j < 2;  j++) {
+      i -= 4;
+      for (j = 0;  j < 4;  j++) {
         if (i < context->slab_allocator.num_slabs) {
-          printf("%33d ", context->refcnt[i]);
+          printf(" %8d^        ", context->refcnt[i]);
         }
         i++;
       }
       printf("\n");
-      i -= 2;
+#elif ZIPPY_POINTER_SIZE == 64
       for (j = 0;  j < 2;  j++) {
         if (i < context->slab_allocator.num_slabs) {
           sprintf(tmp, "%016lx,%016lx ", context->slab_allocator.arena[2 * i], context->slab_allocator.arena[2 * i + 1]);
@@ -148,6 +140,14 @@ void view_Context(ZP_Context_t* context, bool view_slab, bool view_region) {
             }
           }
           printf("%s", tmp);
+        }
+        i++;
+      }
+      printf("\n");
+      i -= 2;
+      for (j = 0;  j < 2;  j++) {
+        if (i < context->slab_allocator.num_slabs) {
+          printf(" %16d^                ", context->refcnt[i]);
         }
         i++;
       }

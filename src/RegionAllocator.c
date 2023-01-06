@@ -167,6 +167,14 @@ void ZP_RegionAllocator_free(
   }
 }
 
+ZP_Index_t ZP_RegionAllocator_refcnt(
+  ZP_RegionAllocator_t* region_allocator,
+  ZP_RegionPointer_t* pointer
+) {
+  /* get the reference count from the data header (first item) */
+  return *((ZP_Index_t*)(region_allocator->arena + pointer->at));
+}
+
 ZP_Error_t ZP_RegionAllocator_incref(
   ZP_RegionAllocator_t* region_allocator,
   ZP_RegionPointer_t* pointer

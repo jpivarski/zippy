@@ -253,6 +253,13 @@ ZP_Error_t ZP_Context_slab_copy(
   return ZP_NO_ERROR;
 }
 
+ZP_RefCnt_t ZP_Context_slab_refcnt(
+  ZP_Context_t* context,
+  ZP_RegionPointer_t* pointer
+) {
+  return context->refcnt[pointer->at];
+}
+
 ZP_Error_t ZP_Context_slab_incref(
   ZP_Context_t* context,
   ZP_Tagged_t* new_tagged,
@@ -296,6 +303,8 @@ ZP_Error_t ZP_Context_slab_incref(
         return ZP_Symbol_copy(context, new_tagged, old_tagged);
       case ZP_ENUM_OTHER_RANDOM_ACCESS_LIST:
         return ZP_RandomAccessList_copy(context, new_tagged, old_tagged);
+      case ZP_ENUM_OTHER_SIMPLE_CLASS:
+        return ZP_SimpleClass_copy(context, new_tagged, old_tagged);
       /* FIXME: handle more types, as they get defined */
       }
     }
@@ -345,6 +354,9 @@ void ZP_Context_slab_decref(
       case ZP_ENUM_OTHER_RANDOM_ACCESS_LIST:
         ZP_RandomAccessList_del(context, tagged);
         break;
+      case ZP_ENUM_OTHER_SIMPLE_CLASS:
+        ZP_SimpleClass_del(context, tagged);
+        break;
       /* FIXME: handle more types, as they get defined */
       }
     }
@@ -358,6 +370,13 @@ ZP_Error_t ZP_Context_new_region(
   ZP_Index_t size
 ) {
   return ZP_RegionAllocator_alloc(&context->region_allocator, pointer, size);
+}
+
+ZP_Index_t ZP_Context_region_refcnt(
+  ZP_Context_t* context,
+  ZP_RegionPointer_t* pointer
+) {
+  return ZP_RegionAllocator_refcnt(&context->region_allocator, pointer);
 }
 
 ZP_Error_t ZP_Context_region_incref(

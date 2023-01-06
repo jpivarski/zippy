@@ -10,14 +10,57 @@ ZP_Error_t ZP_SimpleClass_copy(
   ZP_Tagged_t* new_simple_class,
   ZP_Tagged_t* old_simple_class
 ) {
-  return "not implemented SimpleClass 1";
+  ZP_SlabPointer_t old_pointer;
+  ZP_Tagged_to_SlabPointer(&old_pointer, old_simple_class);
+
+  ZP_SlabPointer_t new_pointer;
+  ZP_Error_t error = ZP_Context_new_slab(context, &new_pointer);
+  if (error != ZP_NO_ERROR) {
+    return error;
+  }
+
+  ZP_Tagged_t other_type;
+  ZP_RegionPointer_t region_pointer;
+  ZP_Context_get(context, &old_pointer, &other_type.data, &region_pointer.at);
+
+  error = ZP_Context_region_incref(context, &region_pointer);
+  if (error != ZP_NO_ERROR) {
+    ZP_Context_free_slab(context, &new_pointer);
+    return error;
+  }
+
+  ZP_Context_set(context, &new_pointer, other_type.data, region_pointer.at);
+
+  ZP_Tagged_from_SlabPointer(new_simple_class, &new_pointer, ZP_TAG_OBJECT_OTHER);
+
+  return ZP_NO_ERROR;
 }
 
-void ZP_SimpleClass_decref(
+void ZP_SimpleClass_del(
   ZP_Context_t* context,
   ZP_Tagged_t* simple_class
 ) {
-  printf("not implemented SimpleClass 2");
+  ZP_SlabPointer_t pointer;
+  ZP_Tagged_to_SlabPointer(&pointer, simple_class);
+
+  ZP_RegionPointer_t region_pointer;
+  region_pointer.at = ZP_Context_get_right(context, &pointer);
+
+  ZP_Index_t refcnt = ZP_Context_region_refcnt(context, &region_pointer);
+  if (refcnt == 1) {
+    ZP_Index_t num_members = ZP_Context_region_size(context, &region_pointer) / (4 * sizeof(ZP_Index_t));
+    ZP_Index_t* region_data = (ZP_Index_t*)ZP_Context_region_at(context, &region_pointer);
+    ZP_Tagged_t symbol;
+    ZP_Index_t i;
+    for (i = 0;  i < num_members;  i++) {
+      symbol.data = region_data[i];
+      ZP_Context_slab_decref(context, &symbol);
+    }
+  }
+
+  ZP_Context_region_decref(context, &region_pointer);
+
+  ZP_Context_free_slab(context, &pointer);
 }
 
 ZP_Error_t ZP_SimpleClass_new(
