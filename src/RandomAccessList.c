@@ -175,7 +175,7 @@ ZP_Error_t ZP_RandomAccessList_from_List(
         ZP_Context_slab_decref(context, &this_item_increfed);
       }
       ZP_Context_region_decref(context, &region_pointer);
-      ZP_Context_slab_decref(context, random_access_list);
+      ZP_Context_free_slab(context, &slab_pointer);
       return error;
     }
 

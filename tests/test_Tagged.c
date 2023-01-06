@@ -1,4 +1,4 @@
-#include <test_util.h>
+#include <utilities_for_tests.h>
 
 int test_int() {
   ZP_Int_t myint_m2 = -2;

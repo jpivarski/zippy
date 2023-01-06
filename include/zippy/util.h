@@ -1,11 +1,12 @@
 #ifndef ZIPPY_UTIL_H
+#define ZIPPY_UTIL_H
 
-#include <stdint.h>
-#include <stddef.h>
+#include <zippy/defs.h>
 
-typedef uint8_t bool;
+void ZP_util_argsort(
+  ZP_Index_t* index,
+  ZP_Index_t* data
+);
 
-#define false 0
-#define true 1
 
 #endif /* ZIPPY_UTIL_H */

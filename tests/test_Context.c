@@ -1,4 +1,4 @@
-#include <test_util.h>
+#include <utilities_for_tests.h>
 
 int test_symbol_set() {
   ZP_Context_t context;

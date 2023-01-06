@@ -1,4 +1,4 @@
-#include <test_util.h>
+#include <utilities_for_tests.h>
 
 int test_alloc_free() {
   /* complete coverage over ZP_SlabAllocator_alloc and ZP_SlabAllocator_free */

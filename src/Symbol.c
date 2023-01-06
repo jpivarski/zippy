@@ -152,3 +152,12 @@ ZP_Error_t ZP_Symbol_new(
 
   return ZP_NO_ERROR;
 }
+
+ZP_Index_t ZP_Symbol_identifier(
+  ZP_Context_t* context,
+  ZP_Tagged_t* symbol
+) {
+  ZP_SlabPointer_t pointer;
+  ZP_Tagged_to_SlabPointer(&pointer, symbol);
+  return ZP_Context_get_right(context, &pointer);
+}
