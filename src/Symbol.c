@@ -59,7 +59,7 @@ ZP_Error_t ZP_Symbol_copy(
 
   ZP_Context_set(context, &new_pointer, tag.data, region_pointer.at);
 
-  ZP_Tagged_from_SlabPointer(new_symbol, &new_pointer, ZP_TAG_OBJECT_OTHER);
+  ZP_Tagged_from_SlabPointer(new_symbol, &new_pointer, ZP_TAG_NODE_OBJECT);
 
   ZP_Tagged_t new_list;
   error = ZP_List_push(context, &new_list, &context->symbol_set, new_symbol);
@@ -143,12 +143,12 @@ ZP_Error_t ZP_Symbol_new(
     return error;
   }
 
-  ZP_Tagged_t other_type;
-  ZP_Tagged_from_enum(&other_type, ZP_ENUM_OTHER_SYMBOL);
+  ZP_Tagged_t object_type;
+  ZP_Tagged_from_enum(&object_type, ZP_ENUM_OTHER_SYMBOL);
 
-  ZP_Context_set(context, &pointer, other_type.data, region_pointer->at);
+  ZP_Context_set(context, &pointer, object_type.data, region_pointer->at);
 
-  ZP_Tagged_from_SlabPointer(symbol, &pointer, ZP_TAG_OBJECT_OTHER);
+  ZP_Tagged_from_SlabPointer(symbol, &pointer, ZP_TAG_NODE_OBJECT);
 
   return ZP_NO_ERROR;
 }

@@ -69,32 +69,32 @@ typedef const char* ZP_Error_t;
 #if ZIPPY_POINTER_SIZE == 16
   #define ZP_TAG_FLOAT              0x8000   /* 1............... 15-bit int */
   #define ZP_TAG_INT                0x8000   /* 1............... 15-bit int */
-  #define ZP_TAG_OBJECT_MASK        0xe000   /* 111............. 4 tags, 8191 addresses * 4-byte pairs = 32 kB */
-  #define ZP_TAG_OBJECT_ANTIMASK    0x8000   /* 100............. */
-  #define ZP_TAG_OBJECT_ENUM        0x0000   /* 000............. tag #1 */
-  #define ZP_TAG_OBJECT_LIST        0x2000   /* 001............. tag #2 */
-  #define ZP_TAG_OBJECT_INTERNAL    0x4000   /* 010............. tag #3 */
-  #define ZP_TAG_OBJECT_OTHER       0x6000   /* 011............. tag #4 */
+  #define ZP_TAG_NODE_MASK          0xe000   /* 111............. 4 tags, 8191 addresses * 4-byte pairs = 32 kB */
+  #define ZP_TAG_NODE_ANTIMASK      0x8000   /* 100............. */
+  #define ZP_TAG_NODE_ENUM          0x0000   /* 000............. tag #1 */
+  #define ZP_TAG_NODE_LIST          0x2000   /* 001............. tag #2 */
+  #define ZP_TAG_NODE_INTERNAL      0x4000   /* 010............. tag #3 */
+  #define ZP_TAG_NODE_OBJECT        0x6000   /* 011............. tag #4 */
   #define ZP_TERMINATOR             0x1fff   /* ends lists and trees, maximum number of pairs in SlabAllocator */
 #elif ZIPPY_POINTER_SIZE == 32
   #define ZP_TAG_FLOAT              0x80000000   /* 1............................... 31-bit float */
   #define ZP_TAG_INT                0x40000000   /* 01.............................. 30-bit int */
-  #define ZP_TAG_OBJECT_MASK        0xf0000000   /* 1111............................ (2**(32 - 4) - 1) * 8 byte = 2 GB */
-  #define ZP_TAG_OBJECT_ANTIMASK    0xc0000000   /* 1100............................ */
-  #define ZP_TAG_OBJECT_ENUM        0x00000000   /* 0000............................ */
-  #define ZP_TAG_OBJECT_LIST        0x10000000   /* 0001............................ */
-  #define ZP_TAG_OBJECT_INTERNAL    0x20000000   /* 0010............................ */
-  #define ZP_TAG_OBJECT_OTHER       0x30000000   /* 0011............................ */
+  #define ZP_TAG_NODE_MASK          0xf0000000   /* 1111............................ (2**(32 - 4) - 1) * 8 byte = 2 GB */
+  #define ZP_TAG_NODE_ANTIMASK      0xc0000000   /* 1100............................ */
+  #define ZP_TAG_NODE_ENUM          0x00000000   /* 0000............................ */
+  #define ZP_TAG_NODE_LIST          0x10000000   /* 0001............................ */
+  #define ZP_TAG_NODE_INTERNAL      0x20000000   /* 0010............................ */
+  #define ZP_TAG_NODE_OBJECT        0x30000000   /* 0011............................ */
   #define ZP_TERMINATOR             0x0fffffff
 #else /* ZIPPY_POINTER_SIZE == 64 */
   #define ZP_TAG_FLOAT              0x8000000000000000   /* 1....... 63-bit float */
   #define ZP_TAG_INT                0x4000000000000000   /* 01...... 62-bit int */
-  #define ZP_TAG_OBJECT_MASK        0xf000000000000000   /* 1111... (2**(64 - 4) - 1) * 16 byte = 16 EB */
-  #define ZP_TAG_OBJECT_ANTIMASK    0xc000000000000000   /* 1100... */
-  #define ZP_TAG_OBJECT_ENUM        0x0000000000000000   /* 0000... */
-  #define ZP_TAG_OBJECT_LIST        0x1000000000000000   /* 0001... */
-  #define ZP_TAG_OBJECT_INTERNAL    0x2000000000000000   /* 0010... */
-  #define ZP_TAG_OBJECT_OTHER       0x3000000000000000   /* 0011... */
+  #define ZP_TAG_NODE_MASK          0xf000000000000000   /* 1111... (2**(64 - 4) - 1) * 16 byte = 16 EB */
+  #define ZP_TAG_NODE_ANTIMASK      0xc000000000000000   /* 1100... */
+  #define ZP_TAG_NODE_ENUM          0x0000000000000000   /* 0000... */
+  #define ZP_TAG_NODE_LIST          0x1000000000000000   /* 0001... */
+  #define ZP_TAG_NODE_INTERNAL      0x2000000000000000   /* 0010... */
+  #define ZP_TAG_NODE_OBJECT        0x3000000000000000   /* 0011... */
   #define ZP_TERMINATOR             0x0fffffffffffffff
 #endif
 
@@ -119,7 +119,7 @@ enum {
   ZP_ENUM_FALSE                       = 0x0041,
   ZP_ENUM_TRUE                        = 0x0042,
 
-  /* type designators for ZP_TAG_OBJECT_OTHER, up to 0x1fff */
+  /* type designators for ZP_TAG_NODE_OBJECT, up to 0x1fff */
   ZP_ENUM_OTHER_SYMBOL                = 0x0100,
   ZP_ENUM_OTHER_BYTESTRING            = 0x0101,
   ZP_ENUM_OTHER_UTF8STRING            = 0x0102,

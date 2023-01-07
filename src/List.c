@@ -53,13 +53,13 @@ void ZP_List_del(
 void ZP_List_new_empty(
   ZP_Tagged_t* list
 ) {
-  list->data = ZP_TERMINATOR | ZP_TAG_OBJECT_LIST;
+  list->data = ZP_TERMINATOR | ZP_TAG_NODE_LIST;
 }
 
 bool ZP_List_is_empty(
   ZP_Tagged_t* list
 ) {
-  return list->data == (ZP_TERMINATOR | ZP_TAG_OBJECT_LIST);
+  return list->data == (ZP_TERMINATOR | ZP_TAG_NODE_LIST);
 }
 
 ZP_Index_t ZP_List_size(
@@ -120,7 +120,7 @@ ZP_Error_t ZP_List_push(
 
   ZP_Context_set(context, &pointer, input_list_increfed.data, item_increfed.data);
 
-  ZP_Tagged_from_SlabPointer(output_list, &pointer, ZP_TAG_OBJECT_LIST);
+  ZP_Tagged_from_SlabPointer(output_list, &pointer, ZP_TAG_NODE_LIST);
 
   input_list->data = input_list_increfed.data;
 

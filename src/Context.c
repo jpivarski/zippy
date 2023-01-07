@@ -247,7 +247,7 @@ ZP_Error_t ZP_Context_slab_copy(
   ZP_Tagged_from_SlabPointer(
     new_tagged,
     &new_pointer,
-    old_tagged->data & ZP_TAG_OBJECT_MASK
+    old_tagged->data & ZP_TAG_NODE_MASK
   );
 
   return ZP_NO_ERROR;
@@ -266,9 +266,9 @@ ZP_Error_t ZP_Context_slab_incref(
   ZP_Tagged_t* old_tagged
 ) {
   ZP_Index_t pointer;
-  switch (old_tagged->data & ZP_TAG_OBJECT_MASK) {
-  case ZP_TAG_OBJECT_LIST:
-    pointer = old_tagged->data & (~ZP_TAG_OBJECT_MASK);
+  switch (old_tagged->data & ZP_TAG_NODE_MASK) {
+  case ZP_TAG_NODE_LIST:
+    pointer = old_tagged->data & (~ZP_TAG_NODE_MASK);
     if (pointer != ZP_TERMINATOR) {
       if (context->refcnt[pointer] != ZP_REFCNT_MAX) {
         /* fast path: just increment the refcnt */
@@ -281,8 +281,8 @@ ZP_Error_t ZP_Context_slab_incref(
     }
     break;
 
-  case ZP_TAG_OBJECT_INTERNAL:
-    pointer = old_tagged->data & (~ZP_TAG_OBJECT_MASK);
+  case ZP_TAG_NODE_INTERNAL:
+    pointer = old_tagged->data & (~ZP_TAG_NODE_MASK);
     if (context->refcnt[pointer] != ZP_REFCNT_MAX) {
       /* fast path: just increment the refcnt */
       context->refcnt[pointer]++;
@@ -292,8 +292,8 @@ ZP_Error_t ZP_Context_slab_incref(
     }
     break;
 
-  case ZP_TAG_OBJECT_OTHER:
-    pointer = old_tagged->data & (~ZP_TAG_OBJECT_MASK);
+  case ZP_TAG_NODE_OBJECT:
+    pointer = old_tagged->data & (~ZP_TAG_NODE_MASK);
     if (context->refcnt[pointer] != ZP_REFCNT_MAX) {
       /* fast path: just increment the refcnt */
       context->refcnt[pointer]++;
@@ -303,7 +303,7 @@ ZP_Error_t ZP_Context_slab_incref(
       ZP_Tagged_t object_type;
       ZP_Context_object_type(context, &object_type, old_tagged);
 
-      if (object_type.data & ZP_TAG_OBJECT_OTHER) {
+      if (object_type.data & ZP_TAG_NODE_OBJECT) {
         ZP_Tagged_t class_type;
         ZP_Context_object_type(context, &class_type, &object_type);
 
@@ -337,9 +337,9 @@ void ZP_Context_slab_decref(
   ZP_Tagged_t* tagged
 ) {
   ZP_Index_t pointer;
-  switch (tagged->data & ZP_TAG_OBJECT_MASK) {
-  case ZP_TAG_OBJECT_LIST:
-    pointer = tagged->data & (~ZP_TAG_OBJECT_MASK);
+  switch (tagged->data & ZP_TAG_NODE_MASK) {
+  case ZP_TAG_NODE_LIST:
+    pointer = tagged->data & (~ZP_TAG_NODE_MASK);
     if (pointer != ZP_TERMINATOR) {
       context->refcnt[pointer]--;
 
@@ -349,8 +349,8 @@ void ZP_Context_slab_decref(
     }
     break;
 
-  case ZP_TAG_OBJECT_INTERNAL:
-    pointer = tagged->data & (~ZP_TAG_OBJECT_MASK);
+  case ZP_TAG_NODE_INTERNAL:
+    pointer = tagged->data & (~ZP_TAG_NODE_MASK);
     context->refcnt[pointer]--;
 
     if (context->refcnt[pointer] == 0) {
@@ -358,15 +358,15 @@ void ZP_Context_slab_decref(
     }
     break;
 
-  case ZP_TAG_OBJECT_OTHER:
-    pointer = tagged->data & (~ZP_TAG_OBJECT_MASK);
+  case ZP_TAG_NODE_OBJECT:
+    pointer = tagged->data & (~ZP_TAG_NODE_MASK);
     context->refcnt[pointer]--;
 
     if (context->refcnt[pointer] == 0) {
       ZP_Tagged_t object_type;
       ZP_Context_object_type(context, &object_type, tagged);
 
-      if (object_type.data & ZP_TAG_OBJECT_OTHER) {
+      if (object_type.data & ZP_TAG_NODE_OBJECT) {
         ZP_Tagged_t class_type;
         ZP_Context_object_type(context, &class_type, &object_type);
 

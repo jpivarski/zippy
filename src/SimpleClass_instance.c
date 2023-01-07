@@ -276,7 +276,7 @@ ZP_Error_t ZP_SimpleClass_instance_new(
 
   ZP_Context_set(context, &pointer, simple_class_increfed.data, internal);
 
-  ZP_Tagged_from_SlabPointer(instance, &pointer, ZP_TAG_OBJECT_OTHER);
+  ZP_Tagged_from_SlabPointer(instance, &pointer, ZP_TAG_NODE_OBJECT);
 
   simple_class->data = simple_class_increfed.data;
 

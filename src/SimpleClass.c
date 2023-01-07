@@ -19,9 +19,9 @@ ZP_Error_t ZP_SimpleClass_copy(
     return error;
   }
 
-  ZP_Tagged_t other_type;
+  ZP_Tagged_t object_type;
   ZP_RegionPointer_t region_pointer;
-  ZP_Context_get(context, &old_pointer, &other_type.data, &region_pointer.at);
+  ZP_Context_get(context, &old_pointer, &object_type.data, &region_pointer.at);
 
   error = ZP_Context_region_incref(context, &region_pointer);
   if (error != ZP_NO_ERROR) {
@@ -29,9 +29,9 @@ ZP_Error_t ZP_SimpleClass_copy(
     return error;
   }
 
-  ZP_Context_set(context, &new_pointer, other_type.data, region_pointer.at);
+  ZP_Context_set(context, &new_pointer, object_type.data, region_pointer.at);
 
-  ZP_Tagged_from_SlabPointer(new_simple_class, &new_pointer, ZP_TAG_OBJECT_OTHER);
+  ZP_Tagged_from_SlabPointer(new_simple_class, &new_pointer, ZP_TAG_NODE_OBJECT);
 
   return ZP_NO_ERROR;
 }
@@ -83,12 +83,12 @@ ZP_Error_t ZP_SimpleClass_new(
     return error;
   }
 
-  ZP_Tagged_from_SlabPointer(simple_class, &slab_pointer, ZP_TAG_OBJECT_OTHER);
+  ZP_Tagged_from_SlabPointer(simple_class, &slab_pointer, ZP_TAG_NODE_OBJECT);
 
-  ZP_Tagged_t other_type;
-  ZP_Tagged_from_enum(&other_type, ZP_ENUM_OTHER_SIMPLE_CLASS);
+  ZP_Tagged_t object_type;
+  ZP_Tagged_from_enum(&object_type, ZP_ENUM_OTHER_SIMPLE_CLASS);
 
-  ZP_Context_set(context, &slab_pointer, other_type.data, region_pointer.at);
+  ZP_Context_set(context, &slab_pointer, object_type.data, region_pointer.at);
 
   ZP_Index_t* region_data = (ZP_Index_t*)ZP_Context_region_at(context, &region_pointer);
 

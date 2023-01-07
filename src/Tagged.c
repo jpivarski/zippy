@@ -58,21 +58,21 @@ bool ZP_Tagged_is_int(
 bool ZP_Tagged_is_refcntable(
   ZP_Tagged_t* tagged
 ) {
-  return !(tagged->data & ZP_TAG_OBJECT_ANTIMASK) && (tagged->data & ZP_TAG_OBJECT_MASK);
+  return !(tagged->data & ZP_TAG_NODE_ANTIMASK) && (tagged->data & ZP_TAG_NODE_MASK);
 }
 
 ZP_Index_t ZP_Tagged_to_enum(
   ZP_Tagged_t* tagged
 ) {
   /* ZP_TERMINATOR means "not an enum" */
-  return (tagged->data & ZP_TAG_OBJECT_MASK) ? ZP_TERMINATOR : tagged->data & (~ZP_TAG_OBJECT_MASK);
+  return (tagged->data & ZP_TAG_NODE_MASK) ? ZP_TERMINATOR : tagged->data & (~ZP_TAG_NODE_MASK);
 }
 
 void ZP_Tagged_from_enum(
   ZP_Tagged_t* tagged,
   ZP_Index_t enum_value
 ) {
-  tagged->data = ZP_TAG_OBJECT_ENUM | enum_value;
+  tagged->data = ZP_TAG_NODE_ENUM | enum_value;
 }
 
 ZP_Float_t ZP_Tagged_to_float(
