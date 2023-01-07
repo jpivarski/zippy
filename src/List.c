@@ -122,5 +122,7 @@ ZP_Error_t ZP_List_push(
 
   ZP_Tagged_from_SlabPointer(output_list, &pointer, ZP_TAG_OBJECT_LIST);
 
+  input_list->data = input_list_increfed.data;
+
   return ZP_NO_ERROR;
 }

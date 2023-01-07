@@ -81,10 +81,12 @@ void view_Context(ZP_Context_t* context, bool view_slab, bool view_region) {
   ZP_Index_t j = 0;
   ZP_Index_t k = 0;
 
+  printf("\n");
+
   if (view_slab) {
     char tmp[36];
 
-    printf("\nrefcnt + slab\n");
+    printf("refcnt + slab\n");
     while (i < context->slab_allocator.num_slabs) {
 #if ZIPPY_POINTER_SIZE == 16
       for (j = 0;  j < 8;  j++) {
@@ -285,16 +287,16 @@ bool is_good_Context_region(ZP_Context_t* context, ZP_Index_t size, const char* 
   ZP_Index_t j;
   for (i = 0;  i < size;  i++) {
     if (((unsigned char*)expected)[i] != ((unsigned char*)context->region_allocator.arena)[i]) {
-      printf("expected:\n");
+      printf("obtained:\n");
       for (j = 0;  j < size;  j++) {
-        printf("\\x%02x", ((unsigned char*)expected)[j]);
+        printf("\\x%02x", ((unsigned char*)context->region_allocator.arena)[j]);
       }
-      printf("\nobtained:\n");
+      printf("\nexpected:\n");
       for (j = 0;  j < i;  j++) {
         printf("....");
       }
       for (j = i;  j < size;  j++) {
-        printf("\\x%02x", ((unsigned char*)context->region_allocator.arena)[j]);
+        printf("\\x%02x", ((unsigned char*)expected)[j]);
       }
       printf("\n");
       return false;

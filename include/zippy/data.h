@@ -313,6 +313,21 @@ void ZP_Context_slab_decref(
   ZP_Tagged_t* tagged
 );
 
+ZP_RefCnt_t ZP_Context_internal_refcnt(
+  ZP_Context_t* context,
+  ZP_Index_t internal
+);
+
+void ZP_Context_internal_incref(
+  ZP_Context_t* context,
+  ZP_Index_t internal
+);
+
+void ZP_Context_internal_decref(
+  ZP_Context_t* context,
+  ZP_Index_t internal
+);
+
 ZP_Error_t ZP_Context_new_region(
   ZP_Context_t* context,
   ZP_RegionPointer_t* pointer,
@@ -462,6 +477,36 @@ ZP_Index_t ZP_SimpleClass_num_members(
   ZP_Context_t* context,
   ZP_Tagged_t* simple_class
 );
+
+ZP_Error_t ZP_SimpleClass_load_members(
+  ZP_Context_t* context,
+  ZP_Index_t* num_members,
+  ZP_Index_t** scratch_space,
+  ZP_Index_t** sorted_data,
+  ZP_Tagged_t* simple_class,
+  ZP_Tagged_t* members
+);
+
+/***** SimpleClass_instance **************************************************/
+
+ZP_Error_t ZP_SimpleClass_instance_copy(
+  ZP_Context_t* context,
+  ZP_Tagged_t* new_instance,
+  ZP_Tagged_t* old_instance
+);
+
+void ZP_SimpleClass_instance_del(
+  ZP_Context_t* context,
+  ZP_Tagged_t* instance
+);
+
+ZP_Error_t ZP_SimpleClass_instance_new(
+  ZP_Context_t* context,
+  ZP_Tagged_t* instance,
+  ZP_Tagged_t* simple_class,
+  ZP_Tagged_t* members
+);
+
 
 
 

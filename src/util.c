@@ -82,6 +82,24 @@ void ZP_util_argsort_merge(
 
 /***** public functions ******************************************************/
 
+ZP_Index_t ZP_util_next_power_2(
+  ZP_Index_t x
+) {
+  x -= 1;
+  x |= x >> 1;
+  x |= x >> 2;
+  x |= x >> 4;
+  x |= x >> 8;
+#if ZIPPY_POINTER_SIZE == 16
+#elif ZIPPY_POINTER_SIZE == 32
+  x |= x >> 16;
+#else /* ZIPPY_POINTER_SIZE == 64 */
+  x |= x >> 32;
+#endif
+  x += 1;
+  return x;
+}
+
 void ZP_util_argsort(
   ZP_Index_t* scratch,
   ZP_Index_t* index,

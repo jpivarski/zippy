@@ -48,7 +48,7 @@ void ZP_SimpleClass_del(
 
   ZP_Index_t refcnt = ZP_Context_region_refcnt(context, &region_pointer);
   if (refcnt == 1) {
-    ZP_Index_t num_members = ZP_Context_region_size(context, &region_pointer) / (4 * sizeof(ZP_Index_t));
+    ZP_Index_t num_members = ZP_Context_region_size(context, &region_pointer) / (5 * sizeof(ZP_Index_t));
     ZP_Index_t* region_data = (ZP_Index_t*)ZP_Context_region_at(context, &region_pointer);
     ZP_Tagged_t symbol;
     ZP_Index_t i;
@@ -71,7 +71,7 @@ ZP_Error_t ZP_SimpleClass_new(
   ZP_Index_t num_members = ZP_List_size(context, member_name_symbols);
 
   ZP_RegionPointer_t region_pointer;
-  ZP_Error_t error = ZP_Context_new_region(context, &region_pointer, 4 * num_members * sizeof(ZP_Index_t));
+  ZP_Error_t error = ZP_Context_new_region(context, &region_pointer, 5 * num_members * sizeof(ZP_Index_t));
   if (error != ZP_NO_ERROR) {
     return error;
   }
@@ -154,5 +154,62 @@ ZP_Index_t ZP_SimpleClass_num_members(
   ZP_RegionPointer_t region_pointer;
   region_pointer.at = ZP_Context_get_right(context, &slab_pointer);
 
-  return ZP_Context_region_size(context, &region_pointer) / (4 * sizeof(ZP_Index_t));
+  return ZP_Context_region_size(context, &region_pointer) / (5 * sizeof(ZP_Index_t));
+}
+
+ZP_Error_t ZP_SimpleClass_load_members(
+  ZP_Context_t* context,
+  ZP_Index_t* num_members,
+  ZP_Index_t** scratch_space,
+  ZP_Index_t** sorted_data,
+  ZP_Tagged_t* simple_class,
+  ZP_Tagged_t* members
+) {
+  ZP_SlabPointer_t slab_pointer;
+  ZP_Tagged_to_SlabPointer(&slab_pointer, simple_class);
+
+  ZP_RegionPointer_t region_pointer;
+  region_pointer.at = ZP_Context_get_right(context, &slab_pointer);
+
+  *num_members = ZP_Context_region_size(context, &region_pointer) / (5 * sizeof(ZP_Index_t));
+
+  ZP_Index_t* region_data = (ZP_Index_t*)ZP_Context_region_at(context, &region_pointer);
+  ZP_Index_t* argsort_index = &region_data[2 * (*num_members)];
+  *scratch_space            = &region_data[3 * (*num_members)];
+  *sorted_data              = &region_data[4 * (*num_members)];
+
+  ZP_Tagged_t next_list;
+  ZP_Tagged_copy(&next_list, members);
+
+  ZP_Error_t error;
+  ZP_Index_t i;
+  ZP_Tagged_t this_member;
+  ZP_Tagged_t this_member_increfed;
+  for (i = 0;  i < (*num_members);  i++) {
+    ZP_List_peek_reverse_iterate_step(context, &next_list, &this_member, &next_list);
+
+    error = ZP_Context_slab_incref(context, &this_member_increfed, &this_member);
+    if (error != ZP_NO_ERROR) {
+      ZP_Index_t j;
+      for (j = 0;  j < i;  j++) {
+        this_member_increfed.data = (*scratch_space)[(*num_members) - 1 - j];
+        ZP_Context_slab_decref(context, &this_member_increfed);
+      }
+      return error;
+    }
+
+    (*scratch_space)[(*num_members) - 1 - i] = this_member_increfed.data;
+  }
+
+  /* the member values need to be sorted by symbol identifiers for later retrieval */
+  for (i = 0;  i < (*num_members);  i++) {
+    (*sorted_data)[i] = (*scratch_space)[argsort_index[i]];
+  }
+
+  /* fill the scratch_space with ZP_TERMINATOR so that it can be used for pointers */
+  for (i = 0;  i < (*num_members);  i++) {
+    (*scratch_space)[i] = ZP_TERMINATOR;
+  }
+
+  return ZP_NO_ERROR;
 }
