@@ -396,26 +396,26 @@ void ZP_Context_slab_decref(
   }
 }
 
-ZP_RefCnt_t ZP_Context_internal_refcnt(
-  ZP_Context_t* context,
-  ZP_Index_t internal
-) {
-  return context->refcnt[internal];
-}
+/* ZP_RefCnt_t ZP_Context_internal_refcnt( */
+/*   ZP_Context_t* context, */
+/*   ZP_Index_t internal */
+/* ) { */
+/*   return context->refcnt[internal]; */
+/* } */
 
-void ZP_Context_internal_incref(
-  ZP_Context_t* context,
-  ZP_Index_t internal
-) {
-  context->refcnt[internal]++;
-}
+/* void ZP_Context_internal_incref( */
+/*   ZP_Context_t* context, */
+/*   ZP_Index_t internal */
+/* ) { */
+/*   context->refcnt[internal]++; */
+/* } */
 
-void ZP_Context_internal_decref(
-  ZP_Context_t* context,
-  ZP_Index_t internal
-) {
-  context->refcnt[internal]--;
-}
+/* void ZP_Context_internal_decref( */
+/*   ZP_Context_t* context, */
+/*   ZP_Index_t internal */
+/* ) { */
+/*   context->refcnt[internal]--; */
+/* } */
 
 ZP_Error_t ZP_Context_new_region(
   ZP_Context_t* context,

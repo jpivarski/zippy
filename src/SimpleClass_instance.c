@@ -13,8 +13,8 @@ void ZP_SimpleClass_instance_decref_walk(
     return;
   }
 
-  ZP_Context_internal_decref(context, internal);
-  if (ZP_Context_internal_refcnt(context, internal) != 0) {
+  context->refcnt[internal]--;
+  if (context->refcnt[internal] != 0) {
     return;
   }
 
