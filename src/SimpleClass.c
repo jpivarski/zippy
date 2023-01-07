@@ -213,3 +213,22 @@ ZP_Error_t ZP_SimpleClass_load_members(
 
   return ZP_NO_ERROR;
 }
+
+void ZP_SimpleClass_symbol_identifiers(
+  ZP_Context_t* context,
+  ZP_Index_t* num_members,
+  ZP_Index_t** symbol_identifiers,
+  ZP_Tagged_t* simple_class
+) {
+  ZP_SlabPointer_t slab_pointer;
+  ZP_Tagged_to_SlabPointer(&slab_pointer, simple_class);
+
+  ZP_RegionPointer_t region_pointer;
+  region_pointer.at = ZP_Context_get_right(context, &slab_pointer);
+
+  *num_members = ZP_Context_region_size(context, &region_pointer) / (5 * sizeof(ZP_Index_t));
+
+  ZP_Index_t* region_data = (ZP_Index_t*)ZP_Context_region_at(context, &region_pointer);
+
+  *symbol_identifiers = &region_data[(*num_members)];
+}

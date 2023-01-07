@@ -27,7 +27,6 @@ ZP_Error_t ZP_SimpleClass_instance_new_tree(
 
   ZP_Index_t left;
   ZP_Index_t right;
-  ZP_Index_t step;
   if (start + 1 == stop) {
     left = sorted_data[start];
     right = ZP_TERMINATOR;
@@ -37,7 +36,7 @@ ZP_Error_t ZP_SimpleClass_instance_new_tree(
     right = sorted_data[start + 1];
   }
   else {
-    step = ZP_util_next_power_2((stop - start) / 2);
+    ZP_Index_t step = ZP_util_next_power_2((stop - start) / 2);
     error = ZP_SimpleClass_instance_new_tree(
       context,
       &left,
@@ -68,6 +67,69 @@ ZP_Error_t ZP_SimpleClass_instance_new_tree(
   *internal = internal_pointer.at;
 
   return ZP_NO_ERROR;
+}
+
+void ZP_SimpleClass_instance_search_for_member(
+  ZP_Context_t* context,
+  ZP_Tagged_t* member,
+  ZP_Index_t start,
+  ZP_Index_t stop,
+  ZP_Index_t* symbol_identifiers,
+  ZP_Index_t symbol_identifier,
+  ZP_Index_t internal
+) {
+  if (start >= stop) {
+    return;
+  }
+
+  ZP_SlabPointer_t internal_pointer;
+  internal_pointer.at = internal;
+
+  ZP_Index_t left;
+  ZP_Index_t right;
+  ZP_Context_get(context, &internal_pointer, &left, &right);
+
+  if (start + 1 == stop) {
+    if (symbol_identifier == symbol_identifiers[start]) {
+      member->data = left;
+    }
+    return;
+  }
+  else if (start + 2 == stop) {
+    if (symbol_identifier == symbol_identifiers[start]) {
+      member->data = left;
+    }
+    if (symbol_identifier == symbol_identifiers[start + 1]) {
+      member->data = right;
+    }
+    return;
+  }
+  else {
+    ZP_Index_t step = ZP_util_next_power_2((stop - start) / 2);
+    if (symbol_identifier < symbol_identifiers[start + step]) {
+      ZP_SimpleClass_instance_search_for_member(
+        context,
+        member,
+        start,
+        start + step,
+        symbol_identifiers,
+        symbol_identifier,
+        left
+      );
+    }
+    else {
+      ZP_SimpleClass_instance_search_for_member(
+        context,
+        member,
+        start + step,
+        stop,
+        symbol_identifiers,
+        symbol_identifier,
+        right
+      );
+    }
+    return;
+  }
 }
 
 /***** public functions ******************************************************/
@@ -158,4 +220,36 @@ ZP_Error_t ZP_SimpleClass_instance_new(
   simple_class->data = simple_class_increfed.data;
 
   return ZP_NO_ERROR;
+}
+
+void ZP_SimpleClass_instance_get_member(
+  ZP_Context_t* context,
+  ZP_Tagged_t* member,
+  ZP_Tagged_t* instance,
+  ZP_Tagged_t* symbol
+) {
+  ZP_SlabPointer_t pointer;
+  ZP_Tagged_to_SlabPointer(&pointer, instance);
+
+  ZP_Tagged_t simple_class;
+  ZP_Index_t internal;
+  ZP_Context_get(context, &pointer, &simple_class.data, &internal);
+
+  ZP_Index_t num_members;
+  ZP_Index_t* symbol_identifiers;
+  ZP_SimpleClass_symbol_identifiers(context, &num_members, &symbol_identifiers, &simple_class);
+
+  member->data = ZP_TERMINATOR;
+
+  ZP_Index_t symbol_identifier = ZP_Symbol_identifier(context, symbol);
+
+  ZP_SimpleClass_instance_search_for_member(
+    context,
+    member,
+    0,
+    num_members,
+    symbol_identifiers,
+    symbol_identifier,
+    internal
+  );
 }

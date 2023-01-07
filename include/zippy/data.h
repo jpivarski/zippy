@@ -487,6 +487,13 @@ ZP_Error_t ZP_SimpleClass_load_members(
   ZP_Tagged_t* members
 );
 
+void ZP_SimpleClass_symbol_identifiers(
+  ZP_Context_t* context,
+  ZP_Index_t* num_members,
+  ZP_Index_t** symbol_identifiers,
+  ZP_Tagged_t* simple_class
+);
+
 /***** SimpleClass_instance **************************************************/
 
 ZP_Error_t ZP_SimpleClass_instance_copy(
@@ -507,7 +514,11 @@ ZP_Error_t ZP_SimpleClass_instance_new(
   ZP_Tagged_t* members
 );
 
-
-
+void ZP_SimpleClass_instance_get_member(
+  ZP_Context_t* context,
+  ZP_Tagged_t* attribute,
+  ZP_Tagged_t* instance,
+  ZP_Tagged_t* symbol
+);
 
 #endif /* ZIPPY_DATA_H */
