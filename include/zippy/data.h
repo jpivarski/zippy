@@ -365,6 +365,12 @@ void ZP_Context_region_copy_data(
   const char* data
 );
 
+void ZP_Context_object_type(
+  ZP_Context_t* context,
+  ZP_Tagged_t* object_type,
+  ZP_Tagged_t* object
+);
+
 /***** List ******************************************************************/
 
 ZP_Error_t ZP_List_copy(

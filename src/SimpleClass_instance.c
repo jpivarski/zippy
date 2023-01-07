@@ -3,6 +3,49 @@
 
 /***** helper (private) functions ********************************************/
 
+void ZP_SimpleClass_instance_decref_walk(
+  ZP_Context_t* context,
+  ZP_Index_t start,
+  ZP_Index_t stop,
+  ZP_Index_t internal
+) {
+  if (start >= stop) {
+    return;
+  }
+
+  ZP_Context_internal_decref(context, internal);
+  if (ZP_Context_internal_refcnt(context, internal) != 0) {
+    return;
+  }
+
+  ZP_SlabPointer_t internal_pointer;
+  internal_pointer.at = internal;
+
+  ZP_Index_t left;
+  ZP_Index_t right;
+  ZP_Context_get(context, &internal_pointer, &left, &right);
+
+  ZP_Context_free_slab(context, &internal_pointer);
+
+  if (start + 1 == stop) {
+    ZP_Tagged_t member;
+    member.data = left;
+    ZP_Context_slab_decref(context, &member);
+  }
+  else if (start + 2 == stop) {
+    ZP_Tagged_t member;
+    member.data = left;
+    ZP_Context_slab_decref(context, &member);
+    member.data = right;
+    ZP_Context_slab_decref(context, &member);
+  }
+  else {
+    ZP_Index_t step = ZP_util_next_power_2((stop - start) / 2);
+    ZP_SimpleClass_instance_decref_walk(context, start, start + step, left);
+    ZP_SimpleClass_instance_decref_walk(context, start + step, stop, right);
+  }
+}
+
 ZP_Error_t ZP_SimpleClass_instance_new_tree(
   ZP_Context_t* context,
   ZP_Index_t* internal,
@@ -146,7 +189,25 @@ void ZP_SimpleClass_instance_del(
   ZP_Context_t* context,
   ZP_Tagged_t* instance
 ) {
-  printf("not implemented SimpleClass_instance 2\n");
+  ZP_SlabPointer_t pointer;
+  ZP_Tagged_to_SlabPointer(&pointer, instance);
+
+  ZP_Tagged_t simple_class;
+  ZP_Index_t internal;
+  ZP_Context_get(context, &pointer, &simple_class.data, &internal);
+
+  ZP_Index_t num_members = ZP_SimpleClass_num_members(context, &simple_class);
+
+  ZP_Context_slab_decref(context, &simple_class);
+
+  ZP_SimpleClass_instance_decref_walk(
+    context,
+    0,
+    num_members,
+    internal
+  );
+
+  ZP_Context_free_slab(context, &pointer);
 }
 
 ZP_Error_t ZP_SimpleClass_instance_new(

@@ -283,7 +283,23 @@ ZP_Error_t ZP_Context_slab_incref(
 
   case ZP_TAG_OBJECT_INSTANCE:
     pointer = old_tagged->data & (~ZP_TAG_OBJECT_MASK);
-    /* FIXME: handle the instance type, after it gets defined */
+    if (context->refcnt[pointer] != ZP_REFCNT_MAX) {
+      /* fast path: just increment the refcnt */
+      context->refcnt[pointer]++;
+    }
+    else {
+      /* slow path: need to copy (rarely) */
+      ZP_Tagged_t class_object;
+      ZP_Context_object_type(context, &class_object, old_tagged);
+      ZP_Tagged_t class_type;
+      ZP_Context_object_type(context, &class_type, &class_object);
+
+      switch (class_type.data) {
+      case ZP_ENUM_OTHER_SIMPLE_CLASS:
+        return ZP_SimpleClass_instance_copy(context, new_tagged, old_tagged);
+      /* FIXME: handle more types, as they get defined */
+      }
+    }
     break;
 
   case ZP_TAG_OBJECT_OTHER:
@@ -294,10 +310,9 @@ ZP_Error_t ZP_Context_slab_incref(
     }
     else {
       /* slow path: need to copy (rarely) */
-      ZP_SlabPointer_t slab_pointer;
-      slab_pointer.at = pointer;
       ZP_Tagged_t other_type;
-      other_type.data = ZP_Context_get_left(context, &slab_pointer);
+      ZP_Context_object_type(context, &other_type, old_tagged);
+
       switch (ZP_Tagged_to_enum(&other_type)) {
       case ZP_ENUM_OTHER_SYMBOL:
         return ZP_Symbol_copy(context, new_tagged, old_tagged);
@@ -334,8 +349,21 @@ void ZP_Context_slab_decref(
 
   case ZP_TAG_OBJECT_INSTANCE:
     pointer = tagged->data & (~ZP_TAG_OBJECT_MASK);
+    context->refcnt[pointer]--;
 
-    /* FIXME: handle the instance type, after it gets defined */
+    if (context->refcnt[pointer] == 0) {
+      ZP_Tagged_t class_object;
+      ZP_Context_object_type(context, &class_object, tagged);
+      ZP_Tagged_t class_type;
+      ZP_Context_object_type(context, &class_type, &class_object);
+
+      switch (class_type.data) {
+      case ZP_ENUM_OTHER_SIMPLE_CLASS:
+        ZP_SimpleClass_instance_del(context, tagged);
+        break;
+      /* FIXME: handle more types, as they get defined */
+      }
+    }
     break;
 
   case ZP_TAG_OBJECT_OTHER:
@@ -343,10 +371,9 @@ void ZP_Context_slab_decref(
     context->refcnt[pointer]--;
 
     if (context->refcnt[pointer] == 0) {
-      ZP_SlabPointer_t slab_pointer;
-      slab_pointer.at = pointer;
       ZP_Tagged_t other_type;
-      other_type.data = ZP_Context_get_left(context, &slab_pointer);
+      ZP_Context_object_type(context, &other_type, tagged);
+
       switch (ZP_Tagged_to_enum(&other_type)) {
       case ZP_ENUM_OTHER_SYMBOL:
         ZP_Symbol_del(context, tagged);
@@ -434,4 +461,15 @@ void ZP_Context_region_copy_data(
   const char* data
 ) {
   ZP_RegionAllocator_copy_data(&context->region_allocator, pointer, data);
+}
+
+void ZP_Context_object_type(
+  ZP_Context_t* context,
+  ZP_Tagged_t* object_type,
+  ZP_Tagged_t* object
+) {
+  ZP_SlabPointer_t pointer;
+  ZP_Tagged_to_SlabPointer(&pointer, object);
+
+  object_type->data = ZP_Context_get_left(context, &pointer);
 }
