@@ -7,48 +7,43 @@ void ZP_SimpleClass_instance_decref_walk(
   ZP_Context_t* context,
   ZP_Index_t start,
   ZP_Index_t stop,
-  ZP_Index_t internal
+  ZP_Tagged_t* internal
 ) {
   if (start >= stop) {
     return;
   }
 
-  context->refcnt[internal]--;
-  if (context->refcnt[internal] != 0) {
+  ZP_SlabPointer_t internal_pointer;
+  ZP_Tagged_to_SlabPointer(&internal_pointer, internal);
+
+  context->refcnt[internal_pointer.at]--;
+  if (context->refcnt[internal_pointer.at] != 0) {
     return;
   }
 
-  ZP_SlabPointer_t internal_pointer;
-  internal_pointer.at = internal;
-
-  ZP_Index_t left;
-  ZP_Index_t right;
-  ZP_Context_get(context, &internal_pointer, &left, &right);
+  ZP_Tagged_t left;
+  ZP_Tagged_t right;
+  ZP_Context_get(context, &internal_pointer, &left.data, &right.data);
 
   ZP_Context_free_slab(context, &internal_pointer);
 
   if (start + 1 == stop) {
-    ZP_Tagged_t member;
-    member.data = left;
-    ZP_Context_slab_decref(context, &member);
+    ZP_Context_slab_decref(context, &left);
   }
   else if (start + 2 == stop) {
-    ZP_Tagged_t member;
-    member.data = left;
-    ZP_Context_slab_decref(context, &member);
-    member.data = right;
-    ZP_Context_slab_decref(context, &member);
+    ZP_Context_slab_decref(context, &left);
+    ZP_Context_slab_decref(context, &right);
   }
   else {
     ZP_Index_t step = ZP_util_next_power_2((stop - start) / 2);
-    ZP_SimpleClass_instance_decref_walk(context, start, start + step, left);
-    ZP_SimpleClass_instance_decref_walk(context, start + step, stop, right);
+    ZP_SimpleClass_instance_decref_walk(context, start, start + step, &left);
+    ZP_SimpleClass_instance_decref_walk(context, start + step, stop, &right);
   }
 }
 
 ZP_Error_t ZP_SimpleClass_instance_new_tree(
   ZP_Context_t* context,
-  ZP_Index_t* internal,
+  ZP_Tagged_t* internal,
   ZP_Index_t start,
   ZP_Index_t stop,
   ZP_Index_t* scratch_space_filled,
@@ -56,7 +51,7 @@ ZP_Error_t ZP_SimpleClass_instance_new_tree(
   ZP_Index_t* sorted_data
 ) {
   if (start >= stop) {
-    *internal = ZP_TERMINATOR;
+    ZP_Context_new_empty_internal(internal);
     return ZP_NO_ERROR;
   }
 
@@ -68,15 +63,17 @@ ZP_Error_t ZP_SimpleClass_instance_new_tree(
   scratch_space[(*scratch_space_filled)] = internal_pointer.at;
   (*scratch_space_filled)++;
 
-  ZP_Index_t left;
-  ZP_Index_t right;
+  ZP_Tagged_from_SlabPointer(internal, &internal_pointer, ZP_TAG_NODE_INTERNAL);
+
+  ZP_Tagged_t left;
+  ZP_Tagged_t right;
   if (start + 1 == stop) {
-    left = sorted_data[start];
-    right = ZP_TERMINATOR;
+    left.data = sorted_data[start];
+    ZP_Context_new_empty_internal(&right);
   }
   else if (start + 2 == stop) {
-    left = sorted_data[start];
-    right = sorted_data[start + 1];
+    left.data = sorted_data[start];
+    right.data = sorted_data[start + 1];
   }
   else {
     ZP_Index_t step = ZP_util_next_power_2((stop - start) / 2);
@@ -106,8 +103,7 @@ ZP_Error_t ZP_SimpleClass_instance_new_tree(
     }
   }
 
-  ZP_Context_set(context, &internal_pointer, left, right);
-  *internal = internal_pointer.at;
+  ZP_Context_set(context, &internal_pointer, left.data, right.data);
 
   return ZP_NO_ERROR;
 }
@@ -119,31 +115,31 @@ void ZP_SimpleClass_instance_search_for_member(
   ZP_Index_t stop,
   ZP_Index_t* symbol_identifiers,
   ZP_Index_t symbol_identifier,
-  ZP_Index_t internal
+  ZP_Tagged_t* internal
 ) {
   if (start >= stop) {
     return;
   }
 
   ZP_SlabPointer_t internal_pointer;
-  internal_pointer.at = internal;
+  ZP_Tagged_to_SlabPointer(&internal_pointer, internal);
 
-  ZP_Index_t left;
-  ZP_Index_t right;
-  ZP_Context_get(context, &internal_pointer, &left, &right);
+  ZP_Tagged_t left;
+  ZP_Tagged_t right;
+  ZP_Context_get(context, &internal_pointer, &left.data, &right.data);
 
   if (start + 1 == stop) {
     if (symbol_identifier == symbol_identifiers[start]) {
-      member->data = left;
+      member->data = left.data;
     }
     return;
   }
   else if (start + 2 == stop) {
     if (symbol_identifier == symbol_identifiers[start]) {
-      member->data = left;
+      member->data = left.data;
     }
     if (symbol_identifier == symbol_identifiers[start + 1]) {
-      member->data = right;
+      member->data = right.data;
     }
     return;
   }
@@ -157,7 +153,7 @@ void ZP_SimpleClass_instance_search_for_member(
         start + step,
         symbol_identifiers,
         symbol_identifier,
-        left
+        &left
       );
     }
     else {
@@ -168,7 +164,7 @@ void ZP_SimpleClass_instance_search_for_member(
         stop,
         symbol_identifiers,
         symbol_identifier,
-        right
+        &right
       );
     }
     return;
@@ -193,8 +189,8 @@ void ZP_SimpleClass_instance_del(
   ZP_Tagged_to_SlabPointer(&pointer, instance);
 
   ZP_Tagged_t simple_class;
-  ZP_Index_t internal;
-  ZP_Context_get(context, &pointer, &simple_class.data, &internal);
+  ZP_Tagged_t internal;
+  ZP_Context_get(context, &pointer, &simple_class.data, &internal.data);
 
   ZP_Index_t num_members = ZP_SimpleClass_num_members(context, &simple_class);
 
@@ -204,7 +200,7 @@ void ZP_SimpleClass_instance_del(
     context,
     0,
     num_members,
-    internal
+    &internal
   );
 
   ZP_Context_free_slab(context, &pointer);
@@ -247,7 +243,7 @@ ZP_Error_t ZP_SimpleClass_instance_new(
   }
 
   ZP_Index_t scratch_space_filled = 0;
-  ZP_Index_t internal;
+  ZP_Tagged_t internal;
   error = ZP_SimpleClass_instance_new_tree(
     context,
     &internal,
@@ -274,7 +270,7 @@ ZP_Error_t ZP_SimpleClass_instance_new(
     return error;
   }
 
-  ZP_Context_set(context, &pointer, simple_class_increfed.data, internal);
+  ZP_Context_set(context, &pointer, simple_class_increfed.data, internal.data);
 
   ZP_Tagged_from_SlabPointer(instance, &pointer, ZP_TAG_NODE_OBJECT);
 
@@ -293,8 +289,8 @@ void ZP_SimpleClass_instance_get_member(
   ZP_Tagged_to_SlabPointer(&pointer, instance);
 
   ZP_Tagged_t simple_class;
-  ZP_Index_t internal;
-  ZP_Context_get(context, &pointer, &simple_class.data, &internal);
+  ZP_Tagged_t internal;
+  ZP_Context_get(context, &pointer, &simple_class.data, &internal.data);
 
   ZP_Index_t num_members;
   ZP_Index_t* symbol_identifiers;
@@ -311,6 +307,6 @@ void ZP_SimpleClass_instance_get_member(
     num_members,
     symbol_identifiers,
     symbol_identifier,
-    internal
+    &internal
   );
 }

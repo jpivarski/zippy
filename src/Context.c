@@ -468,6 +468,12 @@ void ZP_Context_region_copy_data(
   ZP_RegionAllocator_copy_data(&context->region_allocator, pointer, data);
 }
 
+void ZP_Context_new_empty_internal(
+  ZP_Tagged_t* tagged
+) {
+  tagged->data = ZP_TAG_NODE_INTERNAL | ZP_TERMINATOR;
+}
+
 void ZP_Context_object_type(
   ZP_Context_t* context,
   ZP_Tagged_t* object_type,

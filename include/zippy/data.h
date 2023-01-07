@@ -371,6 +371,10 @@ void ZP_Context_object_type(
   ZP_Tagged_t* object
 );
 
+void ZP_Context_new_empty_internal(
+  ZP_Tagged_t* tagged
+);
+
 /***** List ******************************************************************/
 
 ZP_Error_t ZP_List_copy(
