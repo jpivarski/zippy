@@ -281,24 +281,14 @@ ZP_Error_t ZP_Context_slab_incref(
     }
     break;
 
-  case ZP_TAG_OBJECT_INSTANCE:
+  case ZP_TAG_OBJECT_INTERNAL:
     pointer = old_tagged->data & (~ZP_TAG_OBJECT_MASK);
     if (context->refcnt[pointer] != ZP_REFCNT_MAX) {
       /* fast path: just increment the refcnt */
       context->refcnt[pointer]++;
     }
     else {
-      /* slow path: need to copy (rarely) */
-      ZP_Tagged_t class_object;
-      ZP_Context_object_type(context, &class_object, old_tagged);
-      ZP_Tagged_t class_type;
-      ZP_Context_object_type(context, &class_type, &class_object);
-
-      switch (class_type.data) {
-      case ZP_ENUM_OTHER_SIMPLE_CLASS:
-        return ZP_SimpleClass_instance_copy(context, new_tagged, old_tagged);
-      /* FIXME: handle more types, as they get defined */
-      }
+      /* FIXME: handle this */
     }
     break;
 
@@ -310,17 +300,29 @@ ZP_Error_t ZP_Context_slab_incref(
     }
     else {
       /* slow path: need to copy (rarely) */
-      ZP_Tagged_t other_type;
-      ZP_Context_object_type(context, &other_type, old_tagged);
+      ZP_Tagged_t object_type;
+      ZP_Context_object_type(context, &object_type, old_tagged);
 
-      switch (ZP_Tagged_to_enum(&other_type)) {
-      case ZP_ENUM_OTHER_SYMBOL:
-        return ZP_Symbol_copy(context, new_tagged, old_tagged);
-      case ZP_ENUM_OTHER_RANDOM_ACCESS_LIST:
-        return ZP_RandomAccessList_copy(context, new_tagged, old_tagged);
-      case ZP_ENUM_OTHER_SIMPLE_CLASS:
-        return ZP_SimpleClass_copy(context, new_tagged, old_tagged);
-      /* FIXME: handle more types, as they get defined */
+      if (object_type.data & ZP_TAG_OBJECT_OTHER) {
+        ZP_Tagged_t class_type;
+        ZP_Context_object_type(context, &class_type, &object_type);
+
+        switch (class_type.data) {
+        case ZP_ENUM_OTHER_SIMPLE_CLASS:
+          return ZP_SimpleClass_instance_copy(context, new_tagged, old_tagged);
+        /* FIXME: handle more types, as they get defined */
+        }
+      }
+      else {
+        switch (ZP_Tagged_to_enum(&object_type)) {
+        case ZP_ENUM_OTHER_SYMBOL:
+          return ZP_Symbol_copy(context, new_tagged, old_tagged);
+        case ZP_ENUM_OTHER_RANDOM_ACCESS_LIST:
+          return ZP_RandomAccessList_copy(context, new_tagged, old_tagged);
+        case ZP_ENUM_OTHER_SIMPLE_CLASS:
+          return ZP_SimpleClass_copy(context, new_tagged, old_tagged);
+        /* FIXME: handle more types, as they get defined */
+        }
       }
     }
     break;
@@ -347,22 +349,12 @@ void ZP_Context_slab_decref(
     }
     break;
 
-  case ZP_TAG_OBJECT_INSTANCE:
+  case ZP_TAG_OBJECT_INTERNAL:
     pointer = tagged->data & (~ZP_TAG_OBJECT_MASK);
     context->refcnt[pointer]--;
 
     if (context->refcnt[pointer] == 0) {
-      ZP_Tagged_t class_object;
-      ZP_Context_object_type(context, &class_object, tagged);
-      ZP_Tagged_t class_type;
-      ZP_Context_object_type(context, &class_type, &class_object);
-
-      switch (class_type.data) {
-      case ZP_ENUM_OTHER_SIMPLE_CLASS:
-        ZP_SimpleClass_instance_del(context, tagged);
-        break;
-      /* FIXME: handle more types, as they get defined */
-      }
+      /* FIXME: handle this */
     }
     break;
 
@@ -371,20 +363,33 @@ void ZP_Context_slab_decref(
     context->refcnt[pointer]--;
 
     if (context->refcnt[pointer] == 0) {
-      ZP_Tagged_t other_type;
-      ZP_Context_object_type(context, &other_type, tagged);
+      ZP_Tagged_t object_type;
+      ZP_Context_object_type(context, &object_type, tagged);
 
-      switch (ZP_Tagged_to_enum(&other_type)) {
-      case ZP_ENUM_OTHER_SYMBOL:
-        ZP_Symbol_del(context, tagged);
-        break;
-      case ZP_ENUM_OTHER_RANDOM_ACCESS_LIST:
-        ZP_RandomAccessList_del(context, tagged);
-        break;
-      case ZP_ENUM_OTHER_SIMPLE_CLASS:
-        ZP_SimpleClass_del(context, tagged);
-        break;
-      /* FIXME: handle more types, as they get defined */
+      if (object_type.data & ZP_TAG_OBJECT_OTHER) {
+        ZP_Tagged_t class_type;
+        ZP_Context_object_type(context, &class_type, &object_type);
+
+        switch (class_type.data) {
+        case ZP_ENUM_OTHER_SIMPLE_CLASS:
+          ZP_SimpleClass_instance_del(context, tagged);
+          break;
+        /* FIXME: handle more types, as they get defined */
+        }
+      }
+      else {
+        switch (ZP_Tagged_to_enum(&object_type)) {
+        case ZP_ENUM_OTHER_SYMBOL:
+          ZP_Symbol_del(context, tagged);
+          break;
+        case ZP_ENUM_OTHER_RANDOM_ACCESS_LIST:
+          ZP_RandomAccessList_del(context, tagged);
+          break;
+        case ZP_ENUM_OTHER_SIMPLE_CLASS:
+          ZP_SimpleClass_del(context, tagged);
+          break;
+        /* FIXME: handle more types, as they get defined */
+        }
       }
     }
     break;

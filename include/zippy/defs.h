@@ -73,7 +73,7 @@ typedef const char* ZP_Error_t;
   #define ZP_TAG_OBJECT_ANTIMASK    0x8000   /* 100............. */
   #define ZP_TAG_OBJECT_ENUM        0x0000   /* 000............. tag #1 */
   #define ZP_TAG_OBJECT_LIST        0x2000   /* 001............. tag #2 */
-  #define ZP_TAG_OBJECT_INSTANCE    0x4000   /* 010............. tag #3 */
+  #define ZP_TAG_OBJECT_INTERNAL    0x4000   /* 010............. tag #3 */
   #define ZP_TAG_OBJECT_OTHER       0x6000   /* 011............. tag #4 */
   #define ZP_TERMINATOR             0x1fff   /* ends lists and trees, maximum number of pairs in SlabAllocator */
 #elif ZIPPY_POINTER_SIZE == 32
@@ -83,7 +83,7 @@ typedef const char* ZP_Error_t;
   #define ZP_TAG_OBJECT_ANTIMASK    0xc0000000   /* 1100............................ */
   #define ZP_TAG_OBJECT_ENUM        0x00000000   /* 0000............................ */
   #define ZP_TAG_OBJECT_LIST        0x10000000   /* 0001............................ */
-  #define ZP_TAG_OBJECT_INSTANCE    0x20000000   /* 0010............................ */
+  #define ZP_TAG_OBJECT_INTERNAL    0x20000000   /* 0010............................ */
   #define ZP_TAG_OBJECT_OTHER       0x30000000   /* 0011............................ */
   #define ZP_TERMINATOR             0x0fffffff
 #else /* ZIPPY_POINTER_SIZE == 64 */
@@ -93,7 +93,7 @@ typedef const char* ZP_Error_t;
   #define ZP_TAG_OBJECT_ANTIMASK    0xc000000000000000   /* 1100... */
   #define ZP_TAG_OBJECT_ENUM        0x0000000000000000   /* 0000... */
   #define ZP_TAG_OBJECT_LIST        0x1000000000000000   /* 0001... */
-  #define ZP_TAG_OBJECT_INSTANCE    0x2000000000000000   /* 0010... */
+  #define ZP_TAG_OBJECT_INTERNAL    0x2000000000000000   /* 0010... */
   #define ZP_TAG_OBJECT_OTHER       0x3000000000000000   /* 0011... */
   #define ZP_TERMINATOR             0x0fffffffffffffff
 #endif
