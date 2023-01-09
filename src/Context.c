@@ -255,9 +255,11 @@ ZP_Error_t ZP_Context_slab_copy(
 
 ZP_RefCnt_t ZP_Context_slab_refcnt(
   ZP_Context_t* context,
-  ZP_RegionPointer_t* pointer
+  ZP_Tagged_t* tagged
 ) {
-  return context->refcnt[pointer->at];
+  ZP_SlabPointer_t pointer;
+  ZP_Tagged_to_SlabPointer(&pointer, tagged);
+  return context->refcnt[pointer.at];
 }
 
 ZP_Error_t ZP_Context_slab_incref(

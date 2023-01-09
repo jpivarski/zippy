@@ -299,7 +299,7 @@ ZP_Error_t ZP_Context_slab_copy(
 
 ZP_RefCnt_t ZP_Context_slab_refcnt(
   ZP_Context_t* context,
-  ZP_RegionPointer_t* pointer
+  ZP_Tagged_t* tagged
 );
 
 ZP_Error_t ZP_Context_slab_incref(
