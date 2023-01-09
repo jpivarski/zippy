@@ -274,8 +274,6 @@ ZP_Error_t ZP_SimpleClass_instance_new(
 
   ZP_Tagged_from_SlabPointer(instance, &pointer, ZP_TAG_NODE_OBJECT);
 
-  simple_class->data = simple_class_increfed.data;
-
   return ZP_NO_ERROR;
 }
 
