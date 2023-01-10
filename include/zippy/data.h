@@ -243,51 +243,51 @@ ZP_Error_t ZP_Context_get_symbol(
   ZP_Index_t symbol_size
 );
 
-ZP_Error_t ZP_Context_new_slab(
-  ZP_Context_t* context,
-  ZP_SlabPointer_t* pointer
-);
+/* ZP_Error_t ZP_Context_new_slab( */
+/*   ZP_Context_t* context, */
+/*   ZP_SlabPointer_t* pointer */
+/* ); */
 
-void ZP_Context_free_slab(
-  ZP_Context_t* context,
-  ZP_SlabPointer_t* pointer
-);
+/* void ZP_Context_free_slab( */
+/*   ZP_Context_t* context, */
+/*   ZP_SlabPointer_t* pointer */
+/* ); */
 
-ZP_Index_t ZP_Context_get_left(
-  ZP_Context_t* context,
-  ZP_SlabPointer_t* pointer
-);
+/* ZP_Index_t ZP_Context_get_left( */
+/*   ZP_Context_t* context, */
+/*   ZP_SlabPointer_t* pointer */
+/* ); */
 
-ZP_Index_t ZP_Context_get_right(
-  ZP_Context_t* context,
-  ZP_SlabPointer_t* pointer
-);
+/* ZP_Index_t ZP_Context_get_right( */
+/*   ZP_Context_t* context, */
+/*   ZP_SlabPointer_t* pointer */
+/* ); */
 
-void ZP_Context_set_left(
-  ZP_Context_t* context,
-  ZP_SlabPointer_t* pointer,
-  ZP_Index_t left
-);
+/* void ZP_Context_set_left( */
+/*   ZP_Context_t* context, */
+/*   ZP_SlabPointer_t* pointer, */
+/*   ZP_Index_t left */
+/* ); */
 
-void ZP_Context_set_right(
-  ZP_Context_t* context,
-  ZP_SlabPointer_t* pointer,
-  ZP_Index_t right
-);
+/* void ZP_Context_set_right( */
+/*   ZP_Context_t* context, */
+/*   ZP_SlabPointer_t* pointer, */
+/*   ZP_Index_t right */
+/* ); */
 
-void ZP_Context_get(
-  ZP_Context_t* context,
-  ZP_SlabPointer_t* pointer,
-  ZP_Index_t* left,
-  ZP_Index_t* right
-);
+/* void ZP_Context_get( */
+/*   ZP_Context_t* context, */
+/*   ZP_SlabPointer_t* pointer, */
+/*   ZP_Index_t* left, */
+/*   ZP_Index_t* right */
+/* ); */
 
-void ZP_Context_set(
-  ZP_Context_t* context,
-  ZP_SlabPointer_t* pointer,
-  ZP_Index_t left,
-  ZP_Index_t right
-);
+/* void ZP_Context_set( */
+/*   ZP_Context_t* context, */
+/*   ZP_SlabPointer_t* pointer, */
+/*   ZP_Index_t left, */
+/*   ZP_Index_t right */
+/* ); */
 
 ZP_Error_t ZP_Context_slab_copy(
   ZP_Context_t* context,
@@ -349,15 +349,15 @@ void ZP_Context_region_decref(
   ZP_RegionPointer_t* pointer
 );
 
-ZP_Index_t ZP_Context_region_size(
-  ZP_Context_t* context,
-  ZP_RegionPointer_t* pointer
-);
+/* ZP_Index_t ZP_Context_region_size( */
+/*   ZP_Context_t* context, */
+/*   ZP_RegionPointer_t* pointer */
+/* ); */
 
-void* ZP_Context_region_at(
-  ZP_Context_t* context,
-  ZP_RegionPointer_t* pointer
-);
+/* void* ZP_Context_region_at( */
+/*   ZP_Context_t* context, */
+/*   ZP_RegionPointer_t* pointer */
+/* ); */
 
 void ZP_Context_region_copy_data(
   ZP_Context_t* context,

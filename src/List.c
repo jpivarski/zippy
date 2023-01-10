@@ -27,13 +27,14 @@ void ZP_List_del(
   ZP_Tagged_t this_item;
   do {
     /* updates this_list (in-place) */
-    ZP_Context_get(context, &pointer, &this_list.data, &this_item.data);
+    ZP_SlabAllocator_get(&context->slab_allocator, &pointer, &this_list.data, &this_item.data);
 
     /* decref this_item (whatever it is) */
     ZP_Context_slab_decref(context, &this_item);
 
     /* free the slab associated with the OLD this_list (pointer) */
-    ZP_Context_free_slab(context, &pointer);
+    ZP_SlabAllocator_free(&context->slab_allocator, &pointer);
+    context->refcnt[pointer.at] = 0;
 
     /* if we're looking at a ZP_TERMINATOR, bail before trying to get its address */
     if (ZP_List_is_empty(&this_list)) {
@@ -73,7 +74,7 @@ ZP_Index_t ZP_List_size(
   ZP_Index_t size = 0;
   while (!ZP_List_is_empty(&this_list)) {
     ZP_Tagged_to_SlabPointer(&pointer, &this_list);
-    this_list.data = ZP_Context_get_left(context, &pointer);
+    this_list.data = ZP_SlabAllocator_get_left(&context->slab_allocator, &pointer);
     size++;
   }
 
@@ -88,7 +89,7 @@ void ZP_List_peek_reverse_iterate_step(
 ) {
   ZP_SlabPointer_t pointer;
   ZP_Tagged_to_SlabPointer(&pointer, current_list);
-  ZP_Context_get(context, &pointer, &next_list->data, &this_item->data);
+  ZP_SlabAllocator_get(&context->slab_allocator, &pointer, &next_list->data, &this_item->data);
 }
 
 ZP_Error_t ZP_List_push(
@@ -111,14 +112,15 @@ ZP_Error_t ZP_List_push(
   }
 
   ZP_SlabPointer_t pointer;
-  error = ZP_Context_new_slab(context, &pointer);
+  error = ZP_SlabAllocator_alloc(&context->slab_allocator, &pointer);
   if (error != ZP_NO_ERROR) {
     ZP_Context_slab_decref(context, &input_list_increfed);
     ZP_Context_slab_decref(context, &item_increfed);
     return error;
   }
+  context->refcnt[pointer.at] = 1;
 
-  ZP_Context_set(context, &pointer, input_list_increfed.data, item_increfed.data);
+  ZP_SlabAllocator_set(&context->slab_allocator, &pointer, input_list_increfed.data, item_increfed.data);
 
   ZP_Tagged_from_SlabPointer(output_list, &pointer, ZP_TAG_NODE_LIST);
 

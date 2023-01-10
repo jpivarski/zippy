@@ -70,12 +70,12 @@ ZP_Error_t ZP_Context_get_symbol(
     ZP_Tagged_to_SlabPointer(&this_symbol_pointer, &this_symbol);
 
     ZP_RegionPointer_t this_pointer;
-    this_pointer.at = ZP_Context_get_right(context, &this_symbol_pointer);
+    this_pointer.at = ZP_SlabAllocator_get_right(&context->slab_allocator, &this_symbol_pointer);
 
     /* check to see if the symbol at this position in the list is the desired one */
-    ZP_Index_t this_size = ZP_Context_region_size(context, &this_pointer);
+    ZP_Index_t this_size = ZP_RegionAllocator_size(&context->region_allocator, &this_pointer);
     if (this_size == symbol_size) {
-      const char* this_data = (const char*)ZP_Context_region_at(context, &this_pointer);
+      const char* this_data = (const char*)ZP_RegionAllocator_at(&context->region_allocator, &this_pointer);
       bool same = true;
       ZP_Index_t i;
       for (i = 0;  i < this_size;  i++) {
