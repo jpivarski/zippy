@@ -39,6 +39,45 @@ int main(int argc, char** argv) {
   );
   handle_error(error);
 
+  /* ZP_Index_t i; */
+  /* ZP_Index_t j; */
+  /* ZP_Index_t pointer; */
+  /* ZP_Index_t dummy1 = 0; */
+  /* ZP_Index_t dummy2 = 10000; */
+  /* for (i = 0;  i < 420000;  i++) { */
+  /*   for (j = 0;  j < 1000;  j++) { */
+  /*     if (context.slab_allocator.first_free == ZP_END_OF_FREE) { */
+  /*       if (context.slab_allocator.bump_free == context.slab_allocator.num_slabs) { */
+  /*         return -1; */
+  /*       } */
+  /*       else { */
+  /*         pointer = context.slab_allocator.bump_free; */
+  /*         context.slab_allocator.bump_free++; */
+  /*       } */
+  /*     } */
+  /*     else { */
+  /*       pointer = context.slab_allocator.first_free; */
+  /*       context.slab_allocator.first_free = context.slab_allocator.arena[2 * context.slab_allocator.first_free]; */
+  /*     } */
+
+  /*     context.refcnt[pointer]++; */
+
+  /*     dummy1++; */
+  /*     dummy2++; */
+  /*     context.slab_allocator.arena[2 * pointer] = dummy1; */
+  /*     context.slab_allocator.arena[2 * pointer + 1] = dummy2; */
+  /*   } */
+  /*   for (j = 0;  j < 1000;  j++) { */
+  /*     pointer = j; */
+  /*     context.refcnt[pointer]--; */
+
+  /*     context.slab_allocator.arena[2 * pointer] = context.slab_allocator.first_free; */
+  /*     context.slab_allocator.first_free = pointer; */
+  /*   } */
+  /* } */
+
+  /* return 0; */
+
   ZP_Tagged_t symbol1;
   const char* symbol1_data = "field1";
   error = ZP_Context_get_symbol(&context, &symbol1, symbol1_data, 6);
