@@ -2,7 +2,7 @@
 #define ZIPPY_DEFS_H
 
 /* FIXME: temporary! */
-#include <stdio.h>
+/* #include <stdio.h> */
 /* ***************** */
 
 #include <stdint.h>

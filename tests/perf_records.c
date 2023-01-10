@@ -1,12 +1,10 @@
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+/* #include <stdio.h> */
 
 #include <zippy/data.h>
 
 #define handle_error(error)                                              \
   if (error != ZP_NO_ERROR) {                                            \
-    printf("line %d: error: %s\n", __LINE__, error);                     \
     return -1;                                                           \
   }                                                                      \
 
@@ -21,7 +19,7 @@ int main(int argc, char** argv) {
   /*   4 MiB = 4194304 (my L2 cache) */
 
   size_t slab_size = 2097152;
-  size_t refcnt_size = slab_size * sizeof(ZP_RefCnt_t) / (2 * sizeof(ZP_Index_t));
+  size_t refcnt_size = slab_size * sizeof(ZP_RefCnt_t) / sizeof(ZP_Index_t) / 2;
   size_t region_size = 1048576;
 
   void* arena = malloc(4194304);
@@ -30,7 +28,7 @@ int main(int argc, char** argv) {
   void* region_arena = arena + slab_size + refcnt_size;
 
   ZP_Context_t context;
-  ZP_Context_new(
+  ZP_Error_t error = ZP_Context_new(
     &context,
     slab_arena,
     region_arena,
@@ -39,37 +37,36 @@ int main(int argc, char** argv) {
     region_size,
     refcnt_size
   );
-
-  ZP_Error_t error;
+  handle_error(error);
 
   ZP_Tagged_t symbol1;
   const char* symbol1_data = "field1";
-  error = ZP_Context_get_symbol(&context, &symbol1, symbol1_data, strlen(symbol1_data));
+  error = ZP_Context_get_symbol(&context, &symbol1, symbol1_data, 6);
   handle_error(error);
 
   ZP_Tagged_t symbol2;
   const char* symbol2_data = "field2";
-  error = ZP_Context_get_symbol(&context, &symbol2, symbol2_data, strlen(symbol2_data));
+  error = ZP_Context_get_symbol(&context, &symbol2, symbol2_data, 6);
   handle_error(error);
 
   ZP_Tagged_t symbol3;
   const char* symbol3_data = "field3";
-  error = ZP_Context_get_symbol(&context, &symbol3, symbol3_data, strlen(symbol3_data));
+  error = ZP_Context_get_symbol(&context, &symbol3, symbol3_data, 6);
   handle_error(error);
 
   ZP_Tagged_t symbol4;
   const char* symbol4_data = "field4";
-  error = ZP_Context_get_symbol(&context, &symbol4, symbol4_data, strlen(symbol4_data));
+  error = ZP_Context_get_symbol(&context, &symbol4, symbol4_data, 6);
   handle_error(error);
 
   ZP_Tagged_t symbol5;
   const char* symbol5_data = "field5";
-  error = ZP_Context_get_symbol(&context, &symbol5, symbol5_data, strlen(symbol5_data));
+  error = ZP_Context_get_symbol(&context, &symbol5, symbol5_data, 6);
   handle_error(error);
 
   ZP_Tagged_t symbol6;
   const char* symbol6_data = "field6";
-  error = ZP_Context_get_symbol(&context, &symbol6, symbol6_data, strlen(symbol6_data));
+  error = ZP_Context_get_symbol(&context, &symbol6, symbol6_data, 6);
   handle_error(error);
 
   ZP_Tagged_t list0;
@@ -286,20 +283,6 @@ int main(int argc, char** argv) {
   }
 
   ZP_Context_slab_decref(&context, &collection_6fields);
-
-  /* ZP_Index_t i; */
-  /* for (i = 25;  i < refcnt_size / sizeof(ZP_RefCnt_t);  i++) { */
-  /*   ZP_RefCnt_t refcnt = ((ZP_RefCnt_t*)refcnt_arena)[i]; */
-  /*   ZP_Index_t slab_left = ((ZP_Index_t*)slab_arena)[2 * i]; */
-  /*   ZP_Index_t slab_right = ((ZP_Index_t*)slab_arena)[2 * i + 1]; */
-  /*   if (refcnt != 0) { */
-  /*     printf("%d ", refcnt); */
-  /*     if (refcnt > 200) { */
-  /*       printf("(0x%08x 0x%08x) ", slab_left, slab_right); */
-  /*     } */
-  /*   } */
-  /* } */
-  /* printf("\n"); */
 
   return 0;
 }

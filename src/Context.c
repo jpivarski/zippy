@@ -40,7 +40,7 @@ ZP_Error_t ZP_Context_new(
   context->refcnt = (ZP_RefCnt_t*)refcnt_arena;
 
   ZP_Index_t i;
-  for (i = 0;  i < refcnt_size;  i++) {
+  for (i = 0;  i < refcnt_size / sizeof(ZP_RefCnt_t);  i++) {
     context->refcnt[i] = 0;
   }
 
@@ -278,7 +278,11 @@ ZP_Error_t ZP_Context_slab_incref(
       }
       else {
         /* slow path: need to copy (rarely) */
+#ifdef ZIPPY_REFCNT_ROLLOVER
         return ZP_List_copy(context, new_tagged, old_tagged);
+#else
+        return "reference count reached ZP_REFCNT_MAX";
+#endif
       }
     }
     break;
@@ -291,6 +295,10 @@ ZP_Error_t ZP_Context_slab_incref(
     }
     else {
       /* FIXME: handle this */
+#ifdef ZIPPY_REFCNT_ROLLOVER
+#else
+        return "reference count reached ZP_REFCNT_MAX";
+#endif
     }
     break;
 
@@ -301,6 +309,7 @@ ZP_Error_t ZP_Context_slab_incref(
       context->refcnt[pointer]++;
     }
     else {
+#ifdef ZIPPY_REFCNT_ROLLOVER
       /* slow path: need to copy (rarely) */
       ZP_Tagged_t object_type;
       ZP_Context_object_type(context, &object_type, old_tagged);
@@ -326,6 +335,9 @@ ZP_Error_t ZP_Context_slab_incref(
         /* FIXME: handle more types, as they get defined */
         }
       }
+#else
+      return "reference count reached ZP_REFCNT_MAX";
+#endif
     }
     break;
   }
