@@ -19,10 +19,10 @@ void ZP_List_del(
   /* iterative del through a list, to avoid deep recursion on long lists */
 
   ZP_Tagged_t this_list;
-  ZP_Tagged_copy(&this_list, list);
+  this_list.data = list->data;
 
   ZP_SlabPointer_t pointer;
-  ZP_Tagged_to_SlabPointer(&pointer, &this_list);
+  pointer.at = this_list.data & ZP_TERMINATOR;
 
   ZP_Tagged_t this_item;
   do {
@@ -42,7 +42,7 @@ void ZP_List_del(
     }
 
     /* point the pointer at the new this_list */
-    ZP_Tagged_to_SlabPointer(&pointer, &this_list);
+    pointer.at = this_list.data & ZP_TERMINATOR;
 
     /* decref it; it's a list object */
     context->refcnt[pointer.at]--;
@@ -68,12 +68,12 @@ ZP_Index_t ZP_List_size(
   ZP_Tagged_t* list
 ) {
   ZP_Tagged_t this_list;
-  ZP_Tagged_copy(&this_list, list);
+  this_list.data = list->data;
 
   ZP_SlabPointer_t pointer;
   ZP_Index_t size = 0;
   while (!ZP_List_is_empty(&this_list)) {
-    ZP_Tagged_to_SlabPointer(&pointer, &this_list);
+    pointer.at = this_list.data & ZP_TERMINATOR;
     this_list.data = ZP_SlabAllocator_get_left(&context->slab_allocator, &pointer);
     size++;
   }
@@ -88,7 +88,7 @@ void ZP_List_peek_reverse_iterate_step(
   ZP_Tagged_t* current_list
 ) {
   ZP_SlabPointer_t pointer;
-  ZP_Tagged_to_SlabPointer(&pointer, current_list);
+  pointer.at = current_list->data & ZP_TERMINATOR;
   ZP_SlabAllocator_get(&context->slab_allocator, &pointer, &next_list->data, &this_item->data);
 }
 
@@ -122,7 +122,7 @@ ZP_Error_t ZP_List_push(
 
   ZP_SlabAllocator_set(&context->slab_allocator, &pointer, input_list_increfed.data, item_increfed.data);
 
-  ZP_Tagged_from_SlabPointer(output_list, &pointer, ZP_TAG_NODE_LIST);
+  output_list->data = pointer.at | ZP_TAG_NODE_LIST;
 
   return ZP_NO_ERROR;
 }

@@ -176,7 +176,7 @@ int main(int argc, char** argv) {
 
   for (count_iterations = 0;  count_iterations < 1000;  count_iterations++) {
     ZP_List_new_empty(&collection_2fields);
-    ZP_Tagged_copy(&collection_prev, &collection_2fields);
+    collection_prev.data = collection_2fields.data;
 
     for (count_instances = 0;  count_instances < 10000;  count_instances++) {
       ZP_List_new_empty(&arg_list_prev);
@@ -187,7 +187,7 @@ int main(int argc, char** argv) {
         handle_error(error);
         ZP_Context_slab_decref(&context, &arg_list_prev);
         ZP_Context_slab_decref(&context, &arg_item);
-        ZP_Tagged_copy(&arg_list_prev, &arg_list);
+        arg_list_prev.data = arg_list.data;
       }
 
       error = ZP_SimpleClass_instance_new(&context, &current_instance, &class_2fields, &arg_list);
@@ -203,13 +203,13 @@ int main(int argc, char** argv) {
       handle_error(error);
       ZP_Context_slab_decref(&context, &collection_prev);
       ZP_Context_slab_decref(&context, &current_instance);
-      ZP_Tagged_copy(&collection_prev, &collection_2fields);
+      collection_prev.data = collection_2fields.data;
     }
 
     ZP_Context_slab_decref(&context, &collection_6fields);
 
     ZP_List_new_empty(&collection_3fields);
-    ZP_Tagged_copy(&collection_prev, &collection_3fields);
+    collection_prev.data = collection_3fields.data;
     for (count_instances = 0;  count_instances < 10000;  count_instances++) {
       ZP_List_new_empty(&arg_list_prev);
       for (count_args = 0;  count_args < 3;  count_args++) {
@@ -219,7 +219,7 @@ int main(int argc, char** argv) {
         handle_error(error);
         ZP_Context_slab_decref(&context, &arg_list_prev);
         ZP_Context_slab_decref(&context, &arg_item);
-        ZP_Tagged_copy(&arg_list_prev, &arg_list);
+        arg_list_prev.data = arg_list.data;
       }
 
       error = ZP_SimpleClass_instance_new(&context, &current_instance, &class_3fields, &arg_list);
@@ -231,13 +231,13 @@ int main(int argc, char** argv) {
       handle_error(error);
       ZP_Context_slab_decref(&context, &collection_prev);
       ZP_Context_slab_decref(&context, &current_instance);
-      ZP_Tagged_copy(&collection_prev, &collection_3fields);
+      collection_prev.data = collection_3fields.data;
     }
 
     ZP_Context_slab_decref(&context, &collection_2fields);
 
     ZP_List_new_empty(&collection_4fields);
-    ZP_Tagged_copy(&collection_prev, &collection_4fields);
+    collection_prev.data = collection_4fields.data;
     for (count_instances = 0;  count_instances < 10000;  count_instances++) {
       ZP_List_new_empty(&arg_list_prev);
       for (count_args = 0;  count_args < 4;  count_args++) {
@@ -247,7 +247,7 @@ int main(int argc, char** argv) {
         handle_error(error);
         ZP_Context_slab_decref(&context, &arg_list_prev);
         ZP_Context_slab_decref(&context, &arg_item);
-        ZP_Tagged_copy(&arg_list_prev, &arg_list);
+        arg_list_prev.data = arg_list.data;
       }
 
       error = ZP_SimpleClass_instance_new(&context, &current_instance, &class_4fields, &arg_list);
@@ -259,13 +259,13 @@ int main(int argc, char** argv) {
       handle_error(error);
       ZP_Context_slab_decref(&context, &collection_prev);
       ZP_Context_slab_decref(&context, &current_instance);
-      ZP_Tagged_copy(&collection_prev, &collection_4fields);
+      collection_prev.data = collection_4fields.data;
     }
 
     ZP_Context_slab_decref(&context, &collection_3fields);
 
     ZP_List_new_empty(&collection_5fields);
-    ZP_Tagged_copy(&collection_prev, &collection_5fields);
+    collection_prev.data = collection_5fields.data;
     for (count_instances = 0;  count_instances < 10000;  count_instances++) {
       ZP_List_new_empty(&arg_list_prev);
       for (count_args = 0;  count_args < 5;  count_args++) {
@@ -275,7 +275,7 @@ int main(int argc, char** argv) {
         handle_error(error);
         ZP_Context_slab_decref(&context, &arg_list_prev);
         ZP_Context_slab_decref(&context, &arg_item);
-        ZP_Tagged_copy(&arg_list_prev, &arg_list);
+        arg_list_prev.data = arg_list.data;
       }
 
       error = ZP_SimpleClass_instance_new(&context, &current_instance, &class_5fields, &arg_list);
@@ -287,13 +287,13 @@ int main(int argc, char** argv) {
       handle_error(error);
       ZP_Context_slab_decref(&context, &collection_prev);
       ZP_Context_slab_decref(&context, &current_instance);
-      ZP_Tagged_copy(&collection_prev, &collection_5fields);
+      collection_prev.data = collection_5fields.data;
     }
 
     ZP_Context_slab_decref(&context, &collection_4fields);
 
     ZP_List_new_empty(&collection_6fields);
-    ZP_Tagged_copy(&collection_prev, &collection_6fields);
+    collection_prev.data = collection_6fields.data;
     for (count_instances = 0;  count_instances < 10000;  count_instances++) {
       ZP_List_new_empty(&arg_list_prev);
       for (count_args = 0;  count_args < 6;  count_args++) {
@@ -303,7 +303,7 @@ int main(int argc, char** argv) {
         handle_error(error);
         ZP_Context_slab_decref(&context, &arg_list_prev);
         ZP_Context_slab_decref(&context, &arg_item);
-        ZP_Tagged_copy(&arg_list_prev, &arg_list);
+        arg_list_prev.data = arg_list.data;
       }
 
       error = ZP_SimpleClass_instance_new(&context, &current_instance, &class_6fields, &arg_list);
@@ -315,7 +315,7 @@ int main(int argc, char** argv) {
       handle_error(error);
       ZP_Context_slab_decref(&context, &collection_prev);
       ZP_Context_slab_decref(&context, &current_instance);
-      ZP_Tagged_copy(&collection_prev, &collection_6fields);
+      collection_prev.data = collection_6fields.data;
     }
 
     ZP_Context_slab_decref(&context, &collection_5fields);

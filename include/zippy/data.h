@@ -10,10 +10,10 @@ struct ZP_Tagged {
 };
 typedef struct ZP_Tagged ZP_Tagged_t;
 
-void ZP_Tagged_copy(
-  ZP_Tagged_t* output,
-  ZP_Tagged_t* input
-);
+/* void ZP_Tagged_copy( */
+/*   ZP_Tagged_t* output, */
+/*   ZP_Tagged_t* input */
+/* ); */
 
 bool ZP_Tagged_is_float(
   ZP_Tagged_t* tagged
@@ -73,16 +73,16 @@ struct ZP_SlabPointer {
 };
 typedef struct ZP_SlabPointer ZP_SlabPointer_t;
 
-void ZP_Tagged_to_SlabPointer(
-  ZP_SlabPointer_t* pointer,
-  ZP_Tagged_t* tagged
-);
+/* void ZP_Tagged_to_SlabPointer( */
+/*   ZP_SlabPointer_t* pointer, */
+/*   ZP_Tagged_t* tagged */
+/* ); */
 
-void ZP_Tagged_from_SlabPointer(
-  ZP_Tagged_t* tagged,
-  ZP_SlabPointer_t* pointer,
-  ZP_Index_t tag
-);
+/* void ZP_Tagged_from_SlabPointer( */
+/*   ZP_Tagged_t* tagged, */
+/*   ZP_SlabPointer_t* pointer, */
+/*   ZP_Index_t tag */
+/* ); */
 
 void ZP_SlabAllocator_new(
   ZP_SlabAllocator_t* slab_allocator,
@@ -154,15 +154,15 @@ struct ZP_RegionPointer {
 };
 typedef struct ZP_RegionPointer ZP_RegionPointer_t;
 
-void ZP_Tagged_to_RegionPointer(
-  ZP_RegionPointer_t* pointer,
-  ZP_Tagged_t* tagged
-);
+/* void ZP_Tagged_to_RegionPointer( */
+/*   ZP_RegionPointer_t* pointer, */
+/*   ZP_Tagged_t* tagged */
+/* ); */
 
-void ZP_Tagged_from_RegionPointer(
-  ZP_Tagged_t* tagged,
-  ZP_RegionPointer_t* pointer
-);
+/* void ZP_Tagged_from_RegionPointer( */
+/*   ZP_Tagged_t* tagged, */
+/*   ZP_RegionPointer_t* pointer */
+/* ); */
 
 void ZP_RegionAllocator_new(
   ZP_RegionAllocator_t* region_allocator,

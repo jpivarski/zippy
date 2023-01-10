@@ -14,7 +14,7 @@ void ZP_SimpleClass_instance_decref_walk(
   }
 
   ZP_SlabPointer_t internal_pointer;
-  ZP_Tagged_to_SlabPointer(&internal_pointer, internal);
+  internal_pointer.at = internal->data & ZP_TERMINATOR;
 
   context->refcnt[internal_pointer.at]--;
   if (context->refcnt[internal_pointer.at] != 0) {
@@ -65,7 +65,7 @@ ZP_Error_t ZP_SimpleClass_instance_new_tree(
   scratch_space[(*scratch_space_filled)] = internal_pointer.at;
   (*scratch_space_filled)++;
 
-  ZP_Tagged_from_SlabPointer(internal, &internal_pointer, ZP_TAG_NODE_INTERNAL);
+  internal->data = internal_pointer.at | ZP_TAG_NODE_INTERNAL;
 
   ZP_Tagged_t left;
   ZP_Tagged_t right;
@@ -124,7 +124,7 @@ void ZP_SimpleClass_instance_search_for_member(
   }
 
   ZP_SlabPointer_t internal_pointer;
-  ZP_Tagged_to_SlabPointer(&internal_pointer, internal);
+  internal_pointer.at = internal->data & ZP_TERMINATOR;
 
   ZP_Tagged_t left;
   ZP_Tagged_t right;
@@ -188,7 +188,7 @@ void ZP_SimpleClass_instance_del(
   ZP_Tagged_t* instance
 ) {
   ZP_SlabPointer_t pointer;
-  ZP_Tagged_to_SlabPointer(&pointer, instance);
+  pointer.at = instance->data & ZP_TERMINATOR;
 
   ZP_Tagged_t simple_class;
   ZP_Tagged_t internal;
@@ -280,7 +280,7 @@ ZP_Error_t ZP_SimpleClass_instance_new(
 
   ZP_SlabAllocator_set(&context->slab_allocator, &pointer, simple_class_increfed.data, internal.data);
 
-  ZP_Tagged_from_SlabPointer(instance, &pointer, ZP_TAG_NODE_OBJECT);
+  instance->data = pointer.at | ZP_TAG_NODE_OBJECT;
 
   return ZP_NO_ERROR;
 }
@@ -292,7 +292,7 @@ void ZP_SimpleClass_instance_get_member(
   ZP_Tagged_t* symbol
 ) {
   ZP_SlabPointer_t pointer;
-  ZP_Tagged_to_SlabPointer(&pointer, instance);
+  pointer.at = instance->data & ZP_TERMINATOR;
 
   ZP_Tagged_t simple_class;
   ZP_Tagged_t internal;

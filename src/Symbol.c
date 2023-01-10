@@ -10,7 +10,7 @@ ZP_Error_t ZP_Symbol_copy(
   ZP_Tagged_t* old_symbol
 ) {
   ZP_SlabPointer_t old_pointer;
-  ZP_Tagged_to_SlabPointer(&old_pointer, old_symbol);
+  old_pointer.at = old_symbol->data & ZP_TERMINATOR;
 
   ZP_Tagged_t tag;
   ZP_RegionPointer_t region_pointer;
@@ -20,14 +20,14 @@ ZP_Error_t ZP_Symbol_copy(
   /* increment that (returning it as new_symbol) instead of actually making a new one. */
 
   ZP_Tagged_t this_list;
-  ZP_Tagged_copy(&this_list, &context->symbol_set);
+  this_list.data = context->symbol_set.data;
   ZP_Tagged_t next_list;
   ZP_Tagged_t this_symbol;
   while (!ZP_List_is_empty(&this_list)) {
     ZP_List_peek_reverse_iterate_step(context, &next_list, &this_symbol, &this_list);
 
     ZP_SlabPointer_t this_pointer;
-    ZP_Tagged_to_SlabPointer(&this_pointer, &this_symbol);
+    this_pointer.at = this_symbol.data & ZP_TERMINATOR;
 
     ZP_RegionPointer_t this_region_pointer;
     this_region_pointer.at = ZP_SlabAllocator_get_right(&context->slab_allocator, &this_pointer);
@@ -61,7 +61,7 @@ ZP_Error_t ZP_Symbol_copy(
 
   ZP_SlabAllocator_set(&context->slab_allocator, &new_pointer, tag.data, region_pointer.at);
 
-  ZP_Tagged_from_SlabPointer(new_symbol, &new_pointer, ZP_TAG_NODE_OBJECT);
+  new_symbol->data = new_pointer.at | ZP_TAG_NODE_OBJECT;
 
   ZP_Tagged_t new_list;
   error = ZP_List_push(context, &new_list, &context->symbol_set, new_symbol);
@@ -89,7 +89,7 @@ void ZP_Symbol_del(
   ZP_Index_t comparison = symbol->data;
 
   ZP_SlabPointer_t symbol_pointer;
-  ZP_Tagged_to_SlabPointer(&symbol_pointer, symbol);
+  symbol_pointer.at = symbol->data & ZP_TERMINATOR;
 
   ZP_RegionPointer_t region_pointer;
   region_pointer.at = ZP_SlabAllocator_get_right(&context->slab_allocator, &symbol_pointer);
@@ -104,7 +104,7 @@ void ZP_Symbol_del(
   ZP_Tagged_t prev_list;
   ZP_List_new_empty(&prev_list);
   ZP_Tagged_t this_list;
-  ZP_Tagged_copy(&this_list, &context->symbol_set);
+  this_list.data = context->symbol_set.data;
 
   ZP_Tagged_t next_list;
   ZP_Tagged_t this_symbol;
@@ -119,13 +119,13 @@ void ZP_Symbol_del(
       else {
         /* there are nodes before this node, which we will be removing */
         ZP_SlabPointer_t prev_pointer;
-        ZP_Tagged_to_SlabPointer(&prev_pointer, &prev_list);
+        prev_pointer.at = prev_list.data & ZP_TERMINATOR;
         ZP_SlabAllocator_set_left(&context->slab_allocator, &prev_pointer, next_list.data);
       }
 
       /* either way, we need to remove this_list (without calling its del) */
       ZP_SlabPointer_t this_pointer;
-      ZP_Tagged_to_SlabPointer(&this_pointer, &this_list);
+      this_pointer.at = this_list.data & ZP_TERMINATOR;
       ZP_SlabAllocator_free(&context->slab_allocator, &this_pointer);
       context->refcnt[this_pointer.at] = 0;
 
@@ -154,7 +154,7 @@ ZP_Error_t ZP_Symbol_new(
 
   ZP_SlabAllocator_set(&context->slab_allocator, &pointer, object_type.data, region_pointer->at);
 
-  ZP_Tagged_from_SlabPointer(symbol, &pointer, ZP_TAG_NODE_OBJECT);
+  symbol->data = pointer.at | ZP_TAG_NODE_OBJECT;
 
   return ZP_NO_ERROR;
 }
@@ -164,6 +164,6 @@ ZP_Index_t ZP_Symbol_identifier(
   ZP_Tagged_t* symbol
 ) {
   ZP_SlabPointer_t pointer;
-  ZP_Tagged_to_SlabPointer(&pointer, symbol);
+  pointer.at = symbol->data & ZP_TERMINATOR;
   return ZP_SlabAllocator_get_right(&context->slab_allocator, &pointer);
 }

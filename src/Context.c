@@ -57,7 +57,7 @@ ZP_Error_t ZP_Context_get_symbol(
   ZP_Index_t symbol_size
 ) {
   ZP_Tagged_t this_list;
-  ZP_Tagged_copy(&this_list, &context->symbol_set);
+  this_list.data = context->symbol_set.data;
 
   ZP_Error_t error;
   ZP_Tagged_t next_list;
@@ -67,7 +67,7 @@ ZP_Error_t ZP_Context_get_symbol(
     ZP_List_peek_reverse_iterate_step(context, &next_list, &this_symbol, &this_list);
 
     ZP_SlabPointer_t this_symbol_pointer;
-    ZP_Tagged_to_SlabPointer(&this_symbol_pointer, &this_symbol);
+    this_symbol_pointer.at = this_symbol.data & ZP_TERMINATOR;
 
     ZP_RegionPointer_t this_pointer;
     this_pointer.at = ZP_SlabAllocator_get_right(&context->slab_allocator, &this_symbol_pointer);
@@ -209,7 +209,7 @@ ZP_Error_t ZP_Context_slab_copy(
   }
 
   ZP_SlabPointer_t old_pointer;
-  ZP_Tagged_to_SlabPointer(&old_pointer, old_tagged);
+  old_pointer.at = old_tagged->data & ZP_TERMINATOR;
 
   ZP_Tagged_t left;
   ZP_Tagged_t right;
@@ -224,7 +224,7 @@ ZP_Error_t ZP_Context_slab_copy(
     }
   }
   else {
-    ZP_Tagged_copy(&new_left, &left);
+    new_left.data = left.data;
   }
 
   ZP_Tagged_t new_right;
@@ -239,16 +239,12 @@ ZP_Error_t ZP_Context_slab_copy(
     }
   }
   else {
-    ZP_Tagged_copy(&new_right, &right);
+    new_right.data = right.data;
   }
 
   ZP_Context_set(context, &new_pointer, new_left.data, new_right.data);
 
-  ZP_Tagged_from_SlabPointer(
-    new_tagged,
-    &new_pointer,
-    old_tagged->data & ZP_TAG_NODE_MASK
-  );
+  new_tagged->data = new_pointer.at | (old_tagged->data & ZP_TAG_NODE_MASK);
 
   return ZP_NO_ERROR;
 }
@@ -258,7 +254,7 @@ ZP_RefCnt_t ZP_Context_slab_refcnt(
   ZP_Tagged_t* tagged
 ) {
   ZP_SlabPointer_t pointer;
-  ZP_Tagged_to_SlabPointer(&pointer, tagged);
+  pointer.at = tagged->data & ZP_TERMINATOR;
   return context->refcnt[pointer.at];
 }
 
@@ -494,7 +490,7 @@ void ZP_Context_object_type(
   ZP_Tagged_t* object
 ) {
   ZP_SlabPointer_t pointer;
-  ZP_Tagged_to_SlabPointer(&pointer, object);
+  pointer.at = object->data & ZP_TERMINATOR;
 
   object_type->data = ZP_Context_get_left(context, &pointer);
 }

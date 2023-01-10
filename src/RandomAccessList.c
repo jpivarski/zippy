@@ -10,7 +10,7 @@ ZP_Error_t ZP_RandomAccessList_copy(
   ZP_Tagged_t* old_random_access_list
 ) {
   ZP_SlabPointer_t old_pointer;
-  ZP_Tagged_to_SlabPointer(&old_pointer, old_random_access_list);
+  old_pointer.at = old_random_access_list->data & ZP_TERMINATOR;
 
   ZP_Tagged_t object_type;
   ZP_RegionPointer_t region_pointer;
@@ -104,7 +104,7 @@ ZP_Error_t ZP_RandomAccessList_copy(
 
   ZP_SlabAllocator_set(&context->slab_allocator, &new_pointer, object_type.data, region_pointer.at);
 
-  ZP_Tagged_from_SlabPointer(new_random_access_list, &new_pointer, ZP_TAG_NODE_OBJECT);
+  new_random_access_list->data = new_pointer.at | ZP_TAG_NODE_OBJECT;
 
   return ZP_NO_ERROR;
 }
@@ -114,7 +114,7 @@ void ZP_RandomAccessList_del(
   ZP_Tagged_t* random_access_list
 ) {
   ZP_SlabPointer_t slab_pointer;
-  ZP_Tagged_to_SlabPointer(&slab_pointer, random_access_list);
+  slab_pointer.at = random_access_list->data & ZP_TERMINATOR;
 
   ZP_RegionPointer_t region_pointer;
   region_pointer.at = ZP_SlabAllocator_get_right(&context->slab_allocator, &slab_pointer);
@@ -156,7 +156,7 @@ ZP_Error_t ZP_RandomAccessList_from_List(
   }
   context->refcnt[slab_pointer.at] = 1;
 
-  ZP_Tagged_from_SlabPointer(random_access_list, &slab_pointer, ZP_TAG_NODE_OBJECT);
+  random_access_list->data = slab_pointer.at | ZP_TAG_NODE_OBJECT;
 
   ZP_Tagged_t object_type;
   ZP_Tagged_from_enum(&object_type, ZP_ENUM_OTHER_RANDOM_ACCESS_LIST);
@@ -166,7 +166,7 @@ ZP_Error_t ZP_RandomAccessList_from_List(
   ZP_Index_t* region_data = (ZP_Index_t*)ZP_RegionAllocator_at(&context->region_allocator, &region_pointer);
 
   ZP_Tagged_t next_list;
-  ZP_Tagged_copy(&next_list, list);
+  next_list.data = list->data;
 
   ZP_Index_t i;
   ZP_Tagged_t this_item;
@@ -199,7 +199,7 @@ ZP_Error_t ZP_RandomAccessList_to_List(
   ZP_Tagged_t* random_access_list
 ) {
   ZP_SlabPointer_t slab_pointer;
-  ZP_Tagged_to_SlabPointer(&slab_pointer, random_access_list);
+  slab_pointer.at = random_access_list->data & ZP_TERMINATOR;
 
   ZP_RegionPointer_t region_pointer;
   region_pointer.at = ZP_SlabAllocator_get_right(&context->slab_allocator, &slab_pointer);

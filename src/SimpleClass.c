@@ -11,7 +11,7 @@ ZP_Error_t ZP_SimpleClass_copy(
   ZP_Tagged_t* old_simple_class
 ) {
   ZP_SlabPointer_t old_pointer;
-  ZP_Tagged_to_SlabPointer(&old_pointer, old_simple_class);
+  old_pointer.at = old_simple_class->data & ZP_TERMINATOR;
 
   ZP_SlabPointer_t new_pointer;
   ZP_Error_t error = ZP_SlabAllocator_alloc(&context->slab_allocator, &new_pointer);
@@ -33,7 +33,7 @@ ZP_Error_t ZP_SimpleClass_copy(
 
   ZP_SlabAllocator_set(&context->slab_allocator, &new_pointer, object_type.data, region_pointer.at);
 
-  ZP_Tagged_from_SlabPointer(new_simple_class, &new_pointer, ZP_TAG_NODE_OBJECT);
+  new_simple_class->data = new_pointer.at | ZP_TAG_NODE_OBJECT;
 
   return ZP_NO_ERROR;
 }
@@ -43,7 +43,7 @@ void ZP_SimpleClass_del(
   ZP_Tagged_t* simple_class
 ) {
   ZP_SlabPointer_t pointer;
-  ZP_Tagged_to_SlabPointer(&pointer, simple_class);
+  pointer.at = simple_class->data & ZP_TERMINATOR;
 
   ZP_RegionPointer_t region_pointer;
   region_pointer.at = ZP_SlabAllocator_get_right(&context->slab_allocator, &pointer);
@@ -87,7 +87,7 @@ ZP_Error_t ZP_SimpleClass_new(
   }
   context->refcnt[slab_pointer.at] = 1;
 
-  ZP_Tagged_from_SlabPointer(simple_class, &slab_pointer, ZP_TAG_NODE_OBJECT);
+  simple_class->data = slab_pointer.at | ZP_TAG_NODE_OBJECT;
 
   ZP_Tagged_t object_type;
   ZP_Tagged_from_enum(&object_type, ZP_ENUM_OTHER_SIMPLE_CLASS);
@@ -97,7 +97,7 @@ ZP_Error_t ZP_SimpleClass_new(
   ZP_Index_t* region_data = (ZP_Index_t*)ZP_RegionAllocator_at(&context->region_allocator, &region_pointer);
 
   ZP_Tagged_t next_list;
-  ZP_Tagged_copy(&next_list, member_name_symbols);
+  next_list.data = member_name_symbols->data;
 
   /* the first batch of data are the symbol references to decrement in del */
   ZP_Index_t i;
@@ -154,7 +154,7 @@ ZP_Index_t ZP_SimpleClass_num_members(
   ZP_Tagged_t* simple_class
 ) {
   ZP_SlabPointer_t slab_pointer;
-  ZP_Tagged_to_SlabPointer(&slab_pointer, simple_class);
+  slab_pointer.at = simple_class->data & ZP_TERMINATOR;
 
   ZP_RegionPointer_t region_pointer;
   region_pointer.at = ZP_SlabAllocator_get_right(&context->slab_allocator, &slab_pointer);
@@ -171,7 +171,7 @@ ZP_Error_t ZP_SimpleClass_load_members(
   ZP_Tagged_t* members
 ) {
   ZP_SlabPointer_t slab_pointer;
-  ZP_Tagged_to_SlabPointer(&slab_pointer, simple_class);
+  slab_pointer.at = simple_class->data & ZP_TERMINATOR;
 
   ZP_RegionPointer_t region_pointer;
   region_pointer.at = ZP_SlabAllocator_get_right(&context->slab_allocator, &slab_pointer);
@@ -184,7 +184,7 @@ ZP_Error_t ZP_SimpleClass_load_members(
   *sorted_data              = &region_data[4 * (*num_members)];
 
   ZP_Tagged_t next_list;
-  ZP_Tagged_copy(&next_list, members);
+  next_list.data = members->data;
 
   ZP_Error_t error;
   ZP_Index_t i;
@@ -226,7 +226,7 @@ void ZP_SimpleClass_symbol_identifiers(
   ZP_Tagged_t* simple_class
 ) {
   ZP_SlabPointer_t slab_pointer;
-  ZP_Tagged_to_SlabPointer(&slab_pointer, simple_class);
+  slab_pointer.at = simple_class->data & ZP_TERMINATOR;
 
   ZP_RegionPointer_t region_pointer;
   region_pointer.at = ZP_SlabAllocator_get_right(&context->slab_allocator, &slab_pointer);
