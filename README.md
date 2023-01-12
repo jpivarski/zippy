@@ -7,6 +7,8 @@ Small, fast, dynamically typed programming language without a garbage collector.
 
 Therefore, it uses a minimum of memory: (linked) lists and (binary tree) records have a factor of 2 overhead (to represent _n_ children, they need _2n_ fixed-size slabs in the slab allocator). Memory use is traded for indirection, but the pointer-hopping is all local, within a contiguous, preallocated buffer.
 
+Last worked in commit 39fdad22a8d50df9ce488eaf14aac484064beec2 (studies/draft-2, Jan 9, 2023). Everything below refers to that.
+
 ## Compilation:
 
 ```bash
