@@ -57,12 +57,16 @@ int main(int argc, char** argv) {
   // int32_t* arena = (int32_t*)malloc(num * sizeof(int32_t));
 
   // int32_t i = 0;
-  // int32_t total = 100000 + 200000000 + 100000;
-  // int64_t where = 0;
-  // while (i < total) {
+  // int64_t j;
+  // int64_t where;
+
+  // while (i < 200200000) {
   //   where = 0;
   //   while (where < num) {
   //     arena[where] = i;
+  //     for (j = 0;  j < 150  &&  where + j < 200200000;  j++) {
+  //       arena[where + j] = i;
+  //     }
   //     i++;
   //     where += random_size();
   //   }
@@ -91,3 +95,5 @@ int main(int argc, char** argv) {
 // No-allocation, just-assignment is consistently 0.5 seconds (regardless of allocator, of course).
 // So allocation itself is about 3 seconds, and allocator (consistently) makes a 10% difference.
 // And allocation itself is like, 7 assignments.
+
+// The cost of standard malloc and jemalloc are about the same as 150 local/consecutive assignments.
