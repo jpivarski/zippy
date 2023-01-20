@@ -12,6 +12,11 @@ struct ZP_SlabAllocator {
 };
 typedef struct ZP_SlabAllocator ZP_SlabAllocator_t;
 
+struct ZP_SlabPointer {
+  size_t* at;
+};
+typedef struct ZP_SlabPointer ZP_SlabPointer_t;
+
 void ZP_SlabAllocator_new(
   ZP_SlabAllocator_t* slab_allocator,
   size_t num_slabs
@@ -28,40 +33,39 @@ void ZP_SlabAllocator_del(
   free((void*)slab_allocator->arena);
 }
 
-size_t* ZP_SlabAllocator_alloc(
-  ZP_SlabAllocator_t* slab_allocator
+void ZP_SlabAllocator_alloc(
+  ZP_SlabAllocator_t* slab_allocator,
+  ZP_SlabPointer_t* pointer
 ) {
   if (slab_allocator->first_free == NULL) {
     if (slab_allocator->bump_free == slab_allocator->arena_end) {
-      return NULL;
+      pointer->at = NULL;
     }
     else {
-      size_t* tmp = slab_allocator->bump_free;
+      pointer->at = slab_allocator->bump_free;
       slab_allocator->bump_free += SLAB_SIZE;
-      return tmp;
     }
   }
   else {
-    size_t* tmp = slab_allocator->first_free;
+    pointer->at = slab_allocator->first_free;
     slab_allocator->first_free = (size_t*)(*slab_allocator->first_free);
-    return tmp;
   }
 }
 
 void ZP_SlabAllocator_free(
   ZP_SlabAllocator_t* slab_allocator,
-  size_t* pointer
+  ZP_SlabPointer_t* pointer
 ) {
-  *pointer = (size_t)slab_allocator->first_free;
-  slab_allocator->first_free = pointer;
+  *(pointer->at) = (size_t)slab_allocator->first_free;
+  slab_allocator->first_free = pointer->at;
 }
 
 int main(int argc, char** argv) {
-  size_t* current;
-  size_t* head;
-  size_t* prev;
+  ZP_SlabPointer_t current;
+  ZP_SlabPointer_t head;
+  ZP_SlabPointer_t prev;
   size_t i = 0;
-  size_t* next_head;
+  ZP_SlabPointer_t next_head;
 
   /* current = (size_t*)malloc(64); */
   /* head = current; */
@@ -72,7 +76,7 @@ int main(int argc, char** argv) {
   /*   prev = current; */
   /* } */
 
-  /* for (i = 0;  i < 200000000;  i++) { */
+  /* for (i = 0;  i < 2000000000;  i++) { */
   /*   next_head = (size_t*)head[0]; */
   /*   free((void*)head); */
   /*   head = next_head; */
@@ -91,29 +95,29 @@ int main(int argc, char** argv) {
   ZP_SlabAllocator_t slab_allocator;
   ZP_SlabAllocator_new(&slab_allocator, SLAB_SIZE * 100000);
 
-  current = ZP_SlabAllocator_alloc(&slab_allocator);
-  head = current;
-  prev = current;
+  ZP_SlabAllocator_alloc(&slab_allocator, &current);
+  head.at = current.at;
+  prev.at = current.at;
   for (i = 0;  i < 100000;  i++) {
-    current = ZP_SlabAllocator_alloc(&slab_allocator);
-    prev[0] = (size_t)current;
-    prev = current;
+    ZP_SlabAllocator_alloc(&slab_allocator, &current);
+    prev.at[0] = (size_t)current.at;
+    prev.at = current.at;
   }
 
-  for (i = 0;  i < 200000000;  i++) {
-    next_head = (size_t*)head[0];
-    ZP_SlabAllocator_free(&slab_allocator, head);
-    head = next_head;
+  for (i = 0;  i < 2000000000;  i++) {
+    next_head.at = (size_t*)head.at[0];
+    ZP_SlabAllocator_free(&slab_allocator, &head);
+    head.at = next_head.at;
 
-    current = ZP_SlabAllocator_alloc(&slab_allocator);
-    prev[0] = (size_t)current;
-    prev = current;
+    ZP_SlabAllocator_alloc(&slab_allocator, &current);
+    prev.at[0] = (size_t)current.at;
+    prev.at = current.at;
   }
 
   for (i = 0;  i < 100000;  i++) {
-    next_head = (size_t*)head[0];
-    ZP_SlabAllocator_free(&slab_allocator, head);
-    head = next_head;
+    next_head.at = (size_t*)head.at[0];
+    ZP_SlabAllocator_free(&slab_allocator, &head);
+    head.at = next_head.at;
   }
 
   ZP_SlabAllocator_del(&slab_allocator);
